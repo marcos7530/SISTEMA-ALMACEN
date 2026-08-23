@@ -1,0 +1,290 @@
+@page "/categorias"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject AuthenticationStateProvider AuthStateProvider
+
+<h3>Gestión de Categorías</h3>
+
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <div class="alert alert-danger" role="alert">@_errorMessage</div>
+}
+
+@if (!string.IsNullOrWhiteSpace(_successMessage))
+{
+    <div class="alert alert-success" role="alert">@_successMessage</div>
+}
+
+@if (_isAdmin)
+{
+    <div class="mb-3">
+        <button class="btn btn-primary" @onclick="ShowCreateForm" disabled="@(_isEditing)">
+            Nueva Categoría
+        </button>
+    </div>
+}
+
+@if (_isLoading)
+{
+    <p>Cargando categorías...</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                @if (_isAdmin)
+                {
+                    <th>Acciones</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @if (_showCreateRow)
+            {
+                <tr>
+                    <td>
+                        <input type="text" class="form-control" @bind="_newCategoria.Nombre"
+                               placeholder="Nombre (3-50 caracteres)" />
+                    </td>
+                    <td>
+                        <input type="text" class="form-control" @bind="_newCategoria.Descripcion"
+                               placeholder="Descripción (opcional)" />
+                    </td>
+                    <td>
+                        <button class="btn btn-success btn-sm" @onclick="CreateCategoria" disabled="@_isSaving">
+                            Guardar
+                        </button>
+                        <button class="btn btn-secondary btn-sm" @onclick="CancelCreate" disabled="@_isSaving">
+                            Cancelar
+                        </button>
+                    </td>
+                </tr>
+            }
+            @foreach (var categoria in _categorias)
+            {
+                @if (_editingId == categoria.Id)
+                {
+                    <tr>
+                        <td>
+                            <input type="text" class="form-control" @bind="_editCategoria.Nombre" />
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" @bind="_editCategoria.Descripcion" />
+                        </td>
+                        <td>
+                            <button class="btn btn-success btn-sm" @onclick="UpdateCategoria" disabled="@_isSaving">
+                                Guardar
+                            </button>
+                            <button class="btn btn-secondary btn-sm" @onclick="CancelEdit" disabled="@_isSaving">
+                                Cancelar
+                            </button>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    <tr>
+                        <td>@categoria.Nombre</td>
+                        <td>@categoria.Descripcion</td>
+                        @if (_isAdmin)
+                        {
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => StartEdit(categoria)" disabled="@(_isEditing)">
+                                    Editar
+                                </button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => DeleteCategoria(categoria)" disabled="@(_isEditing)">
+                                    Eliminar
+                                </button>
+                            </td>
+                        }
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+    @if (_categorias.Count == 0 && !_showCreateRow)
+    {
+        <p class="text-muted">No hay categorías registradas.</p>
+    }
+}
+
+@code {
+    private List<CategoriaDto> _categorias = new();
+    private CreateCategoriaRequest _newCategoria = new();
+    private UpdateCategoriaRequest _editCategoria = new();
+    private int? _editingId;
+    private bool _showCreateRow;
+    private bool _isLoading = true;
+    private bool _isSaving;
+    private bool _isAdmin;
+    private string? _errorMessage;
+    private string? _successMessage;
+
+    private bool _isEditing => _showCreateRow || _editingId.HasValue;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await DetermineRole();
+        await LoadCategorias();
+    }
+
+    private async Task DetermineRole()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var roleClaim = user.FindFirst(System.Security.Claims.ClaimTypes.Role)
+                        ?? user.FindFirst("role");
+        _isAdmin = roleClaim?.Value == nameof(Rol.Administrador);
+    }
+
+    private async Task LoadCategorias()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            var result = await Http.GetFromJsonAsync<List<CategoriaDto>>("api/categorias");
+            _categorias = result ?? new();
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error al cargar las categorías. Intente nuevamente.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void ShowCreateForm()
+    {
+        _showCreateRow = true;
+        _newCategoria = new CreateCategoriaRequest();
+        ClearMessages();
+    }
+
+    private void CancelCreate()
+    {
+        _showCreateRow = false;
+        _newCategoria = new CreateCategoriaRequest();
+    }
+
+    private async Task CreateCategoria()
+    {
+        _isSaving = true;
+        ClearMessages();
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/categorias", _newCategoria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _successMessage = "Categoría creada exitosamente.";
+                _showCreateRow = false;
+                _newCategoria = new CreateCategoriaRequest();
+                await LoadCategorias();
+            }
+            else
+            {
+                var errorResult = await ApiErrorParser.ParseAsync(response);
+                _errorMessage = errorResult.GeneralError ?? "Error al crear la categoría.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión. Intente nuevamente.";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private void StartEdit(CategoriaDto categoria)
+    {
+        _editingId = categoria.Id;
+        _editCategoria = new UpdateCategoriaRequest
+        {
+            Nombre = categoria.Nombre,
+            Descripcion = categoria.Descripcion
+        };
+        ClearMessages();
+    }
+
+    private void CancelEdit()
+    {
+        _editingId = null;
+        _editCategoria = new UpdateCategoriaRequest();
+    }
+
+    private async Task UpdateCategoria()
+    {
+        if (_editingId is null) return;
+
+        _isSaving = true;
+        ClearMessages();
+
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"api/categorias/{_editingId}", _editCategoria);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _successMessage = "Categoría actualizada exitosamente.";
+                _editingId = null;
+                _editCategoria = new UpdateCategoriaRequest();
+                await LoadCategorias();
+            }
+            else
+            {
+                var errorResult = await ApiErrorParser.ParseAsync(response);
+                _errorMessage = errorResult.GeneralError ?? "Error al actualizar la categoría.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión. Intente nuevamente.";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private async Task DeleteCategoria(CategoriaDto categoria)
+    {
+        ClearMessages();
+
+        try
+        {
+            var response = await Http.DeleteAsync($"api/categorias/{categoria.Id}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                _successMessage = $"Categoría '{categoria.Nombre}' eliminada exitosamente.";
+                await LoadCategorias();
+            }
+            else
+            {
+                var errorResult = await ApiErrorParser.ParseAsync(response);
+                _errorMessage = errorResult.GeneralError ?? "Error al eliminar la categoría.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión. Intente nuevamente.";
+        }
+    }
+
+    private void ClearMessages()
+    {
+        _errorMessage = null;
+        _successMessage = null;
+    }
+}

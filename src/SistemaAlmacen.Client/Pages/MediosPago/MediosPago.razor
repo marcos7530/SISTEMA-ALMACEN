@@ -1,0 +1,208 @@
+@page "/medios-pago"
+@attribute [Authorize(Roles = "Administrador")]
+@inject HttpClient Http
+
+<h3>Gestión de Medios de Pago</h3>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+@if (!string.IsNullOrEmpty(_successMessage))
+{
+    <div class="alert alert-success">@_successMessage</div>
+}
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="ShowCreateForm">Nuevo Medio de Pago</button>
+</div>
+
+@if (_showForm)
+{
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">@(_editingId.HasValue ? "Editar" : "Crear") Medio de Pago</h5>
+            <EditForm Model="@_formModel" OnValidSubmit="HandleSubmit" FormName="medioPagoForm">
+                <DataAnnotationsValidator />
+                <div class="form-group mb-2">
+                    <label for="nombre">Nombre</label>
+                    <InputText id="nombre" class="form-control" @bind-Value="_formModel.Nombre" />
+                    <ValidationMessage For="@(() => _formModel.Nombre)" />
+                </div>
+                <button type="submit" class="btn btn-success me-2" disabled="@_isSubmitting">
+                    @(_editingId.HasValue ? "Actualizar" : "Crear")
+                </button>
+                <button type="button" class="btn btn-secondary" @onclick="CancelForm">Cancelar</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@if (_isLoading)
+{
+    <p>Cargando...</p>
+}
+else if (_mediosPago == null || !_mediosPago.Any())
+{
+    <p>No hay medios de pago registrados.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Sistema</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var mp in _mediosPago)
+            {
+                <tr>
+                    <td>@mp.Nombre</td>
+                    <td>
+                        <span class="badge @(mp.Activo ? "bg-success" : "bg-secondary")">
+                            @(mp.Activo ? "Activo" : "Inactivo")
+                        </span>
+                    </td>
+                    <td>@(mp.EsSistema ? "Sí" : "No")</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => StartEdit(mp)" disabled="@mp.EsSistema">
+                            Editar
+                        </button>
+                        @if (mp.Activo)
+                        {
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => Deactivate(mp.Id)" disabled="@mp.EsSistema">
+                                Desactivar
+                            </button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<MedioPagoDto>? _mediosPago;
+    private CreateMedioPagoRequest _formModel = new();
+    private bool _isLoading = true;
+    private bool _isSubmitting;
+    private bool _showForm;
+    private int? _editingId;
+    private string? _errorMessage;
+    private string? _successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMediosPago();
+    }
+
+    private async Task LoadMediosPago()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        try
+        {
+            _mediosPago = await Http.GetFromJsonAsync<List<MedioPagoDto>>("api/medios-pago/all");
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error al cargar los medios de pago.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void ShowCreateForm()
+    {
+        _editingId = null;
+        _formModel = new CreateMedioPagoRequest();
+        _showForm = true;
+        _successMessage = null;
+    }
+
+    private void StartEdit(MedioPagoDto mp)
+    {
+        _editingId = mp.Id;
+        _formModel = new CreateMedioPagoRequest { Nombre = mp.Nombre };
+        _showForm = true;
+        _successMessage = null;
+    }
+
+    private void CancelForm()
+    {
+        _showForm = false;
+        _editingId = null;
+    }
+
+    private async Task HandleSubmit()
+    {
+        _isSubmitting = true;
+        _errorMessage = null;
+        _successMessage = null;
+
+        try
+        {
+            HttpResponseMessage response;
+            if (_editingId.HasValue)
+            {
+                var updateRequest = new UpdateMedioPagoRequest { Nombre = _formModel.Nombre };
+                response = await Http.PutAsJsonAsync($"api/medios-pago/{_editingId.Value}", updateRequest);
+            }
+            else
+            {
+                response = await Http.PostAsJsonAsync("api/medios-pago", _formModel);
+            }
+
+            if (response.IsSuccessStatusCode)
+            {
+                _successMessage = _editingId.HasValue ? "Medio de pago actualizado." : "Medio de pago creado.";
+                _showForm = false;
+                _editingId = null;
+                await LoadMediosPago();
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _errorMessage = !string.IsNullOrEmpty(error) ? error : "Error al guardar el medio de pago.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión al guardar.";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private async Task Deactivate(int id)
+    {
+        _errorMessage = null;
+        _successMessage = null;
+        try
+        {
+            var response = await Http.DeleteAsync($"api/medios-pago/{id}");
+            if (response.IsSuccessStatusCode)
+            {
+                _successMessage = "Medio de pago desactivado.";
+                await LoadMediosPago();
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _errorMessage = !string.IsNullOrEmpty(error) ? error : "Error al desactivar.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión al desactivar.";
+        }
+    }
+}

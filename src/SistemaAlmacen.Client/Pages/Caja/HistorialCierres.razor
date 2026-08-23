@@ -1,0 +1,243 @@
+@page "/caja/historial-cierres"
+@attribute [Authorize]
+@inject HttpClient Http
+
+<h3>Historial de Cierres de Caja</h3>
+
+@* Filtros *@
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <label for="fechaInicio">Fecha Inicio</label>
+                <InputDate id="fechaInicio" class="form-control" @bind-Value="_fechaInicio" />
+            </div>
+            <div class="col-md-4">
+                <label for="fechaFin">Fecha Fin</label>
+                <InputDate id="fechaFin" class="form-control" @bind-Value="_fechaFin" />
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button class="btn btn-primary me-2" @onclick="Buscar">Buscar</button>
+                <button class="btn btn-outline-secondary" @onclick="LimpiarFiltros">Limpiar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (_isLoading)
+{
+    <p>Cargando historial...</p>
+}
+else if (_cierres.Count == 0)
+{
+    <div class="alert alert-info">No se encontraron cierres de caja para el período seleccionado.</div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Fecha Apertura</th>
+                <th>Fecha Cierre</th>
+                <th>Monto Inicial</th>
+                <th>Saldo Esperado</th>
+                <th>Monto Real</th>
+                <th>Diferencia</th>
+                <th>Estado</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cierre in _cierres)
+            {
+                <tr>
+                    <td>@cierre.FechaApertura.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@cierre.FechaCierre.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>$@cierre.MontoInicial.ToString("N2")</td>
+                    <td>$@cierre.SaldoEsperado.ToString("N2")</td>
+                    <td>$@cierre.MontoRealCierre.ToString("N2")</td>
+                    <td class="@(cierre.Diferencia >= 0 ? "text-success" : "text-danger")">
+                        $@cierre.Diferencia.ToString("N2")
+                    </td>
+                    <td>
+                        @if (cierre.DiferenciaSignificativa)
+                        {
+                            <span class="badge bg-danger">Diferencia significativa</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Normal</span>
+                        }
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" @onclick="() => ToggleDetalle(cierre.Id)">
+                            @(_detalleExpandido == cierre.Id ? "Ocultar" : "Ver Detalle")
+                        </button>
+                    </td>
+                </tr>
+                @if (_detalleExpandido == cierre.Id)
+                {
+                    <tr>
+                        <td colspan="8">
+                            <div class="p-2 bg-light">
+                                <h6>Movimientos del Período</h6>
+                                @if (cierre.Movimientos.Count == 0)
+                                {
+                                    <p class="text-muted">Sin movimientos registrados.</p>
+                                }
+                                else
+                                {
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Fecha</th>
+                                                <th>Tipo</th>
+                                                <th>Monto</th>
+                                                <th>Motivo</th>
+                                                <th>Usuario</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var mov in cierre.Movimientos)
+                                            {
+                                                <tr>
+                                                    <td>@mov.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                                                    <td>@GetTipoMovimientoLabel(mov.Tipo)</td>
+                                                    <td class="@(EsIngreso(mov.Tipo) ? "text-success" : "text-danger")">
+                                                        @(EsIngreso(mov.Tipo) ? "+" : "-")$@mov.Monto.ToString("N2")
+                                                    </td>
+                                                    <td>@mov.Motivo</td>
+                                                    <td>@mov.Usuario</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+    @* Paginación *@
+    @if (_totalPages > 1)
+    {
+        <nav aria-label="Paginación de cierres de caja">
+            <ul class="pagination">
+                <li class="page-item @(_page <= 1 ? "disabled" : "")">
+                    <button class="page-link" @onclick="() => CambiarPagina(_page - 1)" disabled="@(_page <= 1)">Anterior</button>
+                </li>
+                @for (int i = 1; i <= _totalPages; i++)
+                {
+                    var pageNum = i;
+                    <li class="page-item @(pageNum == _page ? "active" : "")">
+                        <button class="page-link" @onclick="() => CambiarPagina(pageNum)">@pageNum</button>
+                    </li>
+                }
+                <li class="page-item @(_page >= _totalPages ? "disabled" : "")">
+                    <button class="page-link" @onclick="() => CambiarPagina(_page + 1)" disabled="@(_page >= _totalPages)">Siguiente</button>
+                </li>
+            </ul>
+        </nav>
+    }
+}
+
+<div class="mt-3">
+    <a href="/caja" class="btn btn-outline-secondary">Volver a Gestión de Caja</a>
+</div>
+
+@code {
+    private bool _isLoading = true;
+    private List<CierreResumenDto> _cierres = new();
+    private int _page = 1;
+    private int _totalPages;
+    private int _detalleExpandido;
+
+    private DateTime? _fechaInicio;
+    private DateTime? _fechaFin;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarHistorial();
+    }
+
+    private async Task CargarHistorial()
+    {
+        _isLoading = true;
+        try
+        {
+            var queryParams = $"page={_page}&pageSize=20";
+            if (_fechaInicio.HasValue)
+                queryParams += $"&fechaInicio={_fechaInicio.Value:yyyy-MM-dd}";
+            if (_fechaFin.HasValue)
+                queryParams += $"&fechaFin={_fechaFin.Value:yyyy-MM-dd}";
+
+            var response = await Http.GetAsync($"api/caja/historial-cierres?{queryParams}");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<PaginatedResult<CierreResumenDto>>();
+                if (result is not null)
+                {
+                    _cierres = result.Items;
+                    _totalPages = result.TotalPages;
+                }
+            }
+            else
+            {
+                _cierres = new();
+                _totalPages = 0;
+            }
+        }
+        catch
+        {
+            _cierres = new();
+            _totalPages = 0;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task Buscar()
+    {
+        _page = 1;
+        await CargarHistorial();
+    }
+
+    private async Task LimpiarFiltros()
+    {
+        _fechaInicio = null;
+        _fechaFin = null;
+        _page = 1;
+        await CargarHistorial();
+    }
+
+    private async Task CambiarPagina(int nuevaPagina)
+    {
+        if (nuevaPagina < 1 || nuevaPagina > _totalPages) return;
+        _page = nuevaPagina;
+        await CargarHistorial();
+    }
+
+    private void ToggleDetalle(int cierreId)
+    {
+        _detalleExpandido = _detalleExpandido == cierreId ? 0 : cierreId;
+    }
+
+    private static string GetTipoMovimientoLabel(TipoMovimiento tipo) => tipo switch
+    {
+        TipoMovimiento.Apertura => "Apertura",
+        TipoMovimiento.VentaEfectivo => "Venta Efectivo",
+        TipoMovimiento.Retiro => "Retiro",
+        TipoMovimiento.IngresoAdicional => "Ingreso Adicional",
+        _ => tipo.ToString()
+    };
+
+    private static bool EsIngreso(TipoMovimiento tipo) =>
+        tipo == TipoMovimiento.Apertura ||
+        tipo == TipoMovimiento.VentaEfectivo ||
+        tipo == TipoMovimiento.IngresoAdicional;
+}

@@ -1,0 +1,37 @@
+﻿@inherits LayoutComponentBase
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<div class="page">
+    <AuthorizeView>
+        <Authorized>
+            <div class="sidebar">
+                <NavMenu />
+            </div>
+        </Authorized>
+    </AuthorizeView>
+
+    <main>
+        <AuthorizeView>
+            <Authorized>
+                <div class="top-row px-4">
+                    <span>Hola, @context.User.Identity?.Name</span>
+                    <button class="btn btn-link" @onclick="Logout">Cerrar sesión</button>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code {
+    private async Task Logout()
+    {
+        var provider = (JwtAuthenticationStateProvider)AuthStateProvider;
+        await provider.MarkUserAsLoggedOut();
+        Navigation.NavigateTo("/login");
+    }
+}

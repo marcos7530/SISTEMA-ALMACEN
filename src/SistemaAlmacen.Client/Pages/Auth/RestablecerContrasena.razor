@@ -1,0 +1,177 @@
+@page "/restablecer-contrasena"
+@attribute [AllowAnonymous]
+@layout MainLayout
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h3>Restablecer Contraseña</h3>
+
+<div class="auth-container">
+    @if (_tokenInvalid)
+    {
+        <div class="alert alert-danger">
+            El enlace de recuperación ya no es válido. Solicitá uno nuevo.
+        </div>
+        <a href="/recuperar-contrasena">Solicitar nuevo enlace</a>
+    }
+    else if (_success)
+    {
+        <div class="alert alert-success">
+            Tu contraseña fue restablecida exitosamente.
+        </div>
+        <a href="/login">Iniciar sesión</a>
+    }
+    else if (_validatingToken)
+    {
+        <p>Validando enlace de recuperación...</p>
+    }
+    else
+    {
+        <p>Ingresá tu nueva contraseña. Debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número.</p>
+
+        <EditForm Model="@_model" OnValidSubmit="HandleSubmit" FormName="resetForm">
+            <DataAnnotationsValidator />
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <div class="alert alert-danger">@_errorMessage</div>
+            }
+
+            <div class="form-group">
+                <label for="newPassword">Nueva contraseña</label>
+                <InputText id="newPassword" type="password" class="form-control" @bind-Value="_model.NewPassword" />
+                <ValidationMessage For="@(() => _model.NewPassword)" />
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirmar contraseña</label>
+                <InputText id="confirmPassword" type="password" class="form-control" @bind-Value="_model.ConfirmPassword" />
+                <ValidationMessage For="@(() => _model.ConfirmPassword)" />
+            </div>
+
+            <button type="submit" class="btn btn-primary" disabled="@_isLoading">
+                @if (_isLoading)
+                {
+                    <span>Restableciendo...</span>
+                }
+                else
+                {
+                    <span>Restablecer contraseña</span>
+                }
+            </button>
+        </EditForm>
+
+        <div class="login-links">
+            <a href="/login">Volver al inicio de sesión</a>
+        </div>
+    }
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "token")]
+    public string? Token { get; set; }
+
+    private ResetModel _model = new();
+    private string? _errorMessage;
+    private bool _isLoading;
+    private bool _success;
+    private bool _tokenInvalid;
+    private bool _validatingToken = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Token))
+        {
+            _tokenInvalid = true;
+            _validatingToken = false;
+            return;
+        }
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/validate-token", new { token = Token });
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<TokenValidationResult>();
+                if (result?.Valid != true)
+                {
+                    _tokenInvalid = true;
+                }
+            }
+            else
+            {
+                _tokenInvalid = true;
+            }
+        }
+        catch
+        {
+            _errorMessage = "Error de conexión al validar el enlace.";
+        }
+        finally
+        {
+            _validatingToken = false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (_model.NewPassword != _model.ConfirmPassword)
+        {
+            _errorMessage = "Las contraseñas no coinciden.";
+            return;
+        }
+
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/reset-password", new
+            {
+                token = Token,
+                newPassword = _model.NewPassword
+            });
+
+            if (response.IsSuccessStatusCode)
+            {
+                _success = true;
+            }
+            else
+            {
+                var content = await response.Content.ReadFromJsonAsync<ErrorMessageResult>();
+                _errorMessage = content?.Message ?? "No se pudo restablecer la contraseña.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión. Intente nuevamente.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private class ResetModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "La contraseña es requerida.")]
+        [System.ComponentModel.DataAnnotations.MinLength(8, ErrorMessage = "La contraseña debe tener al menos 8 caracteres.")]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$",
+            ErrorMessage = "La contraseña debe contener al menos una mayúscula, una minúscula y un número.")]
+        public string NewPassword { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "La confirmación de contraseña es requerida.")]
+        [System.ComponentModel.DataAnnotations.Compare(nameof(NewPassword), ErrorMessage = "Las contraseñas no coinciden.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
+
+    private class TokenValidationResult
+    {
+        public bool Valid { get; set; }
+    }
+
+    private class ErrorMessageResult
+    {
+        public string? Message { get; set; }
+    }
+}

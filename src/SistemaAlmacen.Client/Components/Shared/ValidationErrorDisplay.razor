@@ -1,0 +1,89 @@
+@using Microsoft.AspNetCore.Components.Forms
+
+@* 
+    Componente que muestra errores de validación por campo recibidos desde la API.
+    Se usa dentro de un EditForm para mostrar mensajes de error junto a cada campo.
+    También muestra un mensaje de error general si no hay errores de campo específicos.
+*@
+
+@if (!string.IsNullOrWhiteSpace(GeneralError))
+{
+    <div class="alert alert-danger" role="alert">
+        @GeneralError
+    </div>
+}
+
+@if (FieldErrors is not null && FieldErrors.Count > 0)
+{
+    <div class="validation-summary">
+        <ul class="validation-errors">
+            @foreach (var field in FieldErrors)
+            {
+                @foreach (var error in field.Value)
+                {
+                    <li class="text-danger">@($"{field.Key}: {error}")</li>
+                }
+            }
+        </ul>
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// Errores de validación por campo recibidos desde la API.
+    /// La clave es el nombre del campo y el valor es un arreglo de mensajes de error.
+    /// </summary>
+    [Parameter]
+    public Dictionary<string, string[]>? FieldErrors { get; set; }
+
+    /// <summary>
+    /// Mensaje de error general (no asociado a un campo específico).
+    /// </summary>
+    [Parameter]
+    public string? GeneralError { get; set; }
+
+    /// <summary>
+    /// Referencia al EditContext del formulario para agregar errores de campo
+    /// y activar la validación visual de Blazor.
+    /// </summary>
+    [Parameter]
+    public EditContext? EditContext { get; set; }
+
+    /// <summary>
+    /// Si es true, mapea automáticamente los FieldErrors al EditContext 
+    /// para que los campos del formulario se resalten visualmente.
+    /// </summary>
+    [Parameter]
+    public bool MapToEditContext { get; set; } = true;
+
+    private ValidationMessageStore? _messageStore;
+
+    protected override void OnParametersSet()
+    {
+        if (EditContext is not null && MapToEditContext && FieldErrors is not null && FieldErrors.Count > 0)
+        {
+            _messageStore = new ValidationMessageStore(EditContext);
+            _messageStore.Clear();
+
+            foreach (var fieldError in FieldErrors)
+            {
+                var fieldIdentifier = new FieldIdentifier(EditContext.Model, fieldError.Key);
+                foreach (var message in fieldError.Value)
+                {
+                    _messageStore.Add(fieldIdentifier, message);
+                }
+            }
+
+            EditContext.NotifyValidationStateChanged();
+        }
+    }
+
+    /// <summary>
+    /// Limpia todos los errores mostrados y del EditContext.
+    /// </summary>
+    public void Clear()
+    {
+        _messageStore?.Clear();
+        EditContext?.NotifyValidationStateChanged();
+    }
+}

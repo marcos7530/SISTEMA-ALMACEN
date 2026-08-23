@@ -1,0 +1,226 @@
+@page "/usuarios"
+@attribute [Authorize(Roles = "Administrador")]
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h3>Gestión de Usuarios</h3>
+
+<div class="toolbar">
+    <div class="search-box">
+        <input type="text" class="form-control" placeholder="Buscar por nombre o email..."
+               @bind="_searchTerm" @bind:event="oninput" @onkeyup="HandleSearchKeyUp" />
+        <button class="btn btn-secondary" @onclick="SearchAsync">Buscar</button>
+    </div>
+    <button class="btn btn-primary" @onclick="NuevoUsuario">Nuevo Usuario</button>
+</div>
+
+@if (_isLoading)
+{
+    <p>Cargando...</p>
+}
+else if (_result == null || !_result.Items.Any())
+{
+    <p>No se encontraron usuarios.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var usuario in _result.Items)
+            {
+                <tr>
+                    <td>@usuario.Nombre</td>
+                    <td>@usuario.Email</td>
+                    <td>@usuario.Rol.ToString()</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" @onclick="() => EditarUsuario(usuario.Id)">Editar</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => ConfirmarEliminar(usuario)">Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="pagination">
+        <button class="btn btn-sm btn-outline-primary" disabled="@(_currentPage <= 1)" @onclick="PaginaAnterior">
+            Anterior
+        </button>
+        <span>Página @_currentPage de @_result.TotalPages</span>
+        <button class="btn btn-sm btn-outline-primary" disabled="@(_currentPage >= _result.TotalPages)" @onclick="PaginaSiguiente">
+            Siguiente
+        </button>
+    </div>
+}
+
+@if (_showDeleteConfirmation)
+{
+    <div class="modal-backdrop"></div>
+    <div class="modal-dialog-custom">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5>Confirmar Eliminación</h5>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro de que desea eliminar al usuario <strong>@_usuarioToDelete?.Nombre</strong>?</p>
+                <p>Esta acción desactivará la cuenta del usuario.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CancelDelete">Cancelar</button>
+                <button class="btn btn-danger" @onclick="EliminarUsuario" disabled="@_isDeleting">
+                    @(_isDeleting ? "Eliminando..." : "Eliminar")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger mt-3">@_errorMessage</div>
+}
+
+@if (!string.IsNullOrEmpty(_successMessage))
+{
+    <div class="alert alert-success mt-3">@_successMessage</div>
+}
+
+@code {
+    private PaginatedResult<UsuarioDto>? _result;
+    private string _searchTerm = string.Empty;
+    private int _currentPage = 1;
+    private const int PageSize = 20;
+    private bool _isLoading;
+    private bool _showDeleteConfirmation;
+    private bool _isDeleting;
+    private UsuarioDto? _usuarioToDelete;
+    private string? _errorMessage;
+    private string? _successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsuariosAsync();
+    }
+
+    private async Task LoadUsuariosAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            var url = $"api/usuarios?Page={_currentPage}&PageSize={PageSize}";
+            if (!string.IsNullOrWhiteSpace(_searchTerm))
+            {
+                url += $"&SearchTerm={Uri.EscapeDataString(_searchTerm)}";
+            }
+
+            _result = await Http.GetFromJsonAsync<PaginatedResult<UsuarioDto>>(url);
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error al cargar los usuarios. Intente nuevamente.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task SearchAsync()
+    {
+        _currentPage = 1;
+        await LoadUsuariosAsync();
+    }
+
+    private async Task HandleSearchKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchAsync();
+        }
+    }
+
+    private async Task PaginaAnterior()
+    {
+        if (_currentPage > 1)
+        {
+            _currentPage--;
+            await LoadUsuariosAsync();
+        }
+    }
+
+    private async Task PaginaSiguiente()
+    {
+        if (_result != null && _currentPage < _result.TotalPages)
+        {
+            _currentPage++;
+            await LoadUsuariosAsync();
+        }
+    }
+
+    private void NuevoUsuario()
+    {
+        Navigation.NavigateTo("/usuarios/nuevo");
+    }
+
+    private void EditarUsuario(int id)
+    {
+        Navigation.NavigateTo($"/usuarios/editar/{id}");
+    }
+
+    private void ConfirmarEliminar(UsuarioDto usuario)
+    {
+        _usuarioToDelete = usuario;
+        _showDeleteConfirmation = true;
+        _errorMessage = null;
+        _successMessage = null;
+    }
+
+    private void CancelDelete()
+    {
+        _showDeleteConfirmation = false;
+        _usuarioToDelete = null;
+    }
+
+    private async Task EliminarUsuario()
+    {
+        if (_usuarioToDelete == null) return;
+
+        _isDeleting = true;
+        _errorMessage = null;
+
+        try
+        {
+            var response = await Http.DeleteAsync($"api/usuarios/{_usuarioToDelete.Id}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                _successMessage = $"Usuario '{_usuarioToDelete.Nombre}' eliminado exitosamente.";
+                _showDeleteConfirmation = false;
+                _usuarioToDelete = null;
+                await LoadUsuariosAsync();
+            }
+            else
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                _errorMessage = !string.IsNullOrEmpty(content) ? content : "Error al eliminar el usuario.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión. Intente nuevamente.";
+        }
+        finally
+        {
+            _isDeleting = false;
+        }
+    }
+}

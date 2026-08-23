@@ -1,0 +1,28 @@
+{
+  "name": "Sistema POS",
+  "short_name": "POS",
+  "id": "./",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a237e",
+  "prefer_related_applications": false,
+  "orientation": "any",
+  "scope": "/",
+  "description": "Sistema de Punto de Venta - Gestión integral de ventas, productos, caja y facturación",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}

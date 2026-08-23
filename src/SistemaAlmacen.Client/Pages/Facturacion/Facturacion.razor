@@ -1,0 +1,248 @@
+@page "/facturacion"
+@attribute [Authorize(Roles = "Administrador")]
+@inject HttpClient Http
+
+<h3>Facturación Electrónica AFIP</h3>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+@if (!string.IsNullOrEmpty(_successMessage))
+{
+    <div class="alert alert-success">@_successMessage</div>
+}
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Configuración AFIP</h5>
+            </div>
+            <div class="card-body">
+                @if (_config == null)
+                {
+                    <p>Cargando configuración...</p>
+                }
+                else
+                {
+                    <dl>
+                        <dt>CUIT</dt>
+                        <dd>@(string.IsNullOrEmpty(_config.Cuit) ? "No configurado" : _config.Cuit)</dd>
+                        <dt>Punto de Venta</dt>
+                        <dd>@(_config.PuntoDeVenta > 0 ? _config.PuntoDeVenta.ToString() : "No configurado")</dd>
+                        <dt>Modo</dt>
+                        <dd>
+                            <span class="badge @(_config.ModoProduccion ? "bg-danger" : "bg-warning text-dark")">
+                                @(_config.ModoProduccion ? "Producción" : "Desarrollo")
+                            </span>
+                        </dd>
+                        <dt>Certificado</dt>
+                        <dd>@(_config.TieneCertificado ? "Configurado" : "No configurado")</dd>
+                        <dt>Mock AFIP</dt>
+                        <dd>@(_config.UsaMock ? "Sí (sin conexión real)" : "No")</dd>
+                    </dl>
+                    <button class="btn btn-sm btn-outline-primary" @onclick="TestConnection" disabled="@_isTesting">
+                        @(_isTesting ? "Probando..." : "Probar Conexión")
+                    </button>
+                    @if (_connectionTestResult != null)
+                    {
+                        <div class="mt-2 alert @(_connectionTestSuccess ? "alert-success" : "alert-danger") py-1">
+                            @_connectionTestResult
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Comprobantes Pendientes</h5>
+                @if (_pendientes != null && _pendientes.Any())
+                {
+                    <button class="btn btn-sm btn-warning" @onclick="RetryAll" disabled="@_isRetrying">
+                        @(_isRetrying ? "Reintentando..." : "Reintentar Todos")
+                    </button>
+                }
+            </div>
+            <div class="card-body">
+                @if (_isLoadingPendientes)
+                {
+                    <p>Cargando pendientes...</p>
+                }
+                else if (_pendientes == null || !_pendientes.Any())
+                {
+                    <p class="text-muted">No hay comprobantes pendientes de emisión.</p>
+                }
+                else
+                {
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Venta</th>
+                                <th>Fecha</th>
+                                <th>Total</th>
+                                <th>Error</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in _pendientes)
+                            {
+                                <tr>
+                                    <td>#@p.VentaId</td>
+                                    <td>@p.FechaVenta.ToString("dd/MM/yyyy")</td>
+                                    <td>$@p.Total.ToString("N2")</td>
+                                    <td><small class="text-danger">@p.Error</small></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-warning" @onclick="() => Retry(p.VentaId)" disabled="@_isRetrying">
+                                            Reintentar
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private AfipConfigDto? _config;
+    private List<VentaPendienteFacturacionDto>? _pendientes;
+    private bool _isLoadingPendientes = true;
+    private bool _isRetrying;
+    private bool _isTesting;
+    private string? _errorMessage;
+    private string? _successMessage;
+    private string? _connectionTestResult;
+    private bool _connectionTestSuccess;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.WhenAll(LoadConfig(), LoadPendientes());
+    }
+
+    private async Task LoadConfig()
+    {
+        try
+        {
+            _config = await Http.GetFromJsonAsync<AfipConfigDto>("api/facturacion/config");
+        }
+        catch (Exception)
+        {
+            _config = new AfipConfigDto();
+        }
+    }
+
+    private async Task LoadPendientes()
+    {
+        _isLoadingPendientes = true;
+        try
+        {
+            _pendientes = await Http.GetFromJsonAsync<List<VentaPendienteFacturacionDto>>("api/facturacion/pendientes");
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error al cargar comprobantes pendientes.";
+        }
+        finally
+        {
+            _isLoadingPendientes = false;
+        }
+    }
+
+    private async Task Retry(int ventaId)
+    {
+        _isRetrying = true;
+        _errorMessage = null;
+        _successMessage = null;
+
+        try
+        {
+            var response = await Http.PostAsync($"api/facturacion/reintentar/{ventaId}", null);
+            if (response.IsSuccessStatusCode)
+            {
+                _successMessage = $"Comprobante de venta #{ventaId} emitido correctamente.";
+                await LoadPendientes();
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _errorMessage = !string.IsNullOrEmpty(error) ? error : "Error al reintentar la emisión.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión al reintentar.";
+        }
+        finally
+        {
+            _isRetrying = false;
+        }
+    }
+
+    private async Task RetryAll()
+    {
+        _isRetrying = true;
+        _errorMessage = null;
+        _successMessage = null;
+
+        try
+        {
+            var response = await Http.PostAsync("api/facturacion/reintentar-masivo", null);
+            if (response.IsSuccessStatusCode)
+            {
+                _successMessage = "Reintento masivo completado.";
+                await LoadPendientes();
+            }
+            else
+            {
+                _errorMessage = "Error al reintentar masivamente.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión al reintentar masivamente.";
+        }
+        finally
+        {
+            _isRetrying = false;
+        }
+    }
+
+    private async Task TestConnection()
+    {
+        _isTesting = true;
+        _connectionTestResult = null;
+
+        try
+        {
+            var response = await Http.PostAsync("api/facturacion/test-connection", null);
+            if (response.IsSuccessStatusCode)
+            {
+                _connectionTestResult = "Conexión con AFIP exitosa.";
+                _connectionTestSuccess = true;
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _connectionTestResult = !string.IsNullOrEmpty(error) ? error : "No se pudo conectar con AFIP.";
+                _connectionTestSuccess = false;
+            }
+        }
+        catch (Exception)
+        {
+            _connectionTestResult = "Error de conexión con el servidor.";
+            _connectionTestSuccess = false;
+        }
+        finally
+        {
+            _isTesting = false;
+        }
+    }
+}

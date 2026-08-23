@@ -1,0 +1,176 @@
+@page "/ventas/{Id:int}"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h3>Detalle de Venta</h3>
+
+<button class="btn btn-outline-secondary mb-3" @onclick="Volver">
+    &larr; Volver al historial
+</button>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+
+@if (_isLoading)
+{
+    <p>Cargando...</p>
+}
+else if (_venta is not null)
+{
+    <div class="card mb-3">
+        <div class="card-header">Información General</div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <strong>ID Venta:</strong> @_venta.Id
+                </div>
+                <div class="col-md-3">
+                    <strong>Fecha:</strong> @_venta.Fecha.ToString("dd/MM/yyyy HH:mm")
+                </div>
+                <div class="col-md-3">
+                    <strong>Vendedor:</strong> @_venta.Vendedor
+                </div>
+                <div class="col-md-3">
+                    <strong>Estado:</strong> @_venta.Estado
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Table -->
+    <div class="card mb-3">
+        <div class="card-header">Productos</div>
+        <div class="card-body">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var d in _venta.Detalles)
+                    {
+                        <tr>
+                            <td>@d.ProductoNombre</td>
+                            <td>@d.Cantidad</td>
+                            <td>$@d.PrecioUnitario.ToString("N2")</td>
+                            <td>$@d.Subtotal.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                        <td><strong>$@_venta.Total.ToString("N2")</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <!-- Payments Table -->
+    @if (_venta.Pagos.Any())
+    {
+        <div class="card mb-3">
+            <div class="card-header">Medios de Pago</div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Medio de Pago</th>
+                            <th>Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in _venta.Pagos)
+                        {
+                            <tr>
+                                <td>@p.MedioPagoNombre</td>
+                                <td>$@p.Monto.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <p class="text-muted">No se encontró la venta solicitada.</p>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private VentaDetalleCompletoItemDto? _venta;
+    private bool _isLoading;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarVenta();
+    }
+
+    private async Task CargarVenta()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            _venta = await Http.GetFromJsonAsync<VentaDetalleCompletoItemDto>($"api/ventas/{Id}");
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            _errorMessage = "Venta no encontrada.";
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error al cargar el detalle de la venta.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void Volver()
+    {
+        Navigation.NavigateTo("/ventas/historial");
+    }
+
+    // --- Local DTOs ---
+    private class VentaDetalleCompletoItemDto
+    {
+        public int Id { get; set; }
+        public DateTime Fecha { get; set; }
+        public decimal Total { get; set; }
+        public string Estado { get; set; } = string.Empty;
+        public string Vendedor { get; set; } = string.Empty;
+        public List<DetalleItemDto> Detalles { get; set; } = new();
+        public List<PagoItemDto> Pagos { get; set; } = new();
+    }
+
+    private class DetalleItemDto
+    {
+        public int Id { get; set; }
+        public string ProductoNombre { get; set; } = string.Empty;
+        public int Cantidad { get; set; }
+        public decimal PrecioUnitario { get; set; }
+        public decimal Subtotal { get; set; }
+    }
+
+    private class PagoItemDto
+    {
+        public string MedioPagoNombre { get; set; } = string.Empty;
+        public decimal Monto { get; set; }
+    }
+}

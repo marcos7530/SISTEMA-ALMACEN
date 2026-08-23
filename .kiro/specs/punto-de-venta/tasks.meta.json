@@ -1,0 +1,1107 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Crear solución .sln con los 5 proyectos: SistemaAlmacen.Client (Blazor WASM PWA), SistemaAlmacen.Server (ASP.NET Core Web API), SistemaAlmacen.Business, SistemaAlmacen.Data, SistemaAlmacen.Shared": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502175822
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502190168
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502754449
+      }
+    ],
+    "1.2 Crear proyectos de tests: SistemaAlmacen.Business.Tests, SistemaAlmacen.Data.Tests, SistemaAlmacen.Integration.Tests": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502176250
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502191185
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502755489
+      }
+    ],
+    "2.1 Definir entidades del modelo de datos en SistemaAlmacen.Data/Entities/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502176361
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502760942
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503168955
+      }
+    ],
+    "2.2 Crear DbContext y configuraciones Fluent API en SistemaAlmacen.Data/Context/ y Configurations/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502176422
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503176651
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503396987
+      }
+    ],
+    "2.3 Crear migración inicial y seed de datos predeterminados": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502176489
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503401600
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503745437
+      }
+    ],
+    "3.1 Crear DTOs en SistemaAlmacen.Shared/DTOs/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502176575
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502761724
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503170767
+      }
+    ],
+    "3.2 Implementar patrón Result y Result<T> en SistemaAlmacen.Shared/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502176651
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502762528
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503169851
+      }
+    ],
+    "3.3 Crear validadores compartidos con Data Annotations en SistemaAlmacen.Shared/Validators/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502176706
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502763424
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503167952
+      }
+    ],
+    "4.1 Crear interfaces y repositorios en SistemaAlmacen.Data/Repositories/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502176771
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503402654
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503746505
+      }
+    ],
+    "5. Checkpoint — Verificar compilación y estructura base": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502176869
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503776638
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503865028
+      }
+    ],
+    "6.1 Implementar IAuthService, ITokenService e ISessionService en SistemaAlmacen.Business/Services/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502176923
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503882501
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504260725
+      }
+    ],
+    "6.2 Implementar recuperación de contraseña": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502176983
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503883257
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504261458
+      }
+    ],
+    "6.3 Implementar control de acceso por roles en el servidor": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502177037
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504270188
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504459303
+      }
+    ],
+    "6.4 Crear AuthController en SistemaAlmacen.Server/Controllers/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502177089
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504271217
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504460476
+      }
+    ],
+    "7.1 Implementar IUsuarioService en SistemaAlmacen.Business/Services/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502177150
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503884116
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504262212
+      }
+    ],
+    "7.2 Crear UsuariosController en SistemaAlmacen.Server/Controllers/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502177222
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504272145
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504461338
+      }
+    ],
+    "8.1 Implementar ICategoriaService en SistemaAlmacen.Business/Services/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502177279
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503885067
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504263098
+      }
+    ],
+    "8.2 Crear CategoriasController en SistemaAlmacen.Server/Controllers/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502177343
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504273081
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504462238
+      }
+    ],
+    "9.1 Implementar IProductoService en SistemaAlmacen.Business/Services/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502177418
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503886016
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504264267
+      }
+    ],
+    "9.2 Crear ProductosController en SistemaAlmacen.Server/Controllers/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502177503
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504274115
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504463006
+      }
+    ],
+    "10. Checkpoint — Verificar módulos CRUD base": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502177579
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504469876
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504562905
+      }
+    ],
+    "11.1 Implementar IVentaService e IStockService en SistemaAlmacen.Business/Services/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502177635
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504569294
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504965721
+      }
+    ],
+    "11.2 Implementar consulta de ventas con filtrado y paginación": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502177691
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504977685
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787505357119
+      }
+    ],
+    "11.3 Crear VentasController en SistemaAlmacen.Server/Controllers/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502177748
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504978745
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787505358203
+      }
+    ],
+    "12.1 Implementar IMedioPagoService en SistemaAlmacen.Business/Services/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502177802
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504570309
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504966511
+      }
+    ],
+    "12.2 Integrar pago mixto en confirmación de venta": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502177865
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504979578
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787505359014
+      }
+    ],
+    "12.3 Crear MediosPagoController en SistemaAlmacen.Server/Controllers/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502177934
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504980553
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787505359797
+      }
+    ],
+    "13.1 Implementar ICajaService en SistemaAlmacen.Business/Services/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502177988
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504571179
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504967471
+      }
+    ],
+    "13.2 Crear CajaController en SistemaAlmacen.Server/Controllers/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502178049
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504981761
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787505360709
+      }
+    ],
+    "14. Checkpoint — Verificar módulos de negocio core": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502178105
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787505369113
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787505673440
+      }
+    ],
+    "15.1 Implementar IAuditoriaService e interceptor de EF Core en SistemaAlmacen.Data/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502178171
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504572305
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504968542
+      }
+    ],
+    "15.2 Implementar consulta de auditoría con filtros": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502178231
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787505366962
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787505672520
+      }
+    ],
+    "15.3 Crear AuditoriaController en SistemaAlmacen.Server/Controllers/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502178289
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787505368148
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787505671703
+      }
+    ],
+    "16.1 Implementar IAfipClientWrapper e IFacturacionService en SistemaAlmacen.Business/Services/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502178349
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787505679654
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787509634471
+      }
+    ],
+    "16.2 Implementar gestión de comprobantes pendientes y reintento": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502178408
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787509646643
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787509871499
+      }
+    ],
+    "16.3 Implementar generación de PDF de comprobante": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502178478
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787509647814
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787509872212
+      }
+    ],
+    "16.4 Implementar configuración de conexión AFIP": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502178552
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787509648620
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787509873061
+      }
+    ],
+    "16.5 Crear FacturacionController en SistemaAlmacen.Server/Controllers/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502178656
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787509649333
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787509874060
+      }
+    ],
+    "17.1 Implementar IReporteService en SistemaAlmacen.Business/Services/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502178718
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787505680592
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787509635211
+      }
+    ],
+    "17.2 Implementar exportación a PDF, Excel y CSV": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502178772
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787509650435
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787509874905
+      }
+    ],
+    "17.3 Crear ReportesController en SistemaAlmacen.Server/Controllers/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502178837
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787509882126
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510498428
+      }
+    ],
+    "18. Checkpoint — Verificar módulos del servidor completos": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502178898
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787509883358
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510499311
+      }
+    ],
+    "19.1 Implementar GlobalExceptionMiddleware en SistemaAlmacen.Server/Middleware/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502178954
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787509884435
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510500162
+      }
+    ],
+    "19.2 Implementar validación dual cliente/servidor": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502179023
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787509885504
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510501063
+      }
+    ],
+    "20.1 Crear layout principal, sistema de navegación y componentes de autenticación en SistemaAlmacen.Client/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502179087
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787509887020
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510502374
+      }
+    ],
+    "21.1 Crear páginas de gestión de usuarios en SistemaAlmacen.Client/Pages/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502179165
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510509679
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510991190
+      }
+    ],
+    "21.2 Crear páginas de gestión de categorías y productos": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502179225
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510510627
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510992092
+      }
+    ],
+    "21.3 Crear páginas de registro y consulta de ventas": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502179291
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510511611
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510992949
+      }
+    ],
+    "21.4 Crear páginas de gestión de caja": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502179355
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510512460
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510993696
+      }
+    ],
+    "21.5 Crear páginas de medios de pago, auditoría y reportes": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502179420
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510513273
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510994737
+      }
+    ],
+    "22.1 Implementar IConnectivityService e IOfflineStorageService en SistemaAlmacen.Client/Offline/": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502179502
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787511002812
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787511529013
+      }
+    ],
+    "22.2 Implementar ISyncEngine para sincronización automática": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502179556
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787511001591
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787511529859
+      }
+    ],
+    "22.3 Configurar Service Worker y manifest.json para PWA": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502179620
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787511003529
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787511530891
+      }
+    ],
+    "23. Checkpoint — Verificar sistema completo end-to-end": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502179689
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787511537933
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787511929402
+      }
+    ],
+    "24.1 Integrar registro de auditoría en módulos de caja y facturación": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502179774
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787511539200
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787511928471
+      }
+    ],
+    "24.2 Verificar integración completa entre módulos": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502179883
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787511540164
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787511930266
+      }
+    ],
+    "25. Checkpoint final — Verificar todas las funcionalidades integradas": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502179983
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787511936179
+      },
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787512005239
+      }
+    ],
+    "1. Configurar estructura de solución y proyectos base": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787502755602
+      }
+    ],
+    "3. Implementar DTOs compartidos y patrón Result": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503170851
+      }
+    ],
+    "2. Implementar capa de datos: entidades, DbContext y migraciones": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503745555
+      }
+    ],
+    "4. Implementar repositorios genéricos y específicos": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787503746578
+      }
+    ],
+    "6. Implementar módulo de autenticación y seguridad": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504460576
+      }
+    ],
+    "7. Implementar módulo de gestión de usuarios": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504461481
+      }
+    ],
+    "8. Implementar módulo de categorías": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504462345
+      }
+    ],
+    "9. Implementar módulo de productos": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787504463106
+      }
+    ],
+    "11. Implementar módulo de ventas": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787505358312
+      }
+    ],
+    "12. Implementar módulo de medios de pago y pago mixto": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787505359919
+      }
+    ],
+    "13. Implementar módulo de caja": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787505360832
+      }
+    ],
+    "15. Implementar módulo de auditoría": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787505672672
+      }
+    ],
+    "16. Implementar módulo de facturación electrónica AFIP": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787509874177
+      }
+    ],
+    "17. Implementar módulo de reportes y exportación": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510498515
+      }
+    ],
+    "19. Implementar middleware global y validaciones cross-cutting": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510501173
+      }
+    ],
+    "20. Implementar interfaz de usuario Blazor — Autenticación y navegación": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510502476
+      }
+    ],
+    "21. Implementar interfaz de usuario Blazor — Módulos CRUD": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787510994858
+      }
+    ],
+    "22. Implementar soporte offline y sincronización": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787511531009
+      }
+    ],
+    "24. Registrar auditoría en todos los módulos e integración final": [
+      {
+        "executionId": "f78c0e7e-f23e-4a7e-a7ef-7e507cdaf773",
+        "chatSessionId": "sess_85bf2727-a903-4577-bdbd-97ce6765458f",
+        "timestamp": 1787511930321
+      }
+    ]
+  }
+}

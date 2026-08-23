@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SistemaAlmacen.Business/SistemaAlmacen.Business.csproj" />
+    <Project Path="src/SistemaAlmacen.Client/SistemaAlmacen.Client.csproj" />
+    <Project Path="src/SistemaAlmacen.Data/SistemaAlmacen.Data.csproj" />
+    <Project Path="src/SistemaAlmacen.Server/SistemaAlmacen.Server.csproj" />
+    <Project Path="src/SistemaAlmacen.Shared/SistemaAlmacen.Shared.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SistemaAlmacen.Business.Tests/SistemaAlmacen.Business.Tests.csproj" />
+    <Project Path="tests/SistemaAlmacen.Data.Tests/SistemaAlmacen.Data.Tests.csproj" />
+    <Project Path="tests/SistemaAlmacen.Integration.Tests/SistemaAlmacen.Integration.Tests.csproj" />
+  </Folder>
+</Solution>

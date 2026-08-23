@@ -1,0 +1,434 @@
+@page "/ventas/nueva"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h3>Nueva Venta</h3>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+
+@if (!string.IsNullOrEmpty(_successMessage))
+{
+    <div class="alert alert-success">@_successMessage</div>
+}
+
+@if (_ventaId is null)
+{
+    <button class="btn btn-primary" @onclick="IniciarVenta" disabled="@_isLoading">
+        @(_isLoading ? "Iniciando..." : "Iniciar Venta")
+    </button>
+}
+else
+{
+    <div class="row">
+        <!-- Product Selection -->
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">Agregar Producto</div>
+                <div class="card-body">
+                    <div class="form-group mb-2">
+                        <label for="buscarProducto">Buscar producto</label>
+                        <input id="buscarProducto" type="text" class="form-control" placeholder="Nombre del producto..."
+                               @bind="_busquedaProducto" @bind:event="oninput" @onkeyup="BuscarProductos" />
+                    </div>
+
+                    @if (_productosDisponibles.Any())
+                    {
+                        <div class="form-group mb-2">
+                            <label for="productoSelect">Producto</label>
+                            <select id="productoSelect" class="form-control" @bind="_productoSeleccionadoId">
+                                <option value="0">-- Seleccionar --</option>
+                                @foreach (var p in _productosDisponibles)
+                                {
+                                    <option value="@p.Id">@p.Nombre - $@p.Precio (Stock: @p.Stock)</option>
+                                }
+                            </select>
+                        </div>
+                    }
+
+                    <div class="form-group mb-2">
+                        <label for="cantidad">Cantidad</label>
+                        <input id="cantidad" type="number" class="form-control" min="1" max="10000" @bind="_cantidad" />
+                    </div>
+
+                    <button class="btn btn-success" @onclick="AgregarDetalle" disabled="@(_isLoading || _productoSeleccionadoId == 0)">
+                        @(_isLoading ? "Agregando..." : "Agregar")
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cart / Details -->
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">Detalles de la Venta</div>
+                <div class="card-body">
+                    @if (_detalles.Any())
+                    {
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Cant.</th>
+                                    <th>P. Unit.</th>
+                                    <th>Subtotal</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var d in _detalles)
+                                {
+                                    <tr>
+                                        <td>@d.ProductoNombre</td>
+                                        <td>@d.Cantidad</td>
+                                        <td>$@d.PrecioUnitario.ToString("N2")</td>
+                                        <td>$@d.Subtotal.ToString("N2")</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-danger" @onclick="() => EliminarDetalle(d.Id)" disabled="@_isLoading">
+                                                X
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No hay productos agregados.</p>
+                    }
+
+                    <hr />
+                    <h5>Total: $@_total.ToString("N2")</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Section -->
+    @if (_detalles.Any())
+    {
+        <div class="card mb-3">
+            <div class="card-header">Medios de Pago</div>
+            <div class="card-body">
+                @for (int i = 0; i < _pagos.Count; i++)
+                {
+                    var index = i;
+                    <div class="row mb-2">
+                        <div class="col-md-5">
+                            <select class="form-control" @bind="_pagos[index].MedioPagoId">
+                                <option value="0">-- Seleccionar medio --</option>
+                                @foreach (var mp in _mediosPago)
+                                {
+                                    <option value="@mp.Id">@mp.Nombre</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="number" class="form-control" placeholder="Monto" step="0.01" min="0.01"
+                                   @bind="_pagos[index].Monto" />
+                        </div>
+                        <div class="col-md-3">
+                            @if (_pagos.Count > 1)
+                            {
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoverPago(index)">Quitar</button>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <button class="btn btn-sm btn-outline-secondary mb-2" @onclick="AgregarPago">+ Agregar medio de pago</button>
+
+                <div class="mb-2">
+                    <strong>Suma pagos: $@SumaPagos.ToString("N2")</strong>
+                    @if (Math.Abs(SumaPagos - _total) > 0.01m && _pagos.Any(p => p.MedioPagoId > 0))
+                    {
+                        <span class="text-danger ms-2">La suma debe ser igual al total ($@_total.ToString("N2"))</span>
+                    }
+                </div>
+
+                <button class="btn btn-primary" @onclick="ConfirmarVenta"
+                        disabled="@(_isLoading || !PagoValido)">
+                    @(_isLoading ? "Confirmando..." : "Confirmar Venta")
+                </button>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private int? _ventaId;
+    private string? _errorMessage;
+    private string? _successMessage;
+    private bool _isLoading;
+
+    // Product search
+    private string _busquedaProducto = string.Empty;
+    private List<ProductoItemDto> _productosDisponibles = new();
+    private int _productoSeleccionadoId;
+    private int _cantidad = 1;
+
+    // Sale details
+    private List<DetalleVentaItemDto> _detalles = new();
+    private decimal _total;
+
+    // Payment
+    private List<PagoItem> _pagos = new() { new PagoItem() };
+    private List<MedioPagoItemDto> _mediosPago = new();
+
+    private decimal SumaPagos => _pagos.Sum(p => p.Monto);
+    private bool PagoValido => _pagos.All(p => p.MedioPagoId > 0 && p.Monto > 0)
+                               && Math.Abs(SumaPagos - _total) <= 0.01m;
+
+    private async Task IniciarVenta()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            var response = await Http.PostAsync("api/ventas", null);
+            if (response.IsSuccessStatusCode)
+            {
+                var venta = await response.Content.ReadFromJsonAsync<VentaResponseDto>();
+                _ventaId = venta?.Id;
+                await CargarMediosPago();
+            }
+            else
+            {
+                var body = await response.Content.ReadAsStringAsync();
+                _errorMessage = "No se pudo iniciar la venta. " + body;
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión al iniciar la venta.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task BuscarProductos()
+    {
+        if (string.IsNullOrWhiteSpace(_busquedaProducto) || _busquedaProducto.Length < 2)
+        {
+            _productosDisponibles.Clear();
+            return;
+        }
+
+        try
+        {
+            var url = $"api/productos?busqueda={Uri.EscapeDataString(_busquedaProducto)}&pageSize=20";
+            var result = await Http.GetFromJsonAsync<PaginatedResultDto<ProductoItemDto>>(url);
+            _productosDisponibles = result?.Items ?? new();
+        }
+        catch
+        {
+            _productosDisponibles.Clear();
+        }
+    }
+
+    private async Task AgregarDetalle()
+    {
+        if (_productoSeleccionadoId == 0 || _cantidad < 1)
+            return;
+
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            var request = new { ProductoId = _productoSeleccionadoId, Cantidad = _cantidad };
+            var response = await Http.PostAsJsonAsync($"api/ventas/{_ventaId}/detalles", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await RefrescarDetalles();
+                _cantidad = 1;
+                _productoSeleccionadoId = 0;
+            }
+            else
+            {
+                var error = await response.Content.ReadFromJsonAsync<ErrorDto>();
+                _errorMessage = error?.Message ?? "Error al agregar producto.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión al agregar producto.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task EliminarDetalle(int detalleId)
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            var response = await Http.DeleteAsync($"api/ventas/{_ventaId}/detalles/{detalleId}");
+            if (response.IsSuccessStatusCode)
+            {
+                await RefrescarDetalles();
+            }
+            else
+            {
+                _errorMessage = "Error al eliminar detalle.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión al eliminar detalle.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task RefrescarDetalles()
+    {
+        try
+        {
+            var venta = await Http.GetFromJsonAsync<VentaDetalleDto>($"api/ventas/{_ventaId}");
+            if (venta is not null)
+            {
+                _detalles = venta.Detalles;
+                _total = venta.Total;
+            }
+        }
+        catch
+        {
+            // Keep existing state on failure
+        }
+    }
+
+    private async Task CargarMediosPago()
+    {
+        try
+        {
+            var medios = await Http.GetFromJsonAsync<List<MedioPagoItemDto>>("api/medios-pago");
+            _mediosPago = medios ?? new();
+        }
+        catch
+        {
+            _mediosPago = new();
+        }
+    }
+
+    private void AgregarPago()
+    {
+        _pagos.Add(new PagoItem());
+    }
+
+    private void RemoverPago(int index)
+    {
+        if (_pagos.Count > 1)
+            _pagos.RemoveAt(index);
+    }
+
+    private async Task ConfirmarVenta()
+    {
+        if (!PagoValido)
+            return;
+
+        _isLoading = true;
+        _errorMessage = null;
+        _successMessage = null;
+
+        try
+        {
+            var request = new
+            {
+                Pagos = _pagos.Select(p => new { p.MedioPagoId, p.Monto }).ToList()
+            };
+
+            var response = await Http.PostAsJsonAsync($"api/ventas/{_ventaId}/confirmar", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _successMessage = "Venta confirmada exitosamente.";
+                // Reset state for new sale
+                _ventaId = null;
+                _detalles.Clear();
+                _total = 0;
+                _pagos = new() { new PagoItem() };
+            }
+            else
+            {
+                var error = await response.Content.ReadFromJsonAsync<ErrorDto>();
+                _errorMessage = error?.Message ?? "Error al confirmar la venta.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión al confirmar la venta.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    // --- Local DTOs for deserialization ---
+    private class VentaResponseDto
+    {
+        public int Id { get; set; }
+    }
+
+    private class ProductoItemDto
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public decimal Precio { get; set; }
+        public int Stock { get; set; }
+    }
+
+    private class DetalleVentaItemDto
+    {
+        public int Id { get; set; }
+        public string ProductoNombre { get; set; } = string.Empty;
+        public int Cantidad { get; set; }
+        public decimal PrecioUnitario { get; set; }
+        public decimal Subtotal { get; set; }
+    }
+
+    private class VentaDetalleDto
+    {
+        public int Id { get; set; }
+        public decimal Total { get; set; }
+        public List<DetalleVentaItemDto> Detalles { get; set; } = new();
+    }
+
+    private class MedioPagoItemDto
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+    }
+
+    private class PagoItem
+    {
+        public int MedioPagoId { get; set; }
+        public decimal Monto { get; set; }
+    }
+
+    private class ErrorDto
+    {
+        public string? Message { get; set; }
+    }
+
+    private class PaginatedResultDto<T>
+    {
+        public List<T> Items { get; set; } = new();
+        public int TotalCount { get; set; }
+    }
+}

@@ -1,0 +1,288 @@
+@page "/reportes"
+@attribute [Authorize(Roles = "Administrador")]
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<h3>Reportes</h3>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+@if (!string.IsNullOrEmpty(_successMessage))
+{
+    <div class="alert alert-success">@_successMessage</div>
+}
+
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <button class="nav-link @(_activeTab == "ventas" ? "active" : "")" @onclick='() => SetTab("ventas")'>Ventas</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link @(_activeTab == "productos" ? "active" : "")" @onclick='() => SetTab("productos")'>Productos Más Vendidos</button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link @(_activeTab == "inventario" ? "active" : "")" @onclick='() => SetTab("inventario")'>Inventario</button>
+    </li>
+</ul>
+
+@if (_activeTab == "ventas" || _activeTab == "productos")
+{
+    <div class="row g-2 mb-3">
+        <div class="col-md-3">
+            <label for="fechaInicio">Fecha Inicio</label>
+            <InputDate id="fechaInicio" class="form-control" @bind-Value="_fechaInicio" />
+        </div>
+        <div class="col-md-3">
+            <label for="fechaFin">Fecha Fin</label>
+            <InputDate id="fechaFin" class="form-control" @bind-Value="_fechaFin" />
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <button class="btn btn-primary" @onclick="GenerateReport" disabled="@_isLoading">Generar Reporte</button>
+        </div>
+    </div>
+}
+else
+{
+    <div class="mb-3">
+        <button class="btn btn-primary" @onclick="GenerateReport" disabled="@_isLoading">Generar Reporte de Inventario</button>
+    </div>
+}
+
+@if (_isLoading)
+{
+    <p>Generando reporte...</p>
+}
+else if (_reportGenerated)
+{
+    <div class="mb-3">
+        <label>Exportar como:</label>
+        <div class="btn-group ms-2">
+            <button class="btn btn-outline-secondary btn-sm" @onclick='() => Export(FormatoExportacion.PDF)' disabled="@_isExporting">PDF</button>
+            <button class="btn btn-outline-secondary btn-sm" @onclick='() => Export(FormatoExportacion.Excel)' disabled="@_isExporting">Excel</button>
+            <button class="btn btn-outline-secondary btn-sm" @onclick='() => Export(FormatoExportacion.CSV)' disabled="@_isExporting">CSV</button>
+        </div>
+        @if (_isExporting)
+        {
+            <span class="ms-2">Exportando...</span>
+        }
+    </div>
+
+    @if (_activeTab == "ventas" && _reporteVentas != null)
+    {
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>Resumen de Ventas</h5>
+                <p><strong>Total Monetario:</strong> $@_reporteVentas.TotalMonetario.ToString("N2")</p>
+                <p><strong>Transacciones:</strong> @_reporteVentas.CantidadTransacciones</p>
+            </div>
+        </div>
+
+        @if (_reporteVentas.DesgloseDiario.Any())
+        {
+            <h5>Desglose Diario</h5>
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Monto</th>
+                        <th>Transacciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var dia in _reporteVentas.DesgloseDiario)
+                    {
+                        <tr>
+                            <td>@dia.Fecha.ToString("dd/MM/yyyy")</td>
+                            <td>$@dia.Monto.ToString("N2")</td>
+                            <td>@dia.Transacciones</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-muted">No se encontraron ventas en el período seleccionado.</p>
+        }
+    }
+    else if (_activeTab == "productos" && _productosMasVendidos != null)
+    {
+        @if (_productosMasVendidos.Any())
+        {
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Producto</th>
+                        <th>Categoría</th>
+                        <th>Cantidad Vendida</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < _productosMasVendidos.Count; i++)
+                    {
+                        var p = _productosMasVendidos[i];
+                        <tr>
+                            <td>@(i + 1)</td>
+                            <td>@p.Nombre</td>
+                            <td>@p.Categoria</td>
+                            <td>@p.CantidadVendida</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-muted">No se encontraron productos vendidos en el período seleccionado.</p>
+        }
+    }
+    else if (_activeTab == "inventario" && _inventario != null)
+    {
+        @if (_inventario.Any())
+        {
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Categoría</th>
+                        <th>Stock</th>
+                        <th>Precio</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in _inventario)
+                    {
+                        <tr>
+                            <td>@item.Nombre</td>
+                            <td>@item.Categoria</td>
+                            <td>@item.Stock</td>
+                            <td>$@item.Precio.ToString("N2")</td>
+                            <td>
+                                <span class="badge @(item.Activo ? "bg-success" : "bg-secondary")">
+                                    @(item.Activo ? "Activo" : "Inactivo")
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-muted">No se encontraron productos registrados.</p>
+        }
+    }
+}
+
+@code {
+    private string _activeTab = "ventas";
+    private DateTime _fechaInicio = DateTime.Today.AddMonths(-1);
+    private DateTime _fechaFin = DateTime.Today;
+    private bool _isLoading;
+    private bool _isExporting;
+    private bool _reportGenerated;
+    private string? _errorMessage;
+    private string? _successMessage;
+
+    private ReporteVentasDto? _reporteVentas;
+    private List<ProductoMasVendidoDto>? _productosMasVendidos;
+    private List<ReporteInventarioDto>? _inventario;
+
+    private void SetTab(string tab)
+    {
+        _activeTab = tab;
+        _reportGenerated = false;
+        _errorMessage = null;
+        _successMessage = null;
+    }
+
+    private async Task GenerateReport()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        _reportGenerated = false;
+
+        try
+        {
+            switch (_activeTab)
+            {
+                case "ventas":
+                    _reporteVentas = await Http.GetFromJsonAsync<ReporteVentasDto>(
+                        $"api/reportes/ventas?fechaInicio={_fechaInicio:yyyy-MM-dd}&fechaFin={_fechaFin:yyyy-MM-dd}");
+                    break;
+                case "productos":
+                    _productosMasVendidos = await Http.GetFromJsonAsync<List<ProductoMasVendidoDto>>(
+                        $"api/reportes/productos-mas-vendidos?fechaInicio={_fechaInicio:yyyy-MM-dd}&fechaFin={_fechaFin:yyyy-MM-dd}");
+                    break;
+                case "inventario":
+                    _inventario = await Http.GetFromJsonAsync<List<ReporteInventarioDto>>("api/reportes/inventario");
+                    break;
+            }
+            _reportGenerated = true;
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error al generar el reporte.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task Export(FormatoExportacion formato)
+    {
+        _isExporting = true;
+        _errorMessage = null;
+        _successMessage = null;
+
+        try
+        {
+            var request = new ExportRequest
+            {
+                Formato = formato,
+                TipoReporte = _activeTab,
+                FechaInicio = _fechaInicio,
+                FechaFin = _fechaFin
+            };
+
+            var response = await Http.PostAsJsonAsync("api/reportes/exportar", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                var fileName = $"reporte_{_activeTab}_{_fechaInicio:yyyyMMdd}_{_fechaFin:yyyyMMdd}.{GetExtension(formato)}";
+                await DownloadFile(fileBytes, fileName, response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream");
+                _successMessage = "Reporte exportado correctamente.";
+            }
+            else
+            {
+                _errorMessage = "Error al exportar el reporte. Intente nuevamente.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "La exportación no pudo completarse. Intente nuevamente.";
+        }
+        finally
+        {
+            _isExporting = false;
+        }
+    }
+
+    private static string GetExtension(FormatoExportacion formato) => formato switch
+    {
+        FormatoExportacion.PDF => "pdf",
+        FormatoExportacion.Excel => "xlsx",
+        FormatoExportacion.CSV => "csv",
+        _ => "bin"
+    };
+
+    private async Task DownloadFile(byte[] fileBytes, string fileName, string contentType)
+    {
+        await JS.InvokeVoidAsync("downloadFileFromBytes", fileName, contentType, fileBytes);
+    }
+}

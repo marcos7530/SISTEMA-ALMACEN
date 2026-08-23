@@ -1,0 +1,179 @@
+@page "/auditoria"
+@attribute [Authorize(Roles = "Administrador")]
+@inject HttpClient Http
+
+<h3>Historial de Auditoría</h3>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">Filtros</h5>
+        <div class="row g-2">
+            <div class="col-md-3">
+                <label for="usuario">Usuario</label>
+                <InputNumber id="usuario" class="form-control" @bind-Value="_filter.UsuarioId" />
+            </div>
+            <div class="col-md-3">
+                <label for="fechaInicio">Fecha Inicio</label>
+                <InputDate id="fechaInicio" class="form-control" @bind-Value="_filter.FechaInicio" />
+            </div>
+            <div class="col-md-3">
+                <label for="fechaFin">Fecha Fin</label>
+                <InputDate id="fechaFin" class="form-control" @bind-Value="_filter.FechaFin" />
+            </div>
+            <div class="col-md-3">
+                <label for="tipoOperacion">Tipo Operación</label>
+                <InputSelect id="tipoOperacion" class="form-control" @bind-Value="_selectedTipoOperacion">
+                    <option value="">-- Todos --</option>
+                    @foreach (var tipo in Enum.GetValues<TipoOperacion>())
+                    {
+                        <option value="@((int)tipo)">@tipo</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="col-md-3">
+                <label for="entidad">Entidad</label>
+                <InputText id="entidad" class="form-control" placeholder="Ej: Producto, Venta..." @bind-Value="_filter.EntidadAfectada" />
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button class="btn btn-primary" @onclick="ApplyFilters">Buscar</button>
+                <button class="btn btn-outline-secondary ms-2" @onclick="ClearFilters">Limpiar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (_isLoading)
+{
+    <p>Cargando...</p>
+}
+else if (_result == null || !_result.Items.Any())
+{
+    <p>No se encontraron registros de auditoría.</p>
+}
+else
+{
+    <table class="table table-striped table-sm">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Usuario</th>
+                <th>Operación</th>
+                <th>Entidad</th>
+                <th>Registro</th>
+                <th>Descripción</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in _result.Items)
+            {
+                <tr>
+                    <td>@item.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@item.Usuario</td>
+                    <td>@item.TipoOperacion</td>
+                    <td>@item.EntidadAfectada</td>
+                    <td>@item.RegistroAfectadoId</td>
+                    <td>@item.Descripcion</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <nav>
+        <ul class="pagination">
+            <li class="page-item @(_result.Page <= 1 ? "disabled" : "")">
+                <button class="page-link" @onclick="() => GoToPage(_result.Page - 1)">Anterior</button>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">Página @_result.Page de @_result.TotalPages (@_result.TotalCount registros)</span>
+            </li>
+            <li class="page-item @(_result.Page >= _result.TotalPages ? "disabled" : "")">
+                <button class="page-link" @onclick="() => GoToPage(_result.Page + 1)">Siguiente</button>
+            </li>
+        </ul>
+    </nav>
+}
+
+@code {
+    private AuditoriaFilter _filter = new();
+    private PaginatedResult<AuditoriaDto>? _result;
+    private bool _isLoading = true;
+    private string? _errorMessage;
+    private string _selectedTipoOperacion = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        try
+        {
+            var queryParams = BuildQueryString();
+            _result = await Http.GetFromJsonAsync<PaginatedResult<AuditoriaDto>>($"api/auditoria?{queryParams}");
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error al cargar el historial de auditoría.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private string BuildQueryString()
+    {
+        var parts = new List<string>
+        {
+            $"page={_filter.Page}",
+            $"pageSize={_filter.PageSize}"
+        };
+
+        if (_filter.UsuarioId.HasValue)
+            parts.Add($"usuarioId={_filter.UsuarioId.Value}");
+        if (_filter.FechaInicio.HasValue)
+            parts.Add($"fechaInicio={_filter.FechaInicio.Value:yyyy-MM-dd}");
+        if (_filter.FechaFin.HasValue)
+            parts.Add($"fechaFin={_filter.FechaFin.Value:yyyy-MM-dd}");
+        if (_filter.TipoOperacion.HasValue)
+            parts.Add($"tipoOperacion={_filter.TipoOperacion.Value}");
+        if (!string.IsNullOrWhiteSpace(_filter.EntidadAfectada))
+            parts.Add($"entidadAfectada={Uri.EscapeDataString(_filter.EntidadAfectada)}");
+
+        return string.Join("&", parts);
+    }
+
+    private async Task ApplyFilters()
+    {
+        if (!string.IsNullOrEmpty(_selectedTipoOperacion) && int.TryParse(_selectedTipoOperacion, out var tipoVal))
+            _filter.TipoOperacion = (TipoOperacion)tipoVal;
+        else
+            _filter.TipoOperacion = null;
+
+        _filter.Page = 1;
+        await LoadData();
+    }
+
+    private async Task ClearFilters()
+    {
+        _filter = new AuditoriaFilter();
+        _selectedTipoOperacion = "";
+        await LoadData();
+    }
+
+    private async Task GoToPage(int page)
+    {
+        if (page < 1 || (_result != null && page > _result.TotalPages))
+            return;
+        _filter.Page = page;
+        await LoadData();
+    }
+}
