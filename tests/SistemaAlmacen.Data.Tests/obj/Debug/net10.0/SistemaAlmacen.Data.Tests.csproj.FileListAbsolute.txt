@@ -202,3 +202,4 @@ C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\tests\SistemaAlmacen.Data.Tes
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\tests\SistemaAlmacen.Data.Tests\obj\Debug\net10.0\SistemaAlmacen.Data.Tests.genruntimeconfig.cache
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\tests\SistemaAlmacen.Data.Tests\obj\Debug\net10.0\ref\SistemaAlmacen.Data.Tests.dll
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\tests\SistemaAlmacen.Data.Tests\bin\Debug\net10.0\BCrypt-Net-Next.dll
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\tests\SistemaAlmacen.Data.Tests\obj\Debug\net10.0\SistemaAlmacen.Data.Tests.sourcelink.json
