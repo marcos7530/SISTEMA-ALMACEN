@@ -100,10 +100,18 @@ public class AuditoriaInterceptor : SaveChangesInterceptor
     /// <summary>
     /// Analiza el ChangeTracker del DbContext y crea entradas de auditoría
     /// para cada entidad auditable que fue creada, modificada o eliminada.
+    /// No genera auditoría durante el seeding (cuando no hay contexto HTTP autenticado)
+    /// para evitar problemas de FK circular con el usuario del sistema.
     /// </summary>
     private List<AuditoriaLog> CreateAuditEntries(DbContext context)
     {
         var auditEntries = new List<AuditoriaLog>();
+
+        // No auditar si no hay contexto HTTP (seeding, migraciones, jobs en background)
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext is null)
+            return auditEntries;
+
         var usuarioId = GetCurrentUserId();
         var now = DateTime.UtcNow;
 

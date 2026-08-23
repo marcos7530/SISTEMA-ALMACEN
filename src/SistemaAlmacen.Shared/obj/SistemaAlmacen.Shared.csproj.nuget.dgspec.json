@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\Users\\marco\\OneDrive\\Escritorio\\SISTEMA ALMACEN\\src\\SistemaAlmacen.Shared\\SistemaAlmacen.Shared.csproj": {}
+    "C:\\Users\\marco\\OneDrive\\Escritorio\\SISTEMA ALMACEN\\src\\SistemaAlmacen.Shared\\SistemaAlmacen.Shared.csproj": {}
   },
   "projects": {
-    "c:\\Users\\marco\\OneDrive\\Escritorio\\SISTEMA ALMACEN\\src\\SistemaAlmacen.Shared\\SistemaAlmacen.Shared.csproj": {
+    "C:\\Users\\marco\\OneDrive\\Escritorio\\SISTEMA ALMACEN\\src\\SistemaAlmacen.Shared\\SistemaAlmacen.Shared.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\marco\\OneDrive\\Escritorio\\SISTEMA ALMACEN\\src\\SistemaAlmacen.Shared\\SistemaAlmacen.Shared.csproj",
+        "projectUniqueName": "C:\\Users\\marco\\OneDrive\\Escritorio\\SISTEMA ALMACEN\\src\\SistemaAlmacen.Shared\\SistemaAlmacen.Shared.csproj",
         "projectName": "SistemaAlmacen.Shared",
-        "projectPath": "c:\\Users\\marco\\OneDrive\\Escritorio\\SISTEMA ALMACEN\\src\\SistemaAlmacen.Shared\\SistemaAlmacen.Shared.csproj",
+        "projectPath": "C:\\Users\\marco\\OneDrive\\Escritorio\\SISTEMA ALMACEN\\src\\SistemaAlmacen.Shared\\SistemaAlmacen.Shared.csproj",
         "packagesPath": "C:\\Users\\marco\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\marco\\OneDrive\\Escritorio\\SISTEMA ALMACEN\\src\\SistemaAlmacen.Shared\\obj\\",
+        "outputPath": "C:\\Users\\marco\\OneDrive\\Escritorio\\SISTEMA ALMACEN\\src\\SistemaAlmacen.Shared\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

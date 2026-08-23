@@ -1,7 +1,98 @@
 ﻿@page "/"
+@attribute [Authorize]
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Sistema POS - Inicio</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Sistema de Punto de Venta</h1>
 
-Welcome to your new app.
+<AuthorizeView>
+    <Authorized Context="authContext">
+        <p>Bienvenido, <strong>@authContext.User.Identity?.Name</strong>.</p>
+
+        <div class="row mt-4">
+            <AuthorizeView Roles="Administrador">
+                <Authorized Context="adminCtx">
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Ventas</h5>
+                                <p class="card-text">Registrar una nueva venta o consultar el historial.</p>
+                                <a href="/ventas/nueva" class="btn btn-primary">Nueva Venta</a>
+                                <a href="/ventas/historial" class="btn btn-outline-secondary ms-2">Historial</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Caja</h5>
+                                <p class="card-text">Gestionar apertura, cierre y movimientos de caja.</p>
+                                <a href="/caja" class="btn btn-primary">Ir a Caja</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Reportes</h5>
+                                <p class="card-text">Generar reportes de ventas, productos e inventario.</p>
+                                <a href="/reportes" class="btn btn-primary">Ver Reportes</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Productos</h5>
+                                <p class="card-text">Administrar productos y categorias.</p>
+                                <a href="/productos" class="btn btn-outline-primary">Productos</a>
+                                <a href="/categorias" class="btn btn-outline-secondary ms-2">Categorias</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Usuarios</h5>
+                                <p class="card-text">Gestionar usuarios y roles del sistema.</p>
+                                <a href="/usuarios" class="btn btn-outline-primary">Administrar</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Auditoria</h5>
+                                <p class="card-text">Consultar el historial de operaciones del sistema.</p>
+                                <a href="/auditoria" class="btn btn-outline-primary">Ver Historial</a>
+                            </div>
+                        </div>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Vendedor">
+                <Authorized Context="vendedorCtx">
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Nueva Venta</h5>
+                                <p class="card-text">Registrar una nueva venta con productos y pagos.</p>
+                                <a href="/ventas/nueva" class="btn btn-primary btn-lg">Iniciar Venta</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Caja</h5>
+                                <p class="card-text">Ver estado de la caja y registrar movimientos.</p>
+                                <a href="/caja" class="btn btn-outline-primary">Ir a Caja</a>
+                            </div>
+                        </div>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+    </Authorized>
+</AuthorizeView>
