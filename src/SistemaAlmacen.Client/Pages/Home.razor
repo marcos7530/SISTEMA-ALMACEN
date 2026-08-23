@@ -3,93 +3,146 @@
 
 <PageTitle>Sistema POS - Inicio</PageTitle>
 
-<h1>Sistema de Punto de Venta</h1>
-
 <AuthorizeView>
     <Authorized Context="authContext">
-        <p>Bienvenido, <strong>@authContext.User.Identity?.Name</strong>.</p>
+        <div class="mb-4">
+            <h1><i class="bi bi-speedometer2"></i> Panel de Control</h1>
+            <p class="text-muted">Bienvenido, <strong>@authContext.User.Identity?.Name</strong>. Selecciona una opcion para comenzar.</p>
+        </div>
 
-        <div class="row mt-4">
+        <div class="row g-3">
             <AuthorizeView Roles="Administrador">
                 <Authorized Context="adminCtx">
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Ventas</h5>
-                                <p class="card-text">Registrar una nueva venta o consultar el historial.</p>
-                                <a href="/ventas/nueva" class="btn btn-primary">Nueva Venta</a>
-                                <a href="/ventas/historial" class="btn btn-outline-secondary ms-2">Historial</a>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <a href="/ventas/nueva" class="dashboard-card">
+                            <div class="card-icon green">
+                                <i class="bi bi-cart-plus-fill"></i>
                             </div>
-                        </div>
+                            <h5>Nueva Venta</h5>
+                            <small class="text-muted">Registrar venta</small>
+                        </a>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Caja</h5>
-                                <p class="card-text">Gestionar apertura, cierre y movimientos de caja.</p>
-                                <a href="/caja" class="btn btn-primary">Ir a Caja</a>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <a href="/ventas/historial" class="dashboard-card">
+                            <div class="card-icon blue">
+                                <i class="bi bi-receipt"></i>
                             </div>
-                        </div>
+                            <h5>Historial</h5>
+                            <small class="text-muted">Consultar ventas</small>
+                        </a>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Reportes</h5>
-                                <p class="card-text">Generar reportes de ventas, productos e inventario.</p>
-                                <a href="/reportes" class="btn btn-primary">Ver Reportes</a>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <a href="/caja" class="dashboard-card">
+                            <div class="card-icon orange">
+                                <i class="bi bi-cash-stack"></i>
                             </div>
-                        </div>
+                            <h5>Caja</h5>
+                            <small class="text-muted">Apertura y cierre</small>
+                        </a>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Productos</h5>
-                                <p class="card-text">Administrar productos y categorias.</p>
-                                <a href="/productos" class="btn btn-outline-primary">Productos</a>
-                                <a href="/categorias" class="btn btn-outline-secondary ms-2">Categorias</a>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <a href="/reportes" class="dashboard-card">
+                            <div class="card-icon purple">
+                                <i class="bi bi-bar-chart-fill"></i>
                             </div>
-                        </div>
+                            <h5>Reportes</h5>
+                            <small class="text-muted">Estadisticas</small>
+                        </a>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Usuarios</h5>
-                                <p class="card-text">Gestionar usuarios y roles del sistema.</p>
-                                <a href="/usuarios" class="btn btn-outline-primary">Administrar</a>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <a href="/productos" class="dashboard-card">
+                            <div class="card-icon teal">
+                                <i class="bi bi-box-seam-fill"></i>
                             </div>
-                        </div>
+                            <h5>Productos</h5>
+                            <small class="text-muted">Inventario</small>
+                        </a>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Auditoria</h5>
-                                <p class="card-text">Consultar el historial de operaciones del sistema.</p>
-                                <a href="/auditoria" class="btn btn-outline-primary">Ver Historial</a>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <a href="/categorias" class="dashboard-card">
+                            <div class="card-icon blue">
+                                <i class="bi bi-tags-fill"></i>
                             </div>
-                        </div>
+                            <h5>Categorias</h5>
+                            <small class="text-muted">Clasificaciones</small>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <a href="/usuarios" class="dashboard-card">
+                            <div class="card-icon red">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                            <h5>Usuarios</h5>
+                            <small class="text-muted">Gestionar accesos</small>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <a href="/medios-pago" class="dashboard-card">
+                            <div class="card-icon green">
+                                <i class="bi bi-credit-card-fill"></i>
+                            </div>
+                            <h5>Medios de Pago</h5>
+                            <small class="text-muted">Configurar pagos</small>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <a href="/facturacion" class="dashboard-card">
+                            <div class="card-icon orange">
+                                <i class="bi bi-file-earmark-text-fill"></i>
+                            </div>
+                            <h5>Facturacion</h5>
+                            <small class="text-muted">AFIP / Comprobantes</small>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <a href="/auditoria" class="dashboard-card">
+                            <div class="card-icon purple">
+                                <i class="bi bi-shield-lock-fill"></i>
+                            </div>
+                            <h5>Auditoria</h5>
+                            <small class="text-muted">Historial de cambios</small>
+                        </a>
                     </div>
                 </Authorized>
             </AuthorizeView>
 
             <AuthorizeView Roles="Vendedor">
                 <Authorized Context="vendedorCtx">
-                    <div class="col-md-6 mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Nueva Venta</h5>
-                                <p class="card-text">Registrar una nueva venta con productos y pagos.</p>
-                                <a href="/ventas/nueva" class="btn btn-primary btn-lg">Iniciar Venta</a>
+                    <div class="col-6 col-md-4">
+                        <a href="/ventas/nueva" class="dashboard-card">
+                            <div class="card-icon green">
+                                <i class="bi bi-cart-plus-fill"></i>
                             </div>
-                        </div>
+                            <h5>Nueva Venta</h5>
+                            <small class="text-muted">Registrar una venta</small>
+                        </a>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Caja</h5>
-                                <p class="card-text">Ver estado de la caja y registrar movimientos.</p>
-                                <a href="/caja" class="btn btn-outline-primary">Ir a Caja</a>
+                    <div class="col-6 col-md-4">
+                        <a href="/ventas/historial" class="dashboard-card">
+                            <div class="card-icon blue">
+                                <i class="bi bi-receipt"></i>
                             </div>
-                        </div>
+                            <h5>Mis Ventas</h5>
+                            <small class="text-muted">Ver historial</small>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <a href="/caja" class="dashboard-card">
+                            <div class="card-icon orange">
+                                <i class="bi bi-cash-stack"></i>
+                            </div>
+                            <h5>Caja</h5>
+                            <small class="text-muted">Estado actual</small>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <a href="/productos" class="dashboard-card">
+                            <div class="card-icon teal">
+                                <i class="bi bi-box-seam"></i>
+                            </div>
+                            <h5>Productos</h5>
+                            <small class="text-muted">Consultar catalogo</small>
+                        </a>
                     </div>
                 </Authorized>
             </AuthorizeView>

@@ -34,3 +34,4 @@ C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Business\b
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-Thin.ttf
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-ThinItalic.ttf
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\OFL.txt
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Business\obj\Debug\net10.0\SistemaAlmacen.Business.sourcelink.json

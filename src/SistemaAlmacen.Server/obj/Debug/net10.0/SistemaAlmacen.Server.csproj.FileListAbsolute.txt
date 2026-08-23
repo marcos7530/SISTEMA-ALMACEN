@@ -240,3 +240,4 @@ C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Server\bin
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Server\bin\Debug\net10.0\RBush.dll
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Server\bin\Debug\net10.0\SixLabors.Fonts.dll
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Server\bin\Debug\net10.0\System.IO.Packaging.dll
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net10.0\SistemaAlmacen.Server.sourcelink.json

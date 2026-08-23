@@ -4,7 +4,7 @@
 
 <div class="page">
     <AuthorizeView>
-        <Authorized>
+        <Authorized Context="layoutAuth">
             <div class="sidebar">
                 <NavMenu />
             </div>
@@ -13,15 +13,17 @@
 
     <main>
         <AuthorizeView>
-            <Authorized>
-                <div class="top-row px-4">
-                    <span>Hola, @context.User.Identity?.Name</span>
-                    <button class="btn btn-link" @onclick="Logout">Cerrar sesión</button>
+            <Authorized Context="topBarAuth">
+                <div class="top-row">
+                    <span><i class="bi bi-person-circle"></i> @topBarAuth.User.Identity?.Name</span>
+                    <button class="btn btn-sm btn-outline-danger" @onclick="Logout">
+                        <i class="bi bi-box-arrow-right"></i> Salir
+                    </button>
                 </div>
             </Authorized>
         </AuthorizeView>
 
-        <article class="content px-4">
+        <article class="content">
             @Body
         </article>
     </main>

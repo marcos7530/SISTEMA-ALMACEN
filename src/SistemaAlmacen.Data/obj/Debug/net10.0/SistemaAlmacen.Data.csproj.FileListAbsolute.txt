@@ -15,3 +15,4 @@ C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Data\obj\D
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Data\obj\Debug\net10.0\SistemaAlmacen.Data.pdb
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Data\obj\Debug\net10.0\SistemaAlmacen.Data.genruntimeconfig.cache
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Data\obj\Debug\net10.0\ref\SistemaAlmacen.Data.dll
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Data\obj\Debug\net10.0\SistemaAlmacen.Data.sourcelink.json

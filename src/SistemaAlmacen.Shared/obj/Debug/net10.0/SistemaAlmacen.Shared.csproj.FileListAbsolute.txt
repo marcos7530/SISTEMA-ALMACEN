@@ -9,3 +9,4 @@ C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Shared\obj
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Shared\obj\Debug\net10.0\refint\SistemaAlmacen.Shared.dll
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Shared\obj\Debug\net10.0\SistemaAlmacen.Shared.pdb
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Shared\obj\Debug\net10.0\ref\SistemaAlmacen.Shared.dll
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Shared\obj\Debug\net10.0\SistemaAlmacen.Shared.sourcelink.json
