@@ -12,13 +12,13 @@
 }
 
 .bi {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-block;
+    position: relative;
     width: 1.25rem;
-    font-size: 1.1rem;
+    height: 1.25rem;
     margin-right: 0.75rem;
-    vertical-align: middle;
+    top: -1px;
+    background-size: cover;
 }
 
 .bi-house-door-fill-nav-menu {
@@ -52,7 +52,7 @@
         height: 3rem;
         display: flex;
         align-items: center;
-        line-height: 1;
+        line-height: 3rem;
     }
 
 .nav-item ::deep a.active {

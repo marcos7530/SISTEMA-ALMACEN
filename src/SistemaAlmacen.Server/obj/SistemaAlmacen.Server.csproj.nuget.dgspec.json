@@ -445,7 +445,7 @@
             },
             "Microsoft.AspNetCore.Components.WebAssembly": {
               "target": "Package",
-              "version": "[10.0.8, )"
+              "version": "[10.0.11, )"
             },
             "Microsoft.AspNetCore.Components.WebAssembly.Authentication": {
               "target": "Package",
@@ -454,7 +454,7 @@
             "Microsoft.AspNetCore.Components.WebAssembly.DevServer": {
               "suppressParent": "All",
               "target": "Package",
-              "version": "[10.0.8, )"
+              "version": "[10.0.11, )"
             },
             "Microsoft.NET.ILLink.Tasks": {
               "suppressParent": "All",

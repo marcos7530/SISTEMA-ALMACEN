@@ -9,10 +9,10 @@ C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Data\obj\D
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Data\obj\Debug\net10.0\SistemaAlmacen.Data.AssemblyInfoInputs.cache
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Data\obj\Debug\net10.0\SistemaAlmacen.Data.AssemblyInfo.cs
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Data\obj\Debug\net10.0\SistemaAlmacen.Data.csproj.CoreCompileInputs.cache
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Data\obj\Debug\net10.0\SistemaAlmacen.Data.sourcelink.json
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Data\obj\Debug\net10.0\SistemaA.E8D36321.Up2Date
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Data\obj\Debug\net10.0\SistemaAlmacen.Data.dll
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Data\obj\Debug\net10.0\refint\SistemaAlmacen.Data.dll
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Data\obj\Debug\net10.0\SistemaAlmacen.Data.pdb
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Data\obj\Debug\net10.0\SistemaAlmacen.Data.genruntimeconfig.cache
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Data\obj\Debug\net10.0\ref\SistemaAlmacen.Data.dll
-C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Data\obj\Debug\net10.0\SistemaAlmacen.Data.sourcelink.json
