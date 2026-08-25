@@ -16,6 +16,14 @@ public class ProductoConfiguration : IEntityTypeConfiguration<Producto>
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.Property(p => p.CodigoBarras)
+            .HasMaxLength(50);
+
+        // Índice único filtrado en CodigoBarras (solo entre productos activos con código asignado)
+        builder.HasIndex(p => p.CodigoBarras)
+            .IsUnique()
+            .HasFilter("[CodigoBarras] IS NOT NULL AND [Activo] = 1");
+
         builder.Property(p => p.Descripcion)
             .HasMaxLength(500);
 

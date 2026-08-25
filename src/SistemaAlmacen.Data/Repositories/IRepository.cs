@@ -22,4 +22,5 @@ public interface IRepository<T> where T : class
     void Delete(T entity);
     Task<int> CountAsync(Expression<Func<T, bool>>? filter = null);
     Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
+    Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate);
 }

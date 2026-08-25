@@ -20,6 +20,11 @@ public interface IProductoService
     Task<ProductoDto?> GetByIdAsync(int id);
 
     /// <summary>
+    /// Obtiene un producto activo por su código de barras. Retorna null si no existe.
+    /// </summary>
+    Task<ProductoDto?> GetByCodigoBarrasAsync(string codigoBarras);
+
+    /// <summary>
     /// Crea un nuevo producto con las validaciones de negocio correspondientes.
     /// </summary>
     Task<Result<ProductoDto>> CreateAsync(CreateProductoRequest request);

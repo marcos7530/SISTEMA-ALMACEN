@@ -15,6 +15,9 @@ public class Producto
     [MaxLength(100)]
     public string Nombre { get; set; } = string.Empty;
 
+    [MaxLength(50)]
+    public string? CodigoBarras { get; set; }
+
     [MaxLength(500)]
     public string? Descripcion { get; set; }
 

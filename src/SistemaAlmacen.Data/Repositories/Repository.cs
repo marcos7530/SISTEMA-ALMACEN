@@ -96,4 +96,9 @@ public class Repository<T> : IRepository<T> where T : class
     {
         return await _dbSet.AnyAsync(predicate);
     }
+
+    public virtual async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await _dbSet.FirstOrDefaultAsync(predicate);
+    }
 }

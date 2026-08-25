@@ -320,6 +320,10 @@ namespace SistemaAlmacen.Data.Migrations
                     b.Property<int>("CategoriaId")
                         .HasColumnType("int");
 
+                    b.Property<string>("CodigoBarras")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<string>("Descripcion")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -344,6 +348,10 @@ namespace SistemaAlmacen.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoriaId");
+
+                    b.HasIndex("CodigoBarras")
+                        .IsUnique()
+                        .HasFilter("[CodigoBarras] IS NOT NULL AND [Activo] = 1");
 
                     b.ToTable("Productos", (string)null);
                 });

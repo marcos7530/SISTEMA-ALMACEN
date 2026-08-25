@@ -11,6 +11,9 @@ public class CreateProductoRequest
     [MaxLength(100, ErrorMessage = "El nombre no puede exceder 100 caracteres.")]
     public string Nombre { get; set; } = string.Empty;
 
+    [MaxLength(50, ErrorMessage = "El código de barras no puede exceder 50 caracteres.")]
+    public string? CodigoBarras { get; set; }
+
     [MaxLength(500, ErrorMessage = "La descripción no puede exceder 500 caracteres.")]
     public string? Descripcion { get; set; }
 

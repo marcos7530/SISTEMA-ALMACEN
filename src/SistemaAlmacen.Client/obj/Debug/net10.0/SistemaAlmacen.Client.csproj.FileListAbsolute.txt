@@ -38,10 +38,6 @@ C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\Microsoft.VisualBasic.mcss3c947q.wasm
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\Microsoft.Win32.Primitives.r8e0zxpfe0.wasm
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\Microsoft.Win32.Registry.2ywbsi2vy8.wasm
-C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\SistemaAlmacen.Client.94sei4y6fy.pdb
-C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\SistemaAlmacen.Client.noddz3beak.wasm
-C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\SistemaAlmacen.Shared.ov70u5ksuj.wasm
-C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\SistemaAlmacen.Shared.pvdax4h6f6.pdb
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\System.0b02oc3xxl.wasm
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\System.AppContext.s4abp71nh7.wasm
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\System.Buffers.bzczkplo2y.wasm
@@ -253,7 +249,6 @@ C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\Microsoft.AspNetCore.Authorization.286cdd0mnj.wasm.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\System.Net.ServicePoint.8nsxn6s8cf.wasm.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\System.Globalization.4pq9r9o93w.wasm.gz
-C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\SistemaAlmacen.Client.94sei4y6fy.pdb.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\dotnet.native.f749u69f30.wasm.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\System.Linq.dghe007p0m.wasm.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\System.Data.Common.udkq2shnti.wasm.gz
@@ -356,7 +351,6 @@ C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\System.Transactions.Local.uobvv2wgx8.wasm.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\Microsoft.Win32.Registry.2ywbsi2vy8.wasm.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\System.IO.Pipes.AccessControl.ywuu8iws4m.wasm.gz
-C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\SistemaAlmacen.Shared.pvdax4h6f6.pdb.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\Microsoft.AspNetCore.Components.o6y2k6vgc3.wasm.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\icudt_no_CJK.lfu7j35m59.dat.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\System.Diagnostics.FileVersionInfo.g6ryqnt17q.wasm.gz
@@ -406,7 +400,6 @@ C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\System.Runtime.vvbv862woi.wasm.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\System.Runtime.Extensions.ohqexbct3w.wasm.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\System.Runtime.CompilerServices.VisualC.vl7kxd1eod.wasm.gz
-C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\SistemaAlmacen.Shared.ov70u5ksuj.wasm.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\dotnet.native.rjbmzc4jpg.js.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\Microsoft.Win32.Primitives.r8e0zxpfe0.wasm.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\System.Security.Cryptography.Algorithms.67sgtjo5cg.wasm.gz
@@ -423,7 +416,6 @@ C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\System.Reflection.Metadata.1syjaqjddv.wasm.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\Microsoft.Extensions.Options.ConfigurationExtensions.oic5e9iprm.wasm.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\dotnet.js.map.gz
-C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\SistemaAlmacen.Client.noddz3beak.wasm.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\System.Runtime.Loader.ytyzjtlfyy.wasm.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\System.Net.Mail.cgv1zf2uj2.wasm.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\Microsoft.AspNetCore.Components.Authorization.btlik35l51.wasm.gz
@@ -1167,14 +1159,7 @@ C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\compressed\k6f4y4h686-{0}-tjcz0u77k5-tjcz0u77k5.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\compressed\120nkktut6-{0}-tptq2av103-tptq2av103.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\compressed\o9be86bggw-{0}-lfu7j35m59-lfu7j35m59.gz
-C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\compressed\vvro3jhxte-{0}-ov70u5ksuj-ov70u5ksuj.gz
-C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\compressed\o0qk18odv5-{0}-pvdax4h6f6-pvdax4h6f6.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\compressed\deu236lohx-{0}-1vk97ay1th-1vk97ay1th.gz
-C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\compressed\yj7k0gnqgx-{0}-noddz3beak-noddz3beak.gz
-C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\compressed\7xlrnsm3iz-{0}-94sei4y6fy-94sei4y6fy.gz
-C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\compressed\r1dcwihfry-{0}-zp913t0fzh-zp913t0fzh.gz
-C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\compressed\t3xbylstbs-{0}-09898v9hwe-09898v9hwe.gz
-C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\compressed\0srfunwer2-{0}-5rycnx5a1i-5rycnx5a1i.gz
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\staticwebassets.build.json
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\staticwebassets.build.json.cache
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\staticwebassets.development.json
@@ -1185,3 +1170,18 @@ C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\refint\SistemaAlmacen.Client.dll
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\SistemaAlmacen.Client.pdb
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\ref\SistemaAlmacen.Client.dll
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\SistemaAlmacen.Client.it8kdr6has.pdb
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\SistemaAlmacen.Client.x8oufd4il8.wasm
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\SistemaAlmacen.Shared.dmg35ul3an.wasm
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\SistemaAlmacen.Shared.zkzl9vmocz.pdb
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\SistemaAlmacen.Client.it8kdr6has.pdb.gz
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\SistemaAlmacen.Shared.zkzl9vmocz.pdb.gz
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\SistemaAlmacen.Shared.dmg35ul3an.wasm.gz
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\bin\Debug\net10.0\wwwroot\_framework\SistemaAlmacen.Client.x8oufd4il8.wasm.gz
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\compressed\vvro3jhxte-{0}-dmg35ul3an-dmg35ul3an.gz
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\compressed\o0qk18odv5-{0}-zkzl9vmocz-zkzl9vmocz.gz
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\compressed\yj7k0gnqgx-{0}-x8oufd4il8-x8oufd4il8.gz
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\compressed\7xlrnsm3iz-{0}-it8kdr6has-it8kdr6has.gz
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\compressed\r1dcwihfry-{0}-o3a3kay1iv-o3a3kay1iv.gz
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\compressed\t3xbylstbs-{0}-l6nm9jq3vf-l6nm9jq3vf.gz
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Client\obj\Debug\net10.0\compressed\0srfunwer2-{0}-bdkf8fopbn-bdkf8fopbn.gz

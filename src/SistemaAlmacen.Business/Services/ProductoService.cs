@@ -52,6 +52,25 @@ public class ProductoService : IProductoService
     }
 
     /// <inheritdoc />
+    public async Task<ProductoDto?> GetByCodigoBarrasAsync(string codigoBarras)
+    {
+        var producto = await _unitOfWork.Productos.FirstOrDefaultAsync(p =>
+            p.Activo && p.CodigoBarras == codigoBarras);
+
+        if (producto is null)
+            return null;
+
+        // Ensure Categoria is loaded for mapping
+        if (producto.Categoria is null)
+        {
+            var categoria = await _unitOfWork.Categorias.GetByIdAsync(producto.CategoriaId);
+            producto.Categoria = categoria!;
+        }
+
+        return MapToDto(producto);
+    }
+
+    /// <inheritdoc />
     public async Task<Result<ProductoDto>> CreateAsync(CreateProductoRequest request)
     {
         var validationResult = ValidateProductoRequest(request.Nombre, request.Descripcion, request.Precio, request.Stock);
@@ -76,6 +95,7 @@ public class ProductoService : IProductoService
         var producto = new Producto
         {
             Nombre = request.Nombre.Trim(),
+            CodigoBarras = string.IsNullOrWhiteSpace(request.CodigoBarras) ? null : request.CodigoBarras.Trim(),
             Descripcion = request.Descripcion?.Trim(),
             Precio = request.Precio,
             Stock = request.Stock,
@@ -120,6 +140,7 @@ public class ProductoService : IProductoService
             return Result<ProductoDto>.Failure("Ya existe un producto con ese nombre en la categoría seleccionada.", "NOMBRE_DUPLICADO");
 
         producto.Nombre = request.Nombre.Trim();
+        producto.CodigoBarras = string.IsNullOrWhiteSpace(request.CodigoBarras) ? null : request.CodigoBarras.Trim();
         producto.Descripcion = request.Descripcion?.Trim();
         producto.Precio = request.Precio;
         producto.Stock = request.Stock;
@@ -184,6 +205,7 @@ public class ProductoService : IProductoService
         {
             Id = producto.Id,
             Nombre = producto.Nombre,
+            CodigoBarras = producto.CodigoBarras,
             Descripcion = producto.Descripcion,
             Precio = producto.Precio,
             Stock = producto.Stock,

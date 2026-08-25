@@ -27,10 +27,27 @@ else
         <!-- Product Selection -->
         <div class="col-md-6">
             <div class="card mb-3">
-                <div class="card-header">Agregar Producto</div>
+                <div class="card-header"><i class="bi bi-upc-scan"></i> Agregar Producto</div>
                 <div class="card-body">
+                    <!-- Código de barras (lector) -->
+                    <div class="form-group mb-3">
+                        <label for="codigoBarras"><strong>Código de Barras</strong></label>
+                        <input id="codigoBarras" type="text" class="form-control form-control-lg"
+                               placeholder="Escanear código de barras..."
+                               @bind="_codigoBarras" @bind:event="oninput"
+                               @onkeydown="HandleBarcodeScan"
+                               autofocus />
+                        @if (!string.IsNullOrEmpty(_barcodeMessage))
+                        {
+                            <small class="text-danger">@_barcodeMessage</small>
+                        }
+                    </div>
+
+                    <hr />
+
+                    <!-- Búsqueda manual por nombre -->
                     <div class="form-group mb-2">
-                        <label for="buscarProducto">Buscar producto</label>
+                        <label for="buscarProducto">O buscar por nombre</label>
                         <input id="buscarProducto" type="text" class="form-control" placeholder="Nombre del producto..."
                                @bind="_busquedaProducto" @bind:event="oninput" @onkeyup="BuscarProductos" />
                     </div>
@@ -171,6 +188,10 @@ else
     private int _productoSeleccionadoId;
     private int _cantidad = 1;
 
+    // Barcode scanner
+    private string _codigoBarras = string.Empty;
+    private string? _barcodeMessage;
+
     // Sale details
     private List<DetalleVentaItemDto> _detalles = new();
     private decimal _total;
@@ -209,6 +230,56 @@ else
         }
         finally
         {
+            _isLoading = false;
+        }
+    }
+
+    private async Task HandleBarcodeScan(KeyboardEventArgs e)
+    {
+        if (e.Key != "Enter" || string.IsNullOrWhiteSpace(_codigoBarras))
+            return;
+
+        _barcodeMessage = null;
+        _isLoading = true;
+
+        try
+        {
+            var producto = await Http.GetFromJsonAsync<ProductoItemDto>(
+                $"api/productos/barcode/{Uri.EscapeDataString(_codigoBarras.Trim())}");
+
+            if (producto is not null)
+            {
+                // Agregar directamente al carrito con cantidad 1
+                var request = new { ProductoId = producto.Id, Cantidad = 1 };
+                var response = await Http.PostAsJsonAsync($"api/ventas/{_ventaId}/detalles", request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    await RefrescarDetalles();
+                    _barcodeMessage = null;
+                }
+                else
+                {
+                    var error = await response.Content.ReadFromJsonAsync<ErrorDto>();
+                    _barcodeMessage = error?.Message ?? "Error al agregar producto.";
+                }
+            }
+            else
+            {
+                _barcodeMessage = "Producto no encontrado.";
+            }
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            _barcodeMessage = $"No se encontró producto con código: {_codigoBarras.Trim()}";
+        }
+        catch (Exception)
+        {
+            _barcodeMessage = "Error al buscar el producto.";
+        }
+        finally
+        {
+            _codigoBarras = string.Empty;
             _isLoading = false;
         }
     }

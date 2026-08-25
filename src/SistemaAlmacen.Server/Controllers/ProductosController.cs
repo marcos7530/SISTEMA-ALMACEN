@@ -63,6 +63,23 @@ public class ProductosController : ControllerBase
     }
 
     /// <summary>
+    /// Obtiene un producto por su código de barras.
+    /// </summary>
+    [HttpGet("barcode/{codigo}")]
+    [Authorize(Policy = "RequireVendedorOrAdmin")]
+    public async Task<ActionResult<ProductoDto>> GetProductoByBarcode(string codigo)
+    {
+        var producto = await _productoService.GetByCodigoBarrasAsync(codigo);
+
+        if (producto is null)
+        {
+            return NotFound(new { message = "Producto no encontrado con ese código de barras." });
+        }
+
+        return Ok(producto);
+    }
+
+    /// <summary>
     /// Crea un nuevo producto. Solo Administrador.
     /// </summary>
     [HttpPost]

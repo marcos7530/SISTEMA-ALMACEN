@@ -28,6 +28,12 @@ else
         </div>
 
         <div class="mb-3">
+            <label for="codigoBarras" class="form-label">Código de Barras</label>
+            <InputText id="codigoBarras" class="form-control" @bind-Value="_model.CodigoBarras" placeholder="Escanear o ingresar manualmente" />
+            <ValidationMessage For="@(() => _model.CodigoBarras)" />
+        </div>
+
+        <div class="mb-3">
             <label for="descripcion" class="form-label">Descripción</label>
             <InputTextArea id="descripcion" class="form-control" @bind-Value="_model.Descripcion" rows="3" />
             <ValidationMessage For="@(() => _model.Descripcion)" />
@@ -123,6 +129,7 @@ else
                 _model = new ProductoFormModel
                 {
                     Nombre = producto.Nombre,
+                    CodigoBarras = producto.CodigoBarras,
                     Descripcion = producto.Descripcion,
                     Precio = producto.Precio,
                     Stock = producto.Stock,
@@ -162,6 +169,7 @@ else
                 var request = new UpdateProductoRequest
                 {
                     Nombre = _model.Nombre,
+                    CodigoBarras = _model.CodigoBarras,
                     Descripcion = _model.Descripcion,
                     Precio = _model.Precio,
                     Stock = _model.Stock,
@@ -174,6 +182,7 @@ else
                 var request = new CreateProductoRequest
                 {
                     Nombre = _model.Nombre,
+                    CodigoBarras = _model.CodigoBarras,
                     Descripcion = _model.Descripcion,
                     Precio = _model.Precio,
                     Stock = _model.Stock,
@@ -215,6 +224,9 @@ else
         [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "El nombre es requerido.")]
         [System.ComponentModel.DataAnnotations.MaxLength(100, ErrorMessage = "El nombre no puede exceder 100 caracteres.")]
         public string Nombre { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.MaxLength(50, ErrorMessage = "El código de barras no puede exceder 50 caracteres.")]
+        public string? CodigoBarras { get; set; }
 
         [System.ComponentModel.DataAnnotations.MaxLength(500, ErrorMessage = "La descripción no puede exceder 500 caracteres.")]
         public string? Descripcion { get; set; }

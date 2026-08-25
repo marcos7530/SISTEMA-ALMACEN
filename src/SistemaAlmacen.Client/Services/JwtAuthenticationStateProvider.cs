@@ -8,6 +8,7 @@ namespace SistemaAlmacen.Client.Services;
 /// <summary>
 /// Custom AuthenticationStateProvider that reads a JWT token from localStorage
 /// and provides the authentication state to Blazor components.
+/// Sets the Authorization header on the shared HttpClient immediately upon authentication.
 /// </summary>
 public class JwtAuthenticationStateProvider : AuthenticationStateProvider
 {
@@ -15,6 +16,12 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
     private readonly HttpClient _httpClient;
 
     private const string TokenKey = "authToken";
+
+    /// <summary>
+    /// Cache en memoria del token para evitar race conditions.
+    /// Se setea en MarkUserAsAuthenticated y en GetAuthenticationStateAsync.
+    /// </summary>
+    private string? _cachedToken;
 
     public JwtAuthenticationStateProvider(IJSRuntime jsRuntime, HttpClient httpClient)
     {
@@ -24,27 +31,36 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        var token = await GetTokenAsync();
+        // Si ya tenemos el token en cache, usarlo directamente sin JS interop
+        var token = _cachedToken ?? await GetTokenAsync();
 
         if (string.IsNullOrWhiteSpace(token))
         {
+            _httpClient.DefaultRequestHeaders.Authorization = null;
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
         }
+
+        // Cachear y setear header inmediatamente
+        _cachedToken = token;
+        _httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         var claims = ParseClaimsFromJwt(token);
         var identity = new ClaimsIdentity(claims, "jwt");
         var user = new ClaimsPrincipal(identity);
-
-        // Set the authorization header for HTTP requests
-        _httpClient.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         return new AuthenticationState(user);
     }
 
     public async Task MarkUserAsAuthenticated(string token)
     {
+        // Cachear y setear header INMEDIATAMENTE (antes del await a JS)
+        _cachedToken = token;
+        _httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
         await SetTokenAsync(token);
+
         var claims = ParseClaimsFromJwt(token);
         var identity = new ClaimsIdentity(claims, "jwt");
         var user = new ClaimsPrincipal(identity);
@@ -54,8 +70,10 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
 
     public async Task MarkUserAsLoggedOut()
     {
-        await RemoveTokenAsync();
+        _cachedToken = null;
         _httpClient.DefaultRequestHeaders.Authorization = null;
+
+        await RemoveTokenAsync();
 
         var anonymous = new ClaimsPrincipal(new ClaimsIdentity());
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(anonymous)));
@@ -65,12 +83,22 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
     {
         try
         {
-            return await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", TokenKey);
+            var token = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", TokenKey);
+
+            // Cachear y setear header al leerlo de localStorage
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                _cachedToken = token;
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+
+            return token;
         }
         catch
         {
             // During prerendering, JS interop is not available
-            return null;
+            return _cachedToken; // retornar cache si existe
         }
     }
 

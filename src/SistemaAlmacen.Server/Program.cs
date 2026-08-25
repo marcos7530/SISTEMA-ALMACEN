@@ -105,8 +105,12 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.UseWebAssemblyDebugging();
 }
-
-app.UseHttpsRedirection();
+else
+{
+    // Solo redirigir a HTTPS en produccion para evitar que las API calls
+    // pierdan el header Authorization al ser redirigidas.
+    app.UseHttpsRedirection();
+}
 
 // Serve Blazor WASM static files
 app.UseBlazorFrameworkFiles();
