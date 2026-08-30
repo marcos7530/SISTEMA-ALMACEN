@@ -557,3 +557,4 @@ C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\tests\SistemaAlmacen.Integrat
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\tests\SistemaAlmacen.Integration.Tests\bin\Debug\net10.0\RBush.dll
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\tests\SistemaAlmacen.Integration.Tests\bin\Debug\net10.0\SixLabors.Fonts.dll
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\tests\SistemaAlmacen.Integration.Tests\bin\Debug\net10.0\System.IO.Packaging.dll
+C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\tests\SistemaAlmacen.Integration.Tests\obj\Debug\net10.0\SistemaAlmacen.Integration.Tests.sourcelink.json

@@ -42,7 +42,8 @@ public class AuditoriaInterceptor : SaveChangesInterceptor
         typeof(MedioPago),
         typeof(Caja),
         typeof(CajaMovimiento),
-        typeof(Comprobante)
+        typeof(Comprobante),
+        typeof(MovimientoStock)
     };
 
     /// <summary>

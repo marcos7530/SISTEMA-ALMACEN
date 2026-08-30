@@ -23,6 +23,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Comprobante> Comprobantes => Set<Comprobante>();
     public DbSet<Caja> Cajas => Set<Caja>();
     public DbSet<CajaMovimiento> CajaMovimientos => Set<CajaMovimiento>();
+    public DbSet<MovimientoStock> MovimientosStock => Set<MovimientoStock>();
     public DbSet<AuditoriaLog> AuditoriaLogs => Set<AuditoriaLog>();
     public DbSet<TokenRecuperacion> TokensRecuperacion => Set<TokenRecuperacion>();
 

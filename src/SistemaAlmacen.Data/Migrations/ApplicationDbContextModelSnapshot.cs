@@ -306,6 +306,53 @@ namespace SistemaAlmacen.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SistemaAlmacen.Data.Entities.MovimientoStock", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("Motivo")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Observacion")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StockAnterior")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StockNuevo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Tipo")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Fecha");
+
+                    b.HasIndex("ProductoId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("MovimientosStock", (string)null);
+                });
+
             modelBuilder.Entity("SistemaAlmacen.Data.Entities.Producto", b =>
                 {
                     b.Property<int>("Id")
@@ -569,6 +616,25 @@ namespace SistemaAlmacen.Data.Migrations
                     b.Navigation("Producto");
 
                     b.Navigation("Venta");
+                });
+
+            modelBuilder.Entity("SistemaAlmacen.Data.Entities.MovimientoStock", b =>
+                {
+                    b.HasOne("SistemaAlmacen.Data.Entities.Producto", "Producto")
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SistemaAlmacen.Data.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Producto");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("SistemaAlmacen.Data.Entities.Producto", b =>

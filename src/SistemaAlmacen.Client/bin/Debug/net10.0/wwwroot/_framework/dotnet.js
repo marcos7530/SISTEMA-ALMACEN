@@ -5,7 +5,7 @@ var e=!1;const t=async()=>WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,
   "mainAssemblyName": "SistemaAlmacen.Client",
   "applicationEnvironment": "Development",
   "resources": {
-    "hash": "sha256-lIQ3r4ZD0XFNMQ+IaaUmuWcYpkTLHA/ZRoR9esRYzMo=",
+    "hash": "sha256-c+q7cpgIiXJ5WrzDH9ASxkTWJQwksQ5W16g35npiVxw=",
     "jsModuleNative": [
       {
         "name": "dotnet.native.rjbmzc4jpg.js"
@@ -1284,8 +1284,8 @@ var e=!1;const t=async()=>WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,
       },
       {
         "virtualPath": "SistemaAlmacen.Shared.wasm",
-        "name": "SistemaAlmacen.Shared.dmg35ul3an.wasm",
-        "hash": "sha256-GxxhYYmLqg6VeZ46SSWpds+RafHKTbVUUKBmYJtsvqc=",
+        "name": "SistemaAlmacen.Shared.mycor40r5g.wasm",
+        "hash": "sha256-nqKldf1h/PQapdzpB/mxyk+l1KO1jHd3m49hjD/VvCo=",
         "cache": "force-cache"
       },
       {
@@ -1296,22 +1296,22 @@ var e=!1;const t=async()=>WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,
       },
       {
         "virtualPath": "SistemaAlmacen.Client.wasm",
-        "name": "SistemaAlmacen.Client.x8oufd4il8.wasm",
-        "hash": "sha256-QVmy1gW+FsIkTE43SYjY/VLt/kNR8YFznuvBVhFCWk0=",
+        "name": "SistemaAlmacen.Client.uur9da5zmr.wasm",
+        "hash": "sha256-RpqOq2KhcVt6HhZBE5XL+G1M1MhTiDYU4nQMTQMRNhU=",
         "cache": "force-cache"
       }
     ],
     "pdb": [
       {
         "virtualPath": "SistemaAlmacen.Shared.pdb",
-        "name": "SistemaAlmacen.Shared.zkzl9vmocz.pdb",
-        "hash": "sha256-nXPWYg5GehzwsaCvnWo3KbXTKp/RW4FSFX8naIaVarE=",
+        "name": "SistemaAlmacen.Shared.8ss64gi8zj.pdb",
+        "hash": "sha256-OLs1ebXzV8NM9E48fMUIP5kK9ySGk2Q0nhxyZHP/wHY=",
         "cache": "force-cache"
       },
       {
         "virtualPath": "SistemaAlmacen.Client.pdb",
-        "name": "SistemaAlmacen.Client.it8kdr6has.pdb",
-        "hash": "sha256-Wn2+DFvVu0bx9aT88Bf0PaZCQGkSHAplzH02DxUaxc8=",
+        "name": "SistemaAlmacen.Client.wr2kb0vwb0.pdb",
+        "hash": "sha256-9NnBKBREv86Vn6QVum3j8DAA5YOpr3adpQoLAXCswfE=",
         "cache": "force-cache"
       }
     ],

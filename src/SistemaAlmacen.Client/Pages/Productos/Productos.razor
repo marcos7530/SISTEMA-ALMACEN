@@ -36,6 +36,9 @@
     @if (_isAdmin)
     {
         <div class="col-md-3 text-end">
+            <button class="btn btn-outline-success me-2" @onclick="OpenReponer">
+                <i class="bi bi-upc-scan"></i> Reponer por escaneo
+            </button>
             <button class="btn btn-primary" @onclick="NavigateToCreate">Nuevo Producto</button>
         </div>
     }
@@ -74,6 +77,9 @@ else
                             <button class="btn btn-warning btn-sm" @onclick="() => NavigateToEdit(producto.Id)">
                                 Editar
                             </button>
+                            <button class="btn btn-secondary btn-sm" @onclick="() => OpenBaja(producto)">
+                                Dar de baja
+                            </button>
                             <button class="btn btn-danger btn-sm" @onclick="() => DeleteProducto(producto)">
                                 Eliminar
                             </button>
@@ -109,6 +115,111 @@ else
             </ul>
         </nav>
     }
+}
+
+@* ----- Modal: Dar de baja stock por motivo ----- *@
+@if (_showBajaModal && _bajaProducto is not null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Dar de baja stock</h5>
+                    <button type="button" class="btn-close" @onclick="CloseBaja"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">
+                        <strong>@_bajaProducto.Nombre</strong>
+                        <span class="text-muted">(Stock actual: @_bajaProducto.Stock)</span>
+                    </p>
+
+                    @if (!string.IsNullOrWhiteSpace(_bajaError))
+                    {
+                        <div class="alert alert-danger py-2">@_bajaError</div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label">Motivo</label>
+                        <select class="form-select" @bind="_bajaMotivo">
+                            @foreach (var motivo in Enum.GetValues<MotivoBajaStock>())
+                            {
+                                <option value="@motivo">@FormatMotivo(motivo)</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Cantidad a dar de baja</label>
+                        <input type="number" class="form-control" min="1" max="@_bajaProducto.Stock" @bind="_bajaCantidad" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Observación (opcional)</label>
+                        <textarea class="form-control" rows="2" maxlength="200" @bind="_bajaObservacion"
+                                  placeholder="Detalle adicional..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseBaja" disabled="@_bajaProcessing">Cancelar</button>
+                    <button class="btn btn-danger" @onclick="ConfirmBaja" disabled="@_bajaProcessing">
+                        @(_bajaProcessing ? "Procesando..." : "Confirmar baja")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@* ----- Modal: Reponer stock por escaneo ----- *@
+@if (_showReponerModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Reponer stock por escaneo</h5>
+                    <button type="button" class="btn-close" @onclick="CloseReponer"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrWhiteSpace(_reponerError))
+                    {
+                        <div class="alert alert-danger py-2">@_reponerError</div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_reponerSuccess))
+                    {
+                        <div class="alert alert-success py-2">@_reponerSuccess</div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Código de barras</strong></label>
+                        <input type="text" class="form-control form-control-lg"
+                               placeholder="Escanear código de barras..."
+                               @bind="_reponerCodigo" @bind:event="oninput"
+                               @onkeydown="HandleReponerKeyDown"
+                               autofocus />
+                        <small class="text-muted">Escaneá el producto y presioná Enter, o cargá el código manualmente.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Cantidad a agregar</label>
+                        <input type="number" class="form-control" min="1" @bind="_reponerCantidad" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Observación (opcional)</label>
+                        <textarea class="form-control" rows="2" maxlength="200" @bind="_reponerObservacion"
+                                  placeholder="Ej: compra a proveedor, remito N°..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseReponer" disabled="@_reponerProcessing">Cerrar</button>
+                    <button class="btn btn-success" @onclick="ConfirmReponer" disabled="@_reponerProcessing">
+                        @(_reponerProcessing ? "Procesando..." : "Agregar stock")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
 @code {
@@ -270,6 +381,190 @@ else
         catch (Exception)
         {
             _errorMessage = "Error de conexión. Intente nuevamente.";
+        }
+    }
+
+    // ----- Estado modal: baja de stock -----
+    private bool _showBajaModal;
+    private ProductoDto? _bajaProducto;
+    private MotivoBajaStock _bajaMotivo = MotivoBajaStock.Rotura;
+    private int _bajaCantidad = 1;
+    private string? _bajaObservacion;
+    private string? _bajaError;
+    private bool _bajaProcessing;
+
+    // ----- Estado modal: reposición por escaneo -----
+    private bool _showReponerModal;
+    private string _reponerCodigo = string.Empty;
+    private int _reponerCantidad = 1;
+    private string? _reponerObservacion;
+    private string? _reponerError;
+    private string? _reponerSuccess;
+    private bool _reponerProcessing;
+
+    private static string FormatMotivo(MotivoBajaStock motivo) => motivo switch
+    {
+        MotivoBajaStock.Rotura => "Rotura",
+        MotivoBajaStock.Vencimiento => "Vencimiento",
+        MotivoBajaStock.Perdida => "Pérdida",
+        MotivoBajaStock.Robo => "Robo",
+        MotivoBajaStock.ErrorDeCarga => "Error de carga",
+        MotivoBajaStock.Otro => "Otro",
+        _ => motivo.ToString()
+    };
+
+    private void OpenBaja(ProductoDto producto)
+    {
+        ClearMessages();
+        _bajaProducto = producto;
+        _bajaMotivo = MotivoBajaStock.Rotura;
+        _bajaCantidad = 1;
+        _bajaObservacion = null;
+        _bajaError = null;
+        _showBajaModal = true;
+    }
+
+    private void CloseBaja()
+    {
+        _showBajaModal = false;
+        _bajaProducto = null;
+    }
+
+    private async Task ConfirmBaja()
+    {
+        if (_bajaProducto is null)
+            return;
+
+        _bajaError = null;
+
+        if (_bajaCantidad < 1)
+        {
+            _bajaError = "La cantidad debe ser mayor o igual a uno.";
+            return;
+        }
+
+        if (_bajaCantidad > _bajaProducto.Stock)
+        {
+            _bajaError = $"No podés dar de baja más de {_bajaProducto.Stock} unidades disponibles.";
+            return;
+        }
+
+        _bajaProcessing = true;
+
+        try
+        {
+            var request = new AjusteBajaStockRequest
+            {
+                Cantidad = _bajaCantidad,
+                Motivo = _bajaMotivo,
+                Observacion = string.IsNullOrWhiteSpace(_bajaObservacion) ? null : _bajaObservacion
+            };
+
+            var response = await Http.PostAsJsonAsync($"api/productos/{_bajaProducto.Id}/baja-stock", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var nombre = _bajaProducto.Nombre;
+                _successMessage = $"Se dieron de baja {_bajaCantidad} unidad(es) de '{nombre}' por {FormatMotivo(_bajaMotivo).ToLower()}.";
+                CloseBaja();
+                await LoadProductos();
+            }
+            else
+            {
+                var errorResult = await ApiErrorParser.ParseAsync(response);
+                _bajaError = errorResult.GeneralError ?? "Error al dar de baja el stock.";
+            }
+        }
+        catch (Exception)
+        {
+            _bajaError = "Error de conexión. Intente nuevamente.";
+        }
+        finally
+        {
+            _bajaProcessing = false;
+        }
+    }
+
+    private void OpenReponer()
+    {
+        ClearMessages();
+        _reponerCodigo = string.Empty;
+        _reponerCantidad = 1;
+        _reponerObservacion = null;
+        _reponerError = null;
+        _reponerSuccess = null;
+        _showReponerModal = true;
+    }
+
+    private void CloseReponer()
+    {
+        _showReponerModal = false;
+    }
+
+    private async Task HandleReponerKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await ConfirmReponer();
+        }
+    }
+
+    private async Task ConfirmReponer()
+    {
+        _reponerError = null;
+        _reponerSuccess = null;
+
+        if (string.IsNullOrWhiteSpace(_reponerCodigo))
+        {
+            _reponerError = "Escaneá o ingresá un código de barras.";
+            return;
+        }
+
+        if (_reponerCantidad < 1)
+        {
+            _reponerError = "La cantidad debe ser mayor o igual a uno.";
+            return;
+        }
+
+        _reponerProcessing = true;
+
+        try
+        {
+            var request = new ReponerStockRequest
+            {
+                CodigoBarras = _reponerCodigo.Trim(),
+                Cantidad = _reponerCantidad,
+                Observacion = string.IsNullOrWhiteSpace(_reponerObservacion) ? null : _reponerObservacion
+            };
+
+            var response = await Http.PostAsJsonAsync("api/productos/reponer-stock", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var producto = await response.Content.ReadFromJsonAsync<ProductoDto>();
+                _reponerSuccess = producto is not null
+                    ? $"Se agregaron {_reponerCantidad} unidad(es) a '{producto.Nombre}'. Stock actual: {producto.Stock}."
+                    : "Stock actualizado correctamente.";
+
+                // Preparar para el siguiente escaneo
+                _reponerCodigo = string.Empty;
+                _reponerCantidad = 1;
+                _reponerObservacion = null;
+                await LoadProductos();
+            }
+            else
+            {
+                var errorResult = await ApiErrorParser.ParseAsync(response);
+                _reponerError = errorResult.GeneralError ?? "Error al reponer el stock.";
+            }
+        }
+        catch (Exception)
+        {
+            _reponerError = "Error de conexión. Intente nuevamente.";
+        }
+        finally
+        {
+            _reponerProcessing = false;
         }
     }
 

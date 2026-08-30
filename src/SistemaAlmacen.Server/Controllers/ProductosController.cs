@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SistemaAlmacen.Business.Interfaces;
@@ -16,10 +17,12 @@ namespace SistemaAlmacen.Server.Controllers;
 public class ProductosController : ControllerBase
 {
     private readonly IProductoService _productoService;
+    private readonly IStockService _stockService;
 
-    public ProductosController(IProductoService productoService)
+    public ProductosController(IProductoService productoService, IStockService stockService)
     {
         _productoService = productoService;
+        _stockService = stockService;
     }
 
     /// <summary>
@@ -136,5 +139,75 @@ public class ProductosController : ControllerBase
         }
 
         return Ok(new { message = "Producto desactivado correctamente." });
+    }
+
+    /// <summary>
+    /// Da de baja stock de un producto por un motivo (rotura, vencimiento, etc.). Solo Administrador.
+    /// </summary>
+    [HttpPost("{id}/baja-stock")]
+    [Authorize(Policy = "RequireAdmin")]
+    public async Task<ActionResult<ProductoDto>> BajaStock(int id, [FromBody] AjusteBajaStockRequest request)
+    {
+        var usuarioId = GetCurrentUserId();
+        if (usuarioId is null)
+        {
+            return Unauthorized(new { message = "No se pudo identificar al usuario." });
+        }
+
+        var result = await _stockService.RegistrarBajaAsync(id, request, usuarioId.Value);
+
+        if (!result.IsSuccess)
+        {
+            if (result.HasFieldErrors)
+            {
+                return BadRequest(new { message = result.ErrorMessage, errors = result.FieldErrors });
+            }
+            return BadRequest(new { message = result.ErrorMessage });
+        }
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Repone (incrementa) stock de un producto identificado por su código de barras. Solo Administrador.
+    /// </summary>
+    [HttpPost("reponer-stock")]
+    [Authorize(Policy = "RequireAdmin")]
+    public async Task<ActionResult<ProductoDto>> ReponerStock([FromBody] ReponerStockRequest request)
+    {
+        var usuarioId = GetCurrentUserId();
+        if (usuarioId is null)
+        {
+            return Unauthorized(new { message = "No se pudo identificar al usuario." });
+        }
+
+        var result = await _stockService.IncrementarPorCodigoBarrasAsync(request, usuarioId.Value);
+
+        if (!result.IsSuccess)
+        {
+            if (result.HasFieldErrors)
+            {
+                return BadRequest(new { message = result.ErrorMessage, errors = result.FieldErrors });
+            }
+            return BadRequest(new { message = result.ErrorMessage });
+        }
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Extrae el ID del usuario actual desde los claims del JWT.
+    /// </summary>
+    private int? GetCurrentUserId()
+    {
+        var claim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)
+                    ?? HttpContext.User.FindFirst("sub");
+
+        if (claim is null || !int.TryParse(claim.Value, out var userId))
+        {
+            return null;
+        }
+
+        return userId;
     }
 }

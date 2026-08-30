@@ -29,42 +29,43 @@ else
             <div class="card mb-3">
                 <div class="card-header"><i class="bi bi-upc-scan"></i> Agregar Producto</div>
                 <div class="card-body">
-                    <!-- Código de barras (lector) -->
-                    <div class="form-group mb-3">
-                        <label for="codigoBarras"><strong>Código de Barras</strong></label>
-                        <input id="codigoBarras" type="text" class="form-control form-control-lg"
-                               placeholder="Escanear código de barras..."
-                               @bind="_codigoBarras" @bind:event="oninput"
-                               @onkeydown="HandleBarcodeScan"
+                    <!-- Búsqueda unificada: código de barras o nombre -->
+                    <div class="form-group mb-2 position-relative">
+                        <label for="buscarProducto"><strong>Buscar producto</strong></label>
+                        <input id="buscarProducto" type="text" class="form-control form-control-lg"
+                               placeholder="Escanear código o buscar por nombre..."
+                               @bind="_busquedaProducto" @bind:event="oninput"
+                               @onkeydown="HandleBusquedaKeyDown"
+                               autocomplete="off"
                                autofocus />
                         @if (!string.IsNullOrEmpty(_barcodeMessage))
                         {
                             <small class="text-danger">@_barcodeMessage</small>
                         }
-                    </div>
 
-                    <hr />
-
-                    <!-- Búsqueda manual por nombre -->
-                    <div class="form-group mb-2">
-                        <label for="buscarProducto">O buscar por nombre</label>
-                        <input id="buscarProducto" type="text" class="form-control" placeholder="Nombre del producto..."
-                               @bind="_busquedaProducto" @bind:event="oninput" @onkeyup="BuscarProductos" />
-                    </div>
-
-                    @if (_productosDisponibles.Any())
-                    {
-                        <div class="form-group mb-2">
-                            <label for="productoSelect">Producto</label>
-                            <select id="productoSelect" class="form-control" @bind="_productoSeleccionadoId">
-                                <option value="0">-- Seleccionar --</option>
+                        @if (_productosDisponibles.Any())
+                        {
+                            <ul class="list-group position-absolute w-100 shadow-sm" style="z-index:1000; max-height:280px; overflow-y:auto;">
                                 @foreach (var p in _productosDisponibles)
                                 {
-                                    <option value="@p.Id">@p.Nombre - $@p.Precio (Stock: @p.Stock)</option>
+                                    <li class="list-group-item list-group-item-action @(p.Id == _productoSeleccionadoId ? "active" : "")"
+                                        style="cursor:pointer;"
+                                        @onclick="() => SeleccionarProducto(p)">
+                                        <div class="d-flex justify-content-between">
+                                            <span>
+                                                <strong>@p.Nombre</strong>
+                                                @if (!string.IsNullOrEmpty(p.CodigoBarras))
+                                                {
+                                                    <small class="text-muted ms-1">(@p.CodigoBarras)</small>
+                                                }
+                                            </span>
+                                            <span>$@p.Precio.ToString("N2") <small class="text-muted">Stock: @p.Stock</small></span>
+                                        </div>
+                                    </li>
                                 }
-                            </select>
-                        </div>
-                    }
+                            </ul>
+                        }
+                    </div>
 
                     <div class="form-group mb-2">
                         <label for="cantidad">Cantidad</label>
@@ -74,6 +75,11 @@ else
                     <button class="btn btn-success" @onclick="AgregarDetalle" disabled="@(_isLoading || _productoSeleccionadoId == 0)">
                         @(_isLoading ? "Agregando..." : "Agregar")
                     </button>
+
+                    @if (_productoSeleccionadoId > 0 && _productoSeleccionadoNombre is not null)
+                    {
+                        <small class="d-block mt-2 text-success">Seleccionado: @_productoSeleccionadoNombre</small>
+                    }
                 </div>
             </div>
         </div>
@@ -182,14 +188,12 @@ else
     private string? _successMessage;
     private bool _isLoading;
 
-    // Product search
+    // Product search (unificado: código o nombre)
     private string _busquedaProducto = string.Empty;
     private List<ProductoItemDto> _productosDisponibles = new();
     private int _productoSeleccionadoId;
+    private string? _productoSeleccionadoNombre;
     private int _cantidad = 1;
-
-    // Barcode scanner
-    private string _codigoBarras = string.Empty;
     private string? _barcodeMessage;
 
     // Sale details
@@ -234,9 +238,57 @@ else
         }
     }
 
-    private async Task HandleBarcodeScan(KeyboardEventArgs e)
+    /// <summary>
+    /// Maneja las teclas del cuadro unificado. Al presionar Enter (lector de código de
+    /// barras o confirmación manual) intenta agregar directamente el producto por código
+    /// exacto; en otro caso refresca las sugerencias.
+    /// </summary>
+    private async Task HandleBusquedaKeyDown(KeyboardEventArgs e)
     {
-        if (e.Key != "Enter" || string.IsNullOrWhiteSpace(_codigoBarras))
+        if (e.Key == "Enter")
+        {
+            await IntentarAgregarPorCodigo();
+            return;
+        }
+
+        await BuscarProductos();
+    }
+
+    /// <summary>
+    /// Busca productos por nombre o código y actualiza las sugerencias en vivo.
+    /// </summary>
+    private async Task BuscarProductos()
+    {
+        // Al cambiar el texto se invalida la selección previa.
+        _productoSeleccionadoId = 0;
+        _productoSeleccionadoNombre = null;
+        _barcodeMessage = null;
+
+        if (string.IsNullOrWhiteSpace(_busquedaProducto) || _busquedaProducto.Length < 2)
+        {
+            _productosDisponibles.Clear();
+            return;
+        }
+
+        try
+        {
+            var url = $"api/productos?searchTerm={Uri.EscapeDataString(_busquedaProducto.Trim())}&pageSize=20";
+            var result = await Http.GetFromJsonAsync<PaginatedResultDto<ProductoItemDto>>(url);
+            _productosDisponibles = result?.Items ?? new();
+        }
+        catch
+        {
+            _productosDisponibles.Clear();
+        }
+    }
+
+    /// <summary>
+    /// Intenta resolver el texto ingresado como un código de barras exacto y, de existir,
+    /// agrega el producto directamente al carrito (flujo del lector de códigos).
+    /// </summary>
+    private async Task IntentarAgregarPorCodigo()
+    {
+        if (string.IsNullOrWhiteSpace(_busquedaProducto))
             return;
 
         _barcodeMessage = null;
@@ -245,18 +297,17 @@ else
         try
         {
             var producto = await Http.GetFromJsonAsync<ProductoItemDto>(
-                $"api/productos/barcode/{Uri.EscapeDataString(_codigoBarras.Trim())}");
+                $"api/productos/barcode/{Uri.EscapeDataString(_busquedaProducto.Trim())}");
 
             if (producto is not null)
             {
-                // Agregar directamente al carrito con cantidad 1
                 var request = new { ProductoId = producto.Id, Cantidad = 1 };
                 var response = await Http.PostAsJsonAsync($"api/ventas/{_ventaId}/detalles", request);
 
                 if (response.IsSuccessStatusCode)
                 {
                     await RefrescarDetalles();
-                    _barcodeMessage = null;
+                    LimpiarBusqueda();
                 }
                 else
                 {
@@ -266,12 +317,14 @@ else
             }
             else
             {
-                _barcodeMessage = "Producto no encontrado.";
+                _barcodeMessage = "No se encontró un producto con ese código. Seleccioná uno de la lista.";
             }
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
-            _barcodeMessage = $"No se encontró producto con código: {_codigoBarras.Trim()}";
+            // No es un código exacto: se deja el texto para que el usuario elija de las sugerencias.
+            _barcodeMessage = "No se encontró un producto con ese código. Seleccioná uno de la lista.";
+            await BuscarProductos();
         }
         catch (Exception)
         {
@@ -279,29 +332,29 @@ else
         }
         finally
         {
-            _codigoBarras = string.Empty;
             _isLoading = false;
         }
     }
 
-    private async Task BuscarProductos()
+    /// <summary>
+    /// Selecciona un producto de las sugerencias para agregarlo con la cantidad indicada.
+    /// </summary>
+    private void SeleccionarProducto(ProductoItemDto producto)
     {
-        if (string.IsNullOrWhiteSpace(_busquedaProducto) || _busquedaProducto.Length < 2)
-        {
-            _productosDisponibles.Clear();
-            return;
-        }
+        _productoSeleccionadoId = producto.Id;
+        _productoSeleccionadoNombre = producto.Nombre;
+        _busquedaProducto = producto.Nombre;
+        _productosDisponibles.Clear();
+        _barcodeMessage = null;
+    }
 
-        try
-        {
-            var url = $"api/productos?busqueda={Uri.EscapeDataString(_busquedaProducto)}&pageSize=20";
-            var result = await Http.GetFromJsonAsync<PaginatedResultDto<ProductoItemDto>>(url);
-            _productosDisponibles = result?.Items ?? new();
-        }
-        catch
-        {
-            _productosDisponibles.Clear();
-        }
+    private void LimpiarBusqueda()
+    {
+        _busquedaProducto = string.Empty;
+        _productosDisponibles.Clear();
+        _productoSeleccionadoId = 0;
+        _productoSeleccionadoNombre = null;
+        _barcodeMessage = null;
     }
 
     private async Task AgregarDetalle()
@@ -321,7 +374,7 @@ else
             {
                 await RefrescarDetalles();
                 _cantidad = 1;
-                _productoSeleccionadoId = 0;
+                LimpiarBusqueda();
             }
             else
             {
@@ -460,6 +513,7 @@ else
     {
         public int Id { get; set; }
         public string Nombre { get; set; } = string.Empty;
+        public string? CodigoBarras { get; set; }
         public decimal Precio { get; set; }
         public int Stock { get; set; }
     }

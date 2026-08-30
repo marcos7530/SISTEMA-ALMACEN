@@ -1,4 +1,5 @@
 using SistemaAlmacen.Shared.Common;
+using SistemaAlmacen.Shared.DTOs.Productos;
 
 namespace SistemaAlmacen.Business.Interfaces;
 
@@ -7,6 +8,25 @@ namespace SistemaAlmacen.Business.Interfaces;
 /// </summary>
 public interface IStockService
 {
+    /// <summary>
+    /// Da de baja stock de un producto por un motivo determinado (rotura, vencimiento, etc.)
+    /// y registra el movimiento en el historial.
+    /// </summary>
+    /// <param name="productoId">ID del producto al que se le da de baja stock.</param>
+    /// <param name="request">Datos de la baja (cantidad, motivo, observación).</param>
+    /// <param name="usuarioId">ID del usuario que realiza la operación.</param>
+    /// <returns>El producto actualizado o un error.</returns>
+    Task<Result<ProductoDto>> RegistrarBajaAsync(int productoId, AjusteBajaStockRequest request, int usuarioId);
+
+    /// <summary>
+    /// Incrementa (repone) el stock de un producto identificado por su código de barras
+    /// y registra el movimiento en el historial.
+    /// </summary>
+    /// <param name="request">Datos de la reposición (código de barras, cantidad, observación).</param>
+    /// <param name="usuarioId">ID del usuario que realiza la operación.</param>
+    /// <returns>El producto actualizado o un error.</returns>
+    Task<Result<ProductoDto>> IncrementarPorCodigoBarrasAsync(ReponerStockRequest request, int usuarioId);
+
     /// <summary>
     /// Verifica si hay stock suficiente para la cantidad solicitada de un producto.
     /// </summary>
