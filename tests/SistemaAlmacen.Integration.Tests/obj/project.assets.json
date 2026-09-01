@@ -5321,23 +5321,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\marco\\.nuget\\packages\\": {},
+    "C:\\Users\\Marcos\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\marco\\OneDrive\\Escritorio\\SISTEMA ALMACEN\\tests\\SistemaAlmacen.Integration.Tests\\SistemaAlmacen.Integration.Tests.csproj",
+      "projectUniqueName": "C:\\Users\\Marcos\\Desktop\\SISTEMA-ALMACEN\\tests\\SistemaAlmacen.Integration.Tests\\SistemaAlmacen.Integration.Tests.csproj",
       "projectName": "SistemaAlmacen.Integration.Tests",
-      "projectPath": "C:\\Users\\marco\\OneDrive\\Escritorio\\SISTEMA ALMACEN\\tests\\SistemaAlmacen.Integration.Tests\\SistemaAlmacen.Integration.Tests.csproj",
-      "packagesPath": "C:\\Users\\marco\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\marco\\OneDrive\\Escritorio\\SISTEMA ALMACEN\\tests\\SistemaAlmacen.Integration.Tests\\obj\\",
+      "projectPath": "C:\\Users\\Marcos\\Desktop\\SISTEMA-ALMACEN\\tests\\SistemaAlmacen.Integration.Tests\\SistemaAlmacen.Integration.Tests.csproj",
+      "packagesPath": "C:\\Users\\Marcos\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Marcos\\Desktop\\SISTEMA-ALMACEN\\tests\\SistemaAlmacen.Integration.Tests\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\marco\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Marcos\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -5354,8 +5354,8 @@
           "framework": "net10.0",
           "targetAlias": "net10.0",
           "projectReferences": {
-            "C:\\Users\\marco\\OneDrive\\Escritorio\\SISTEMA ALMACEN\\src\\SistemaAlmacen.Server\\SistemaAlmacen.Server.csproj": {
-              "projectPath": "C:\\Users\\marco\\OneDrive\\Escritorio\\SISTEMA ALMACEN\\src\\SistemaAlmacen.Server\\SistemaAlmacen.Server.csproj"
+            "C:\\Users\\Marcos\\Desktop\\SISTEMA-ALMACEN\\src\\SistemaAlmacen.Server\\SistemaAlmacen.Server.csproj": {
+              "projectPath": "C:\\Users\\Marcos\\Desktop\\SISTEMA-ALMACEN\\src\\SistemaAlmacen.Server\\SistemaAlmacen.Server.csproj"
             }
           }
         }
@@ -5422,7 +5422,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.303/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(,4.7.32767]",
           "Microsoft.VisualBasic": "(,10.4.32767]",

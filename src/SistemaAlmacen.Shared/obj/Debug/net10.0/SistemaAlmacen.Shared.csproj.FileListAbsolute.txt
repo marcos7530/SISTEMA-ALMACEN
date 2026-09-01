@@ -10,3 +10,15 @@ C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Shared\obj
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Shared\obj\Debug\net10.0\refint\SistemaAlmacen.Shared.dll
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Shared\obj\Debug\net10.0\SistemaAlmacen.Shared.pdb
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Shared\obj\Debug\net10.0\ref\SistemaAlmacen.Shared.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Shared\bin\Debug\net10.0\SistemaAlmacen.Shared.deps.json
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Shared\bin\Debug\net10.0\SistemaAlmacen.Shared.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Shared\bin\Debug\net10.0\SistemaAlmacen.Shared.pdb
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Shared\obj\Debug\net10.0\SistemaAlmacen.Shared.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Shared\obj\Debug\net10.0\SistemaAlmacen.Shared.AssemblyInfoInputs.cache
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Shared\obj\Debug\net10.0\SistemaAlmacen.Shared.AssemblyInfo.cs
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Shared\obj\Debug\net10.0\SistemaAlmacen.Shared.csproj.CoreCompileInputs.cache
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Shared\obj\Debug\net10.0\SistemaAlmacen.Shared.sourcelink.json
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Shared\obj\Debug\net10.0\SistemaAlmacen.Shared.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Shared\obj\Debug\net10.0\refint\SistemaAlmacen.Shared.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Shared\obj\Debug\net10.0\SistemaAlmacen.Shared.pdb
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Shared\obj\Debug\net10.0\ref\SistemaAlmacen.Shared.dll

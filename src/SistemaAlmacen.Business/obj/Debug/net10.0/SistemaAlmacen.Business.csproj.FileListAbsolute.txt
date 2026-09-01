@@ -35,3 +35,40 @@ C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Business\o
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Business\obj\Debug\net10.0\refint\SistemaAlmacen.Business.dll
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Business\obj\Debug\net10.0\SistemaAlmacen.Business.pdb
 C:\Users\marco\OneDrive\Escritorio\SISTEMA ALMACEN\src\SistemaAlmacen.Business\obj\Debug\net10.0\ref\SistemaAlmacen.Business.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-Black.ttf
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-BlackItalic.ttf
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-Bold.ttf
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-BoldItalic.ttf
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-ExtraBold.ttf
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-ExtraBoldItalic.ttf
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-ExtraLight.ttf
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-ExtraLightItalic.ttf
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-Italic.ttf
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-Light.ttf
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-LightItalic.ttf
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-Medium.ttf
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-MediumItalic.ttf
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-Regular.ttf
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-SemiBold.ttf
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-SemiBoldItalic.ttf
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-Thin.ttf
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\Lato-ThinItalic.ttf
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\LatoFont\OFL.txt
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\SistemaAlmacen.Business.deps.json
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\SistemaAlmacen.Business.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\SistemaAlmacen.Business.pdb
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\SistemaAlmacen.Data.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\SistemaAlmacen.Shared.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\SistemaAlmacen.Data.pdb
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\bin\Debug\net10.0\SistemaAlmacen.Shared.pdb
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\obj\Debug\net10.0\SistemaAlmacen.Business.csproj.AssemblyReference.cache
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\obj\Debug\net10.0\SistemaAlmacen.Business.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\obj\Debug\net10.0\SistemaAlmacen.Business.AssemblyInfoInputs.cache
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\obj\Debug\net10.0\SistemaAlmacen.Business.AssemblyInfo.cs
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\obj\Debug\net10.0\SistemaAlmacen.Business.csproj.CoreCompileInputs.cache
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\obj\Debug\net10.0\SistemaAlmacen.Business.sourcelink.json
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\obj\Debug\net10.0\SistemaA.3F8BB9D8.Up2Date
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\obj\Debug\net10.0\SistemaAlmacen.Business.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\obj\Debug\net10.0\refint\SistemaAlmacen.Business.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\obj\Debug\net10.0\SistemaAlmacen.Business.pdb
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Business\obj\Debug\net10.0\ref\SistemaAlmacen.Business.dll

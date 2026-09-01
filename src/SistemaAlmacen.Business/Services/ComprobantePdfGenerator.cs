@@ -1,3 +1,4 @@
+using System.Globalization;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -18,6 +19,8 @@ public class ComprobantePdfGenerator
     /// <param name="venta">Venta con detalles y productos cargados.</param>
     /// <param name="vendedor">Nombre del vendedor que registró la venta.</param>
     /// <returns>Bytes del archivo PDF generado.</returns>
+    private static readonly CultureInfo CulturaArgentina = new("es-AR");
+
     public byte[] Generar(Comprobante comprobante, Venta venta, string vendedor)
     {
         var tipoNombre = ObtenerNombreTipoComprobante(comprobante.TipoComprobante);
@@ -96,17 +99,17 @@ public class ComprobantePdfGenerator
                                 var nombreProducto = detalle.Producto?.Nombre ?? $"Producto #{detalle.ProductoId}";
                                 table.Cell().Padding(3).Text(nombreProducto);
                                 table.Cell().Padding(3).AlignRight().Text(detalle.Cantidad.ToString());
-                                table.Cell().Padding(3).AlignRight().Text($"${detalle.PrecioUnitario:N2}");
-                                table.Cell().Padding(3).AlignRight().Text($"${detalle.Subtotal:N2}");
+                                table.Cell().Padding(3).AlignRight().Text($"${detalle.PrecioUnitario.ToString("N2", CulturaArgentina)}");
+                                table.Cell().Padding(3).AlignRight().Text($"${detalle.Subtotal.ToString("N2", CulturaArgentina)}");
                             }
                         });
 
                         // Totales
                         col.Item().PaddingTop(10).AlignRight().Column(totales =>
                         {
-                            totales.Item().Text($"Subtotal (Neto Gravado): ${netoGravado:N2}");
-                            totales.Item().Text($"IVA (21%): ${iva:N2}");
-                            totales.Item().PaddingTop(3).Text($"Total: ${venta.Total:N2}").Bold().FontSize(12);
+                            totales.Item().Text($"Subtotal (Neto Gravado): ${netoGravado.ToString("N2", CulturaArgentina)}");
+                            totales.Item().Text($"IVA (21%): ${iva.ToString("N2", CulturaArgentina)}");
+                            totales.Item().PaddingTop(3).Text($"Total: ${venta.Total.ToString("N2", CulturaArgentina)}").Bold().FontSize(12);
                         });
 
                         // Datos fiscales

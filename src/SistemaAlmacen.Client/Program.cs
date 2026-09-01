@@ -1,9 +1,15 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using SistemaAlmacen.Client;
 using SistemaAlmacen.Client.Offline;
 using SistemaAlmacen.Client.Services;
+
+// --- Culture: Peso argentino ($) as currency symbol, es-AR number formatting ---
+var cultureArgentina = new CultureInfo("es-AR");
+CultureInfo.DefaultThreadCurrentCulture = cultureArgentina;
+CultureInfo.DefaultThreadCurrentUICulture = cultureArgentina;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
