@@ -14,4 +14,7 @@ public class UpdateCategoriaRequest
 
     [MaxLength(200, ErrorMessage = "La descripción no puede exceder 200 caracteres.")]
     public string? Descripcion { get; set; }
+
+    [Range(0, 999.99, ErrorMessage = "El margen debe estar entre 0 y 999.99.")]
+    public decimal? MargenGanancia { get; set; }
 }

@@ -162,6 +162,9 @@ namespace SistemaAlmacen.Data.Migrations
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal?>("MargenGanancia")
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -231,6 +234,45 @@ namespace SistemaAlmacen.Data.Migrations
                     b.ToTable("Clientes", (string)null);
                 });
 
+            modelBuilder.Entity("SistemaAlmacen.Data.Entities.Compra", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Estado")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NumeroComprobante")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("ProveedorId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProveedorId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("Compras", (string)null);
+                });
+
             modelBuilder.Entity("SistemaAlmacen.Data.Entities.Comprobante", b =>
                 {
                     b.Property<int>("Id")
@@ -275,6 +317,38 @@ namespace SistemaAlmacen.Data.Migrations
                     b.HasIndex("VentaId");
 
                     b.ToTable("Comprobantes", (string)null);
+                });
+
+            modelBuilder.Entity("SistemaAlmacen.Data.Entities.DetalleCompra", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CompraId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("CostoUnitario")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompraId");
+
+                    b.HasIndex("ProductoId");
+
+                    b.ToTable("DetallesCompra", (string)null);
                 });
 
             modelBuilder.Entity("SistemaAlmacen.Data.Entities.DetalleVenta", b =>
@@ -433,6 +507,9 @@ namespace SistemaAlmacen.Data.Migrations
                     b.Property<int>("Cantidad")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CompraId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("datetime2");
 
@@ -459,6 +536,8 @@ namespace SistemaAlmacen.Data.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CompraId");
 
                     b.HasIndex("Fecha");
 
@@ -497,12 +576,18 @@ namespace SistemaAlmacen.Data.Migrations
                     b.Property<DateTime>("FechaModificacion")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal?>("MargenGanancia")
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("Precio")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PrecioCosto")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Stock")
@@ -517,6 +602,56 @@ namespace SistemaAlmacen.Data.Migrations
                         .HasFilter("[CodigoBarras] IS NOT NULL AND [Activo] = 1");
 
                     b.ToTable("Productos", (string)null);
+                });
+
+            modelBuilder.Entity("SistemaAlmacen.Data.Entities.Proveedor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("CondicionIva")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Cuit")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Direccion")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaModificacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Telefono")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Cuit")
+                        .IsUnique()
+                        .HasFilter("[Cuit] IS NOT NULL AND [Activo] = 1");
+
+                    b.ToTable("Proveedores", (string)null);
                 });
 
             modelBuilder.Entity("SistemaAlmacen.Data.Entities.TokenRecuperacion", b =>
@@ -709,6 +844,25 @@ namespace SistemaAlmacen.Data.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("SistemaAlmacen.Data.Entities.Compra", b =>
+                {
+                    b.HasOne("SistemaAlmacen.Data.Entities.Proveedor", "Proveedor")
+                        .WithMany("Compras")
+                        .HasForeignKey("ProveedorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SistemaAlmacen.Data.Entities.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Proveedor");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("SistemaAlmacen.Data.Entities.Comprobante", b =>
                 {
                     b.HasOne("SistemaAlmacen.Data.Entities.Comprobante", "ComprobanteAsociado")
@@ -725,6 +879,25 @@ namespace SistemaAlmacen.Data.Migrations
                     b.Navigation("ComprobanteAsociado");
 
                     b.Navigation("Venta");
+                });
+
+            modelBuilder.Entity("SistemaAlmacen.Data.Entities.DetalleCompra", b =>
+                {
+                    b.HasOne("SistemaAlmacen.Data.Entities.Compra", "Compra")
+                        .WithMany("Detalles")
+                        .HasForeignKey("CompraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SistemaAlmacen.Data.Entities.Producto", "Producto")
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Compra");
+
+                    b.Navigation("Producto");
                 });
 
             modelBuilder.Entity("SistemaAlmacen.Data.Entities.DetalleVenta", b =>
@@ -774,6 +947,11 @@ namespace SistemaAlmacen.Data.Migrations
 
             modelBuilder.Entity("SistemaAlmacen.Data.Entities.MovimientoStock", b =>
                 {
+                    b.HasOne("SistemaAlmacen.Data.Entities.Compra", "Compra")
+                        .WithMany()
+                        .HasForeignKey("CompraId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SistemaAlmacen.Data.Entities.Producto", "Producto")
                         .WithMany()
                         .HasForeignKey("ProductoId")
@@ -785,6 +963,8 @@ namespace SistemaAlmacen.Data.Migrations
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Compra");
 
                     b.Navigation("Producto");
 
@@ -867,6 +1047,11 @@ namespace SistemaAlmacen.Data.Migrations
                     b.Navigation("Ventas");
                 });
 
+            modelBuilder.Entity("SistemaAlmacen.Data.Entities.Compra", b =>
+                {
+                    b.Navigation("Detalles");
+                });
+
             modelBuilder.Entity("SistemaAlmacen.Data.Entities.MedioPago", b =>
                 {
                     b.Navigation("VentaPagos");
@@ -875,6 +1060,11 @@ namespace SistemaAlmacen.Data.Migrations
             modelBuilder.Entity("SistemaAlmacen.Data.Entities.Producto", b =>
                 {
                     b.Navigation("DetallesVenta");
+                });
+
+            modelBuilder.Entity("SistemaAlmacen.Data.Entities.Proveedor", b =>
+                {
+                    b.Navigation("Compras");
                 });
 
             modelBuilder.Entity("SistemaAlmacen.Data.Entities.Usuario", b =>

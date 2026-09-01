@@ -1,0 +1,365 @@
+@page "/compras/nueva"
+@attribute [Authorize(Roles = "Administrador")]
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h3>Nueva Compra / Ingreso de Mercadería</h3>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+@if (!string.IsNullOrEmpty(_successMessage))
+{
+    <div class="alert alert-success">@_successMessage</div>
+}
+
+<div class="card mb-3">
+    <div class="card-header">Datos de la compra</div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-2 position-relative">
+                <label><strong>Proveedor *</strong></label>
+                @if (_proveedorSeleccionado is not null)
+                {
+                    <div class="d-flex justify-content-between align-items-center border rounded p-2">
+                        <span><strong>@_proveedorSeleccionado.Nombre</strong>
+                            @if (!string.IsNullOrEmpty(_proveedorSeleccionado.Cuit))
+                            {
+                                <small class="text-muted ms-1">(@_proveedorSeleccionado.Cuit)</small>
+                            }
+                        </span>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="QuitarProveedor">Cambiar</button>
+                    </div>
+                }
+                else
+                {
+                    <input type="text" class="form-control" placeholder="Buscar proveedor..."
+                           @bind="_busquedaProveedor" @bind:event="oninput" @onkeyup="BuscarProveedores" autocomplete="off" />
+                    @if (_proveedoresDisponibles.Any())
+                    {
+                        <ul class="list-group position-absolute w-100 shadow-sm" style="z-index:1000; max-height:220px; overflow-y:auto;">
+                            @foreach (var p in _proveedoresDisponibles)
+                            {
+                                <li class="list-group-item list-group-item-action" style="cursor:pointer;"
+                                    @onclick="() => SeleccionarProveedor(p)">
+                                    <strong>@p.Nombre</strong>
+                                    @if (!string.IsNullOrEmpty(p.Cuit))
+                                    {
+                                        <small class="text-muted ms-1">(@p.Cuit)</small>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    }
+                }
+            </div>
+            <div class="col-md-6 mb-2">
+                <label>Nº Remito / Factura del proveedor</label>
+                <input type="text" class="form-control" maxlength="50" @bind="_numeroComprobante" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header"><i class="bi bi-box-seam"></i> Agregar producto</div>
+    <div class="card-body">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-5 position-relative">
+                <label>Producto</label>
+                @if (_productoSeleccionado is not null)
+                {
+                    <div class="d-flex justify-content-between align-items-center border rounded p-2">
+                        <span>@_productoSeleccionado.Nombre <small class="text-muted">(costo actual: @_productoSeleccionado.PrecioCosto.ToString("C2"))</small></span>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="QuitarProductoSeleccion">X</button>
+                    </div>
+                }
+                else
+                {
+                    <input type="text" class="form-control" placeholder="Buscar producto..."
+                           @bind="_busquedaProducto" @bind:event="oninput" @onkeyup="BuscarProductos" autocomplete="off" />
+                    @if (_productosDisponibles.Any())
+                    {
+                        <ul class="list-group position-absolute w-100 shadow-sm" style="z-index:1000; max-height:220px; overflow-y:auto;">
+                            @foreach (var p in _productosDisponibles)
+                            {
+                                <li class="list-group-item list-group-item-action" style="cursor:pointer;"
+                                    @onclick="() => SeleccionarProducto(p)">
+                                    <strong>@p.Nombre</strong>
+                                    <small class="text-muted ms-1">Stock: @p.Stock</small>
+                                </li>
+                            }
+                        </ul>
+                    }
+                }
+            </div>
+            <div class="col-md-2">
+                <label>Cantidad</label>
+                <input type="number" class="form-control" min="1" @bind="_cantidad" />
+            </div>
+            <div class="col-md-2">
+                <label>Costo unit.</label>
+                <input type="number" class="form-control" step="0.01" min="0" @bind="_costoUnitario" @bind:after="OnCostoChanged" />
+            </div>
+            <div class="col-md-3">
+                <label>Precio venta @if (_margenInfo is not null) { <small class="text-muted">(sug. @_margenInfo)</small> }</label>
+                <input type="number" class="form-control" step="0.01" min="0.01" @bind="_precioVenta" />
+            </div>
+        </div>
+        <button class="btn btn-success mt-2" @onclick="AgregarLinea"
+                disabled="@(_productoSeleccionado is null || _cantidad < 1)">Agregar a la compra</button>
+    </div>
+</div>
+
+@if (_lineas.Any())
+{
+    <div class="card mb-3">
+        <div class="card-header">Detalle de la compra</div>
+        <div class="card-body">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cant.</th>
+                        <th>Costo unit.</th>
+                        <th>Subtotal</th>
+                        <th>Nuevo precio venta</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var l in _lineas)
+                    {
+                        <tr>
+                            <td>@l.ProductoNombre</td>
+                            <td>@l.Cantidad</td>
+                            <td>@l.CostoUnitario.ToString("C2")</td>
+                            <td>@((l.CostoUnitario * l.Cantidad).ToString("C2"))</td>
+                            <td>@(l.NuevoPrecioVenta.HasValue ? l.NuevoPrecioVenta.Value.ToString("C2") : "-")</td>
+                            <td><button class="btn btn-sm btn-danger" @onclick="() => QuitarLinea(l)">X</button></td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                        <td colspan="3"><strong>@TotalCompra.ToString("C2")</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <button class="btn btn-primary" @onclick="ConfirmarCompra"
+                    disabled="@(_isSaving || _proveedorSeleccionado is null)">
+                @(_isSaving ? "Registrando..." : "Registrar compra")
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    // Proveedor
+    private string _busquedaProveedor = string.Empty;
+    private List<ProveedorDto> _proveedoresDisponibles = new();
+    private ProveedorDto? _proveedorSeleccionado;
+    private string? _numeroComprobante;
+
+    // Producto en edición
+    private string _busquedaProducto = string.Empty;
+    private List<ProductoDto> _productosDisponibles = new();
+    private ProductoDto? _productoSeleccionado;
+    private int _cantidad = 1;
+    private decimal _costoUnitario;
+    private decimal _precioVenta;
+    private string? _margenInfo;
+
+    // Líneas de la compra
+    private List<LineaCompra> _lineas = new();
+
+    private bool _isSaving;
+    private string? _errorMessage;
+    private string? _successMessage;
+
+    private decimal TotalCompra => _lineas.Sum(l => l.CostoUnitario * l.Cantidad);
+
+    private async Task BuscarProveedores(KeyboardEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_busquedaProveedor) || _busquedaProveedor.Length < 2)
+        {
+            _proveedoresDisponibles.Clear();
+            return;
+        }
+
+        try
+        {
+            var url = $"api/proveedores?searchTerm={Uri.EscapeDataString(_busquedaProveedor.Trim())}&pageSize=10";
+            var result = await Http.GetFromJsonAsync<PaginatedResult<ProveedorDto>>(url);
+            _proveedoresDisponibles = result?.Items ?? new();
+        }
+        catch
+        {
+            _proveedoresDisponibles.Clear();
+        }
+    }
+
+    private void SeleccionarProveedor(ProveedorDto p)
+    {
+        _proveedorSeleccionado = p;
+        _busquedaProveedor = string.Empty;
+        _proveedoresDisponibles.Clear();
+    }
+
+    private void QuitarProveedor() => _proveedorSeleccionado = null;
+
+    private async Task BuscarProductos(KeyboardEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_busquedaProducto) || _busquedaProducto.Length < 2)
+        {
+            _productosDisponibles.Clear();
+            return;
+        }
+
+        try
+        {
+            var url = $"api/productos?searchTerm={Uri.EscapeDataString(_busquedaProducto.Trim())}&pageSize=15";
+            var result = await Http.GetFromJsonAsync<PaginatedResult<ProductoDto>>(url);
+            _productosDisponibles = result?.Items ?? new();
+        }
+        catch
+        {
+            _productosDisponibles.Clear();
+        }
+    }
+
+    private async Task SeleccionarProducto(ProductoDto p)
+    {
+        _productoSeleccionado = p;
+        _busquedaProducto = string.Empty;
+        _productosDisponibles.Clear();
+        // Pre-cargar costo con el costo actual y calcular precio sugerido
+        _costoUnitario = p.PrecioCosto;
+        await OnCostoChanged();
+    }
+
+    private void QuitarProductoSeleccion()
+    {
+        _productoSeleccionado = null;
+        _costoUnitario = 0;
+        _precioVenta = 0;
+        _margenInfo = null;
+    }
+
+    /// <summary>Al cambiar el costo, consulta el precio de venta sugerido según el margen efectivo.</summary>
+    private async Task OnCostoChanged()
+    {
+        if (_productoSeleccionado is null || _costoUnitario <= 0)
+        {
+            _margenInfo = null;
+            return;
+        }
+
+        try
+        {
+            var url = $"api/compras/precio-sugerido?productoId={_productoSeleccionado.Id}&costoUnitario={_costoUnitario}";
+            var sugerido = await Http.GetFromJsonAsync<PrecioSugeridoDto>(url);
+            if (sugerido is not null)
+            {
+                _precioVenta = sugerido.PrecioVentaSugerido;
+                _margenInfo = $"{sugerido.MargenEfectivo:0.##}% [{sugerido.OrigenMargen}]";
+            }
+        }
+        catch
+        {
+            _margenInfo = null;
+        }
+    }
+
+    private void AgregarLinea()
+    {
+        if (_productoSeleccionado is null || _cantidad < 1)
+            return;
+
+        _lineas.Add(new LineaCompra
+        {
+            ProductoId = _productoSeleccionado.Id,
+            ProductoNombre = _productoSeleccionado.Nombre,
+            Cantidad = _cantidad,
+            CostoUnitario = _costoUnitario,
+            // Solo se envía el nuevo precio de venta si difiere del precio actual del producto
+            NuevoPrecioVenta = (_precioVenta > 0 && _precioVenta != _productoSeleccionado.Precio) ? _precioVenta : null
+        });
+
+        // Reset de la línea en edición
+        QuitarProductoSeleccion();
+        _cantidad = 1;
+    }
+
+    private void QuitarLinea(LineaCompra l) => _lineas.Remove(l);
+
+    private async Task ConfirmarCompra()
+    {
+        _errorMessage = null;
+        _successMessage = null;
+
+        if (_proveedorSeleccionado is null)
+        {
+            _errorMessage = "Debe seleccionar un proveedor.";
+            return;
+        }
+        if (!_lineas.Any())
+        {
+            _errorMessage = "Debe agregar al menos un producto.";
+            return;
+        }
+
+        _isSaving = true;
+
+        try
+        {
+            var request = new CreateCompraRequest
+            {
+                ProveedorId = _proveedorSeleccionado.Id,
+                NumeroComprobante = _numeroComprobante,
+                Detalles = _lineas.Select(l => new DetalleCompraRequest
+                {
+                    ProductoId = l.ProductoId,
+                    Cantidad = l.Cantidad,
+                    CostoUnitario = l.CostoUnitario,
+                    NuevoPrecioVenta = l.NuevoPrecioVenta
+                }).ToList()
+            };
+
+            var response = await Http.PostAsJsonAsync("api/compras", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _successMessage = "Compra registrada correctamente. El stock fue actualizado.";
+                _lineas.Clear();
+                _proveedorSeleccionado = null;
+                _numeroComprobante = null;
+            }
+            else
+            {
+                var errorResult = await ApiErrorParser.ParseAsync(response);
+                _errorMessage = errorResult.GeneralError ?? "Error al registrar la compra.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión al registrar la compra.";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private class LineaCompra
+    {
+        public int ProductoId { get; set; }
+        public string ProductoNombre { get; set; } = string.Empty;
+        public int Cantidad { get; set; }
+        public decimal CostoUnitario { get; set; }
+        public decimal? NuevoPrecioVenta { get; set; }
+    }
+}

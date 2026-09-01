@@ -1,0 +1,204 @@
+@page "/compras/{Id:int}"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h3>Detalle de Compra</h3>
+
+<div class="d-flex justify-content-between mb-3">
+    <button class="btn btn-outline-secondary" @onclick="Volver">&larr; Volver al historial</button>
+
+    @if (_compra is not null && _compra.Estado == EstadoCompra.Confirmada)
+    {
+        <AuthorizeView Roles="Administrador">
+            <Authorized>
+                <button class="btn btn-danger" @onclick="OpenAnular">
+                    <i class="bi bi-x-octagon"></i> Anular compra
+                </button>
+            </Authorized>
+        </AuthorizeView>
+    }
+</div>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+@if (!string.IsNullOrEmpty(_successMessage))
+{
+    <div class="alert alert-success">@_successMessage</div>
+}
+
+@if (_isLoading)
+{
+    <p>Cargando...</p>
+}
+else if (_compra is not null)
+{
+    <div class="card mb-3">
+        <div class="card-header">Información General</div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3"><strong>ID Compra:</strong> @_compra.Id</div>
+                <div class="col-md-3"><strong>Fecha:</strong> @_compra.Fecha.ToString("dd/MM/yyyy HH:mm")</div>
+                <div class="col-md-3"><strong>Proveedor:</strong> @_compra.ProveedorNombre</div>
+                <div class="col-md-3">
+                    <strong>Estado:</strong>
+                    @if (_compra.Estado == EstadoCompra.Anulada)
+                    {
+                        <span class="badge bg-danger">Anulada</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Confirmada</span>
+                    }
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-6"><strong>Comprobante:</strong> @(string.IsNullOrEmpty(_compra.NumeroComprobante) ? "-" : _compra.NumeroComprobante)</div>
+                <div class="col-md-6"><strong>Registrada por:</strong> @_compra.Usuario</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">Productos</div>
+        <div class="card-body">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Costo Unitario</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var d in _compra.Detalles)
+                    {
+                        <tr>
+                            <td>@d.ProductoNombre</td>
+                            <td>@d.Cantidad</td>
+                            <td>@d.CostoUnitario.ToString("C2")</td>
+                            <td>@d.Subtotal.ToString("C2")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                        <td><strong>@_compra.Total.ToString("C2")</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+}
+else
+{
+    <p class="text-muted">No se encontró la compra solicitada.</p>
+}
+
+@if (_showAnularModal && _compra is not null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Anular compra #@_compra.Id</h5>
+                    <button type="button" class="btn-close" @onclick="CloseAnular"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">
+                        Se descontará del stock la mercadería ingresada por esta compra. Si algún producto
+                        no tiene stock suficiente para revertir, la anulación no se realizará. Esta acción no se puede deshacer.
+                    </p>
+                    @if (!string.IsNullOrWhiteSpace(_anularError))
+                    {
+                        <div class="alert alert-danger py-2">@_anularError</div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseAnular" disabled="@_anularProcessing">Cancelar</button>
+                    <button class="btn btn-danger" @onclick="ConfirmAnular" disabled="@_anularProcessing">
+                        @(_anularProcessing ? "Anulando..." : "Confirmar anulación")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private CompraDto? _compra;
+    private bool _isLoading;
+    private string? _errorMessage;
+    private string? _successMessage;
+
+    private bool _showAnularModal;
+    private string? _anularError;
+    private bool _anularProcessing;
+
+    protected override async Task OnInitializedAsync() => await CargarCompra();
+
+    private async Task CargarCompra()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            _compra = await Http.GetFromJsonAsync<CompraDto>($"api/compras/{Id}");
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            _errorMessage = "Compra no encontrada.";
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error al cargar el detalle de la compra.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void Volver() => Navigation.NavigateTo("/compras/historial");
+
+    private void OpenAnular() { _anularError = null; _showAnularModal = true; }
+    private void CloseAnular() => _showAnularModal = false;
+
+    private async Task ConfirmAnular()
+    {
+        _anularError = null;
+        _anularProcessing = true;
+
+        try
+        {
+            var response = await Http.PostAsync($"api/compras/{Id}/anular", null);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _successMessage = "Compra anulada correctamente. El stock fue revertido.";
+                _showAnularModal = false;
+                await CargarCompra();
+            }
+            else
+            {
+                var errorResult = await ApiErrorParser.ParseAsync(response);
+                _anularError = errorResult.GeneralError ?? "Error al anular la compra.";
+            }
+        }
+        catch (Exception)
+        {
+            _anularError = "Error de conexión. Intente nuevamente.";
+        }
+        finally
+        {
+            _anularProcessing = false;
+        }
+    }
+}

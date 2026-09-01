@@ -31,6 +31,13 @@ public class ProductoConfiguration : IEntityTypeConfiguration<Producto>
             .IsRequired()
             .HasColumnType("decimal(18,2)");
 
+        builder.Property(p => p.PrecioCosto)
+            .IsRequired()
+            .HasColumnType("decimal(18,2)");
+
+        builder.Property(p => p.MargenGanancia)
+            .HasColumnType("decimal(5,2)");
+
         builder.Property(p => p.Stock)
             .IsRequired();
 

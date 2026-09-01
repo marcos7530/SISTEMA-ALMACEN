@@ -45,7 +45,10 @@ public class AuditoriaInterceptor : SaveChangesInterceptor
         typeof(Comprobante),
         typeof(MovimientoStock),
         typeof(Cliente),
-        typeof(MovimientoCuentaCorriente)
+        typeof(MovimientoCuentaCorriente),
+        typeof(Proveedor),
+        typeof(Compra),
+        typeof(DetalleCompra)
     };
 
     /// <summary>

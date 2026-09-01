@@ -81,6 +81,18 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ2xpZW50ZXNcQ3VlbnRhQ29ycmllbnRlLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/marco/OneDrive/Escritorio/SISTEMA ALMACEN/src/SistemaAlmacen.Client/Pages/Compras/DetalleCompra.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ29tcHJhc1xEZXRhbGxlQ29tcHJhLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/marco/OneDrive/Escritorio/SISTEMA ALMACEN/src/SistemaAlmacen.Client/Pages/Compras/HistorialCompras.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ29tcHJhc1xIaXN0b3JpYWxDb21wcmFzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/marco/OneDrive/Escritorio/SISTEMA ALMACEN/src/SistemaAlmacen.Client/Pages/Compras/NuevaCompra.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ29tcHJhc1xOdWV2YUNvbXByYS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/marco/OneDrive/Escritorio/SISTEMA ALMACEN/src/SistemaAlmacen.Client/Pages/Counter.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ291bnRlci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
@@ -107,6 +119,14 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/marco/OneDrive/Escritorio/SISTEMA ALMACEN/src/SistemaAlmacen.Client/Pages/Productos/Productos.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvZHVjdG9zXFByb2R1Y3Rvcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/marco/OneDrive/Escritorio/SISTEMA ALMACEN/src/SistemaAlmacen.Client/Pages/Proveedores/Proveedores.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvdmVlZG9yZXNcUHJvdmVlZG9yZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/marco/OneDrive/Escritorio/SISTEMA ALMACEN/src/SistemaAlmacen.Client/Pages/Proveedores/ProveedorForm.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvdmVlZG9yZXNcUHJvdmVlZG9yRm9ybS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/marco/OneDrive/Escritorio/SISTEMA ALMACEN/src/SistemaAlmacen.Client/Pages/Reportes/Reportes.razor]

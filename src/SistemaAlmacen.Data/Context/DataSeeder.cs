@@ -49,11 +49,78 @@ public static class DataSeeder
 
             // Seed: Datos de prueba
             await SeedTestDataAsync(context, logger);
+
+            // Seed idempotente de clientes y proveedores (corre también en bases ya existentes)
+            await SeedClientesYProveedoresAsync(context, logger);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error durante el seed de datos iniciales.");
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Siembra clientes y proveedores de prueba de forma idempotente: solo agrega los que
+    /// aún no existen (por documento/CUIT o nombre), sin depender del resto de datos de prueba.
+    /// Esto permite poblarlos también en bases de datos que ya tenían información cargada.
+    /// </summary>
+    private static async Task SeedClientesYProveedoresAsync(ApplicationDbContext context, ILogger logger)
+    {
+        var now = DateTime.UtcNow;
+
+        // ── Clientes de prueba ──
+        var clientesSeed = new List<Cliente>
+        {
+            new() { Nombre = "Consumidor Final", Documento = null, CondicionIva = CondicionIva.ConsumidorFinal, CuentaCorrienteHabilitada = false, LimiteCredito = 0m, Activo = true, FechaCreacion = now, FechaModificacion = now },
+            new() { Nombre = "Kiosco El Sol", Documento = "30712345678", CondicionIva = CondicionIva.ResponsableInscripto, Email = "elsol@mail.com", Telefono = "1145678900", Direccion = "Av. Siempreviva 742", CuentaCorrienteHabilitada = true, LimiteCredito = 100000m, Activo = true, FechaCreacion = now, FechaModificacion = now },
+            new() { Nombre = "Juan Pérez", Documento = "20304050607", CondicionIva = CondicionIva.Monotributista, Email = "juanperez@mail.com", Telefono = "1156781234", CuentaCorrienteHabilitada = true, LimiteCredito = 0m, Activo = true, FechaCreacion = now, FechaModificacion = now },
+            new() { Nombre = "Almacén Doña Rosa", Documento = "27285647389", CondicionIva = CondicionIva.Monotributista, Email = "donarosa@mail.com", Telefono = "1167894561", Direccion = "Belgrano 1234", CuentaCorrienteHabilitada = true, LimiteCredito = 50000m, Activo = true, FechaCreacion = now, FechaModificacion = now },
+        };
+
+        var clientesAgregados = 0;
+        foreach (var cliente in clientesSeed)
+        {
+            bool existe = cliente.Documento is not null
+                ? await context.Clientes.AnyAsync(c => c.Documento == cliente.Documento)
+                : await context.Clientes.AnyAsync(c => c.Nombre == cliente.Nombre);
+
+            if (!existe)
+            {
+                context.Clientes.Add(cliente);
+                clientesAgregados++;
+            }
+        }
+
+        // ── Proveedores de prueba ──
+        var proveedoresSeed = new List<Proveedor>
+        {
+            new() { Nombre = "Distribuidora Central S.A.", Cuit = "30707070701", CondicionIva = CondicionIva.ResponsableInscripto, Email = "ventas@distcentral.com", Telefono = "1143210000", Direccion = "Parque Industrial 100", Activo = true, FechaCreacion = now, FechaModificacion = now },
+            new() { Nombre = "Mayorista del Barrio", Cuit = "30808080802", CondicionIva = CondicionIva.ResponsableInscripto, Email = "pedidos@mayoristabarrio.com", Telefono = "1149998888", Direccion = "Calle Comercio 500", Activo = true, FechaCreacion = now, FechaModificacion = now },
+            new() { Nombre = "Lácteos del Sur", Cuit = "30909090903", CondicionIva = CondicionIva.Monotributista, Email = "contacto@lacteossur.com", Telefono = "1152223344", Activo = true, FechaCreacion = now, FechaModificacion = now },
+            new() { Nombre = "Bebidas y Más", Cuit = "30611223344", CondicionIva = CondicionIva.ResponsableInscripto, Email = "info@bebidasymas.com", Telefono = "1144556677", Direccion = "Ruta 8 Km 45", Activo = true, FechaCreacion = now, FechaModificacion = now },
+        };
+
+        var proveedoresAgregados = 0;
+        foreach (var proveedor in proveedoresSeed)
+        {
+            bool existe = proveedor.Cuit is not null
+                ? await context.Proveedores.AnyAsync(p => p.Cuit == proveedor.Cuit)
+                : await context.Proveedores.AnyAsync(p => p.Nombre == proveedor.Nombre);
+
+            if (!existe)
+            {
+                context.Proveedores.Add(proveedor);
+                proveedoresAgregados++;
+            }
+        }
+
+        if (clientesAgregados > 0 || proveedoresAgregados > 0)
+        {
+            await context.SaveChangesAsync();
+            logger.LogInformation(
+                "Seed idempotente: se agregaron {Clientes} cliente(s) y {Proveedores} proveedor(es) de prueba.",
+                clientesAgregados, proveedoresAgregados);
         }
     }
 
@@ -144,6 +211,12 @@ public static class DataSeeder
             new() { Nombre = "Pasta Dental Colgate 90g", CodigoBarras = "7891024130209", Descripcion = "Pasta dental con flúor", Precio = 2800.00m, Stock = 20, CategoriaId = categorias[7].Id, Activo = true, FechaCreacion = now, FechaModificacion = now },
             new() { Nombre = "Desodorante Rexona 150ml", CodigoBarras = "7791293012568", Descripcion = "Desodorante en aerosol", Precio = 4500.00m, Stock = 18, CategoriaId = categorias[7].Id, Activo = true, FechaCreacion = now, FechaModificacion = now },
         };
+
+        // Derivar un precio de costo coherente (~40% de margen) para los datos de prueba
+        foreach (var p in productos)
+        {
+            p.PrecioCosto = Math.Round(p.Precio / 1.4m, 2);
+        }
 
         context.Productos.AddRange(productos);
         await context.SaveChangesAsync();
@@ -384,19 +457,6 @@ public static class DataSeeder
         };
 
         context.Comprobantes.AddRange(comprobantes);
-        await context.SaveChangesAsync();
-
-        // ─────────────────────────────────────────────
-        // 9.b CLIENTES (con y sin cuenta corriente)
-        // ─────────────────────────────────────────────
-        var clientes = new List<Cliente>
-        {
-            new() { Nombre = "Consumidor Final", Documento = null, CondicionIva = CondicionIva.ConsumidorFinal, CuentaCorrienteHabilitada = false, LimiteCredito = 0m, Activo = true, FechaCreacion = now, FechaModificacion = now },
-            new() { Nombre = "Kiosco El Sol", Documento = "30712345678", CondicionIva = CondicionIva.ResponsableInscripto, Email = "elsol@mail.com", Telefono = "1145678900", Direccion = "Av. Siempreviva 742", CuentaCorrienteHabilitada = true, LimiteCredito = 100000m, Activo = true, FechaCreacion = now, FechaModificacion = now },
-            new() { Nombre = "Juan Pérez", Documento = "20304050607", CondicionIva = CondicionIva.Monotributista, Email = "juanperez@mail.com", Telefono = "1156781234", CuentaCorrienteHabilitada = true, LimiteCredito = 0m, Activo = true, FechaCreacion = now, FechaModificacion = now },
-        };
-
-        context.Clientes.AddRange(clientes);
         await context.SaveChangesAsync();
 
         // ─────────────────────────────────────────────

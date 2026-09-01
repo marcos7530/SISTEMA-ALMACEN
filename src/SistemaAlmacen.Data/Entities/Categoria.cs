@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SistemaAlmacen.Data.Entities;
 
@@ -16,6 +17,13 @@ public class Categoria
 
     [MaxLength(200)]
     public string? Descripcion { get; set; }
+
+    /// <summary>
+    /// Margen de ganancia (porcentaje, ej: 40 = 40%) aplicable a los productos de la categoría.
+    /// Si es null, se usa el margen por defecto del sistema. Un margen a nivel de producto lo sobrescribe.
+    /// </summary>
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal? MargenGanancia { get; set; }
 
     [Required]
     public DateTime FechaCreacion { get; set; }

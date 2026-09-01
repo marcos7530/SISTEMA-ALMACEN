@@ -28,6 +28,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<TokenRecuperacion> TokensRecuperacion => Set<TokenRecuperacion>();
     public DbSet<Cliente> Clientes => Set<Cliente>();
     public DbSet<MovimientoCuentaCorriente> MovimientosCuentaCorriente => Set<MovimientoCuentaCorriente>();
+    public DbSet<Proveedor> Proveedores => Set<Proveedor>();
+    public DbSet<Compra> Compras => Set<Compra>();
+    public DbSet<DetalleCompra> DetallesCompra => Set<DetalleCompra>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

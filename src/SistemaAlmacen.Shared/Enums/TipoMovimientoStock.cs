@@ -13,5 +13,10 @@ public enum TipoMovimientoStock
     /// <summary>
     /// Baja de stock por rotura, vencimiento, pérdida, etc.
     /// </summary>
-    Baja = 2
+    Baja = 2,
+
+    /// <summary>
+    /// Egreso de stock por anulación de una compra previamente ingresada.
+    /// </summary>
+    AnulacionCompra = 3
 }

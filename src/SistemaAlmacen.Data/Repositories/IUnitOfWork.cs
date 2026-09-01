@@ -16,6 +16,8 @@ public interface IUnitOfWork : IDisposable
     ITokenRecuperacionRepository TokensRecuperacion { get; }
     IMovimientoStockRepository MovimientosStock { get; }
     IClienteRepository Clientes { get; }
+    IProveedorRepository Proveedores { get; }
+    ICompraRepository Compras { get; }
 
     Task<int> SaveChangesAsync();
     Task BeginTransactionAsync();

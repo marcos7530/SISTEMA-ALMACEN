@@ -1,0 +1,156 @@
+@page "/compras/historial"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h3>Historial de Compras</h3>
+
+<div class="d-flex justify-content-between mb-3">
+    <div></div>
+    <AuthorizeView Roles="Administrador">
+        <Authorized>
+            <button class="btn btn-primary" @onclick="NuevaCompra">Nueva Compra</button>
+        </Authorized>
+    </AuthorizeView>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <label>Fecha Inicio</label>
+                <input type="date" class="form-control" @bind="_fechaInicio" />
+            </div>
+            <div class="col-md-4">
+                <label>Fecha Fin</label>
+                <input type="date" class="form-control" @bind="_fechaFin" />
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button class="btn btn-primary me-2" @onclick="Buscar">Buscar</button>
+                <button class="btn btn-outline-secondary" @onclick="Limpiar">Limpiar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+
+@if (_isLoading)
+{
+    <p>Cargando...</p>
+}
+else if (_compras.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Proveedor</th>
+                <th>Comprobante</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in _compras)
+            {
+                <tr>
+                    <td>@c.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@c.ProveedorNombre</td>
+                    <td>@(string.IsNullOrEmpty(c.NumeroComprobante) ? "-" : c.NumeroComprobante)</td>
+                    <td>@c.CantidadItems</td>
+                    <td>@c.Total.ToString("C2")</td>
+                    <td>
+                        @if (c.Estado == EstadoCompra.Anulada)
+                        {
+                            <span class="badge bg-danger">Anulada</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Confirmada</span>
+                        }
+                    </td>
+                    <td><button class="btn btn-sm btn-outline-primary" @onclick="() => VerDetalle(c.Id)">Ver</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <nav>
+        <ul class="pagination">
+            <li class="page-item @(_page <= 1 ? "disabled" : "")">
+                <button class="page-link" @onclick="PaginaAnterior">Anterior</button>
+            </li>
+            <li class="page-item disabled"><span class="page-link">Página @_page de @_totalPages</span></li>
+            <li class="page-item @(_page >= _totalPages ? "disabled" : "")">
+                <button class="page-link" @onclick="PaginaSiguiente">Siguiente</button>
+            </li>
+        </ul>
+    </nav>
+}
+else
+{
+    <p class="text-muted">No se encontraron compras en el período seleccionado.</p>
+}
+
+@code {
+    private List<CompraResumenDto> _compras = new();
+    private bool _isLoading;
+    private string? _errorMessage;
+    private DateTime? _fechaInicio;
+    private DateTime? _fechaFin;
+    private int _page = 1;
+    private int _totalPages = 1;
+    private const int PageSize = 20;
+
+    protected override async Task OnInitializedAsync() => await CargarCompras();
+
+    private async Task Buscar() { _page = 1; await CargarCompras(); }
+
+    private async Task Limpiar()
+    {
+        _fechaInicio = null;
+        _fechaFin = null;
+        _page = 1;
+        await CargarCompras();
+    }
+
+    private async Task CargarCompras()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            var url = $"api/compras?page={_page}&pageSize={PageSize}";
+            if (_fechaInicio.HasValue) url += $"&fechaInicio={_fechaInicio.Value:yyyy-MM-dd}";
+            if (_fechaFin.HasValue) url += $"&fechaFin={_fechaFin.Value:yyyy-MM-dd}";
+
+            var result = await Http.GetFromJsonAsync<PaginatedResult<CompraResumenDto>>(url);
+            if (result is not null)
+            {
+                _compras = result.Items;
+                _totalPages = result.TotalPages > 0 ? result.TotalPages : 1;
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error al cargar el historial de compras.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task PaginaAnterior() { if (_page > 1) { _page--; await CargarCompras(); } }
+    private async Task PaginaSiguiente() { if (_page < _totalPages) { _page++; await CargarCompras(); } }
+
+    private void VerDetalle(int id) => Navigation.NavigateTo($"/compras/{id}");
+    private void NuevaCompra() => Navigation.NavigateTo("/compras/nueva");
+}

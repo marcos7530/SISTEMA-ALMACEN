@@ -25,6 +25,18 @@ public class Producto
     [Column(TypeName = "decimal(18,2)")]
     public decimal Precio { get; set; }
 
+    /// <summary>Precio de costo (último costo de compra registrado).</summary>
+    [Required]
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal PrecioCosto { get; set; }
+
+    /// <summary>
+    /// Margen de ganancia (porcentaje, ej: 40 = 40%) específico del producto.
+    /// Si es null, se usa el margen de la categoría o el margen por defecto del sistema.
+    /// </summary>
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal? MargenGanancia { get; set; }
+
     [Required]
     public int Stock { get; set; }
 

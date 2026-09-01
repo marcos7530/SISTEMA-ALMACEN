@@ -44,5 +44,11 @@ public class MovimientoStockConfiguration : IEntityTypeConfiguration<MovimientoS
             .WithMany()
             .HasForeignKey(m => m.UsuarioId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // FK opcional a Compra con RESTRICT
+        builder.HasOne(m => m.Compra)
+            .WithMany()
+            .HasForeignKey(m => m.CompraId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

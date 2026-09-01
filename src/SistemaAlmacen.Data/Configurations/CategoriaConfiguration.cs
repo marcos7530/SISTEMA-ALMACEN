@@ -19,6 +19,9 @@ public class CategoriaConfiguration : IEntityTypeConfiguration<Categoria>
         builder.Property(c => c.Descripcion)
             .HasMaxLength(200);
 
+        builder.Property(c => c.MargenGanancia)
+            .HasColumnType("decimal(5,2)");
+
         builder.Property(c => c.FechaCreacion)
             .IsRequired();
 

@@ -1,0 +1,198 @@
+@page "/proveedores/crear"
+@page "/proveedores/editar/{Id:int}"
+@attribute [Authorize(Roles = "Administrador")]
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h3>@(_isEdit ? "Editar Proveedor" : "Nuevo Proveedor")</h3>
+
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <div class="alert alert-danger" role="alert">@_errorMessage</div>
+}
+
+@if (_isLoading)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <EditForm Model="_model" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Nombre / Razón social *</label>
+                <InputText class="form-control" @bind-Value="_model.Nombre" />
+                <ValidationMessage For="() => _model.Nombre" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">CUIT</label>
+                <InputText class="form-control" @bind-Value="_model.Cuit" />
+                <ValidationMessage For="() => _model.Cuit" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Condición frente al IVA *</label>
+                <InputSelect class="form-select" @bind-Value="_model.CondicionIva">
+                    <option value="@CondicionIva.ResponsableInscripto">Responsable Inscripto</option>
+                    <option value="@CondicionIva.Monotributista">Monotributista</option>
+                    <option value="@CondicionIva.Exento">Exento</option>
+                    <option value="@CondicionIva.ConsumidorFinal">Consumidor Final</option>
+                </InputSelect>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Email</label>
+                <InputText class="form-control" @bind-Value="_model.Email" />
+                <ValidationMessage For="() => _model.Email" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Teléfono</label>
+                <InputText class="form-control" @bind-Value="_model.Telefono" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Dirección</label>
+                <InputText class="form-control" @bind-Value="_model.Direccion" />
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" disabled="@_isSaving">
+            @(_isSaving ? "Guardando..." : "Guardar")
+        </button>
+        <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancelar</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private ProveedorFormModel _model = new();
+    private bool _isEdit;
+    private bool _isLoading;
+    private bool _isSaving;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isEdit = Id.HasValue;
+
+        if (_isEdit)
+        {
+            _isLoading = true;
+            try
+            {
+                var proveedor = await Http.GetFromJsonAsync<ProveedorDto>($"api/proveedores/{Id}");
+                if (proveedor is not null)
+                {
+                    _model = new ProveedorFormModel
+                    {
+                        Nombre = proveedor.Nombre,
+                        Cuit = proveedor.Cuit,
+                        CondicionIva = proveedor.CondicionIva,
+                        Email = proveedor.Email,
+                        Telefono = proveedor.Telefono,
+                        Direccion = proveedor.Direccion
+                    };
+                }
+                else
+                {
+                    _errorMessage = "Proveedor no encontrado.";
+                }
+            }
+            catch (Exception)
+            {
+                _errorMessage = "Error al cargar el proveedor.";
+            }
+            finally
+            {
+                _isLoading = false;
+            }
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        _isSaving = true;
+        _errorMessage = null;
+
+        try
+        {
+            HttpResponseMessage response;
+
+            if (_isEdit)
+            {
+                var request = new UpdateProveedorRequest
+                {
+                    Nombre = _model.Nombre,
+                    Cuit = _model.Cuit,
+                    CondicionIva = _model.CondicionIva,
+                    Email = _model.Email,
+                    Telefono = _model.Telefono,
+                    Direccion = _model.Direccion
+                };
+                response = await Http.PutAsJsonAsync($"api/proveedores/{Id}", request);
+            }
+            else
+            {
+                var request = new CreateProveedorRequest
+                {
+                    Nombre = _model.Nombre,
+                    Cuit = _model.Cuit,
+                    CondicionIva = _model.CondicionIva,
+                    Email = _model.Email,
+                    Telefono = _model.Telefono,
+                    Direccion = _model.Direccion
+                };
+                response = await Http.PostAsJsonAsync("api/proveedores", request);
+            }
+
+            if (response.IsSuccessStatusCode)
+            {
+                Navigation.NavigateTo("/proveedores");
+            }
+            else
+            {
+                var errorResult = await ApiErrorParser.ParseAsync(response);
+                _errorMessage = errorResult.GeneralError ?? "Error al guardar el proveedor.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión. Intente nuevamente.";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private void Cancel() => Navigation.NavigateTo("/proveedores");
+
+    private class ProveedorFormModel
+    {
+        [Required(ErrorMessage = "El nombre es obligatorio.")]
+        [StringLength(150, MinimumLength = 1, ErrorMessage = "El nombre debe tener entre 1 y 150 caracteres.")]
+        public string Nombre { get; set; } = string.Empty;
+
+        [StringLength(20, ErrorMessage = "El CUIT no puede superar los 20 caracteres.")]
+        public string? Cuit { get; set; }
+
+        public CondicionIva CondicionIva { get; set; } = CondicionIva.ResponsableInscripto;
+
+        [EmailAddress(ErrorMessage = "El correo electrónico no es válido.")]
+        [StringLength(254, ErrorMessage = "El correo no puede superar los 254 caracteres.")]
+        public string? Email { get; set; }
+
+        [StringLength(30, ErrorMessage = "El teléfono no puede superar los 30 caracteres.")]
+        public string? Telefono { get; set; }
+
+        [StringLength(250, ErrorMessage = "La dirección no puede superar los 250 caracteres.")]
+        public string? Direccion { get; set; }
+    }
+}

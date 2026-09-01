@@ -39,10 +39,23 @@ else
             <ValidationMessage For="@(() => _model.Descripcion)" />
         </div>
 
-        <div class="mb-3">
-            <label for="precio" class="form-label">Precio</label>
-            <InputNumber id="precio" class="form-control" @bind-Value="_model.Precio" />
-            <ValidationMessage For="@(() => _model.Precio)" />
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label for="precio" class="form-label">Precio de venta</label>
+                <InputNumber id="precio" class="form-control" @bind-Value="_model.Precio" />
+                <ValidationMessage For="@(() => _model.Precio)" />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="precioCosto" class="form-label">Precio de costo</label>
+                <InputNumber id="precioCosto" class="form-control" @bind-Value="_model.PrecioCosto" />
+                <ValidationMessage For="@(() => _model.PrecioCosto)" />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="margen" class="form-label">Margen % (opcional)</label>
+                <InputNumber id="margen" class="form-control" @bind-Value="_model.MargenGanancia" placeholder="Hereda de categoría" />
+                <ValidationMessage For="@(() => _model.MargenGanancia)" />
+                <small class="text-muted">Si se deja vacío, usa el margen de la categoría o el predeterminado.</small>
+            </div>
         </div>
 
         <div class="mb-3">
@@ -132,6 +145,8 @@ else
                     CodigoBarras = producto.CodigoBarras,
                     Descripcion = producto.Descripcion,
                     Precio = producto.Precio,
+                    PrecioCosto = producto.PrecioCosto,
+                    MargenGanancia = producto.MargenGanancia,
                     Stock = producto.Stock,
                     CategoriaId = producto.CategoriaId
                 };
@@ -172,6 +187,8 @@ else
                     CodigoBarras = _model.CodigoBarras,
                     Descripcion = _model.Descripcion,
                     Precio = _model.Precio,
+                    PrecioCosto = _model.PrecioCosto,
+                    MargenGanancia = _model.MargenGanancia,
                     Stock = _model.Stock,
                     CategoriaId = _model.CategoriaId
                 };
@@ -185,6 +202,8 @@ else
                     CodigoBarras = _model.CodigoBarras,
                     Descripcion = _model.Descripcion,
                     Precio = _model.Precio,
+                    PrecioCosto = _model.PrecioCosto,
+                    MargenGanancia = _model.MargenGanancia,
                     Stock = _model.Stock,
                     CategoriaId = _model.CategoriaId
                 };
@@ -234,6 +253,12 @@ else
         [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "El precio es requerido.")]
         [System.ComponentModel.DataAnnotations.Range(0.01, 999999999.99, ErrorMessage = "El precio debe estar entre 0.01 y 999,999,999.99.")]
         public decimal Precio { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Range(0, 999999999.99, ErrorMessage = "El precio de costo debe estar entre 0 y 999,999,999.99.")]
+        public decimal PrecioCosto { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Range(0, 999.99, ErrorMessage = "El margen debe estar entre 0 y 999.99.")]
+        public decimal? MargenGanancia { get; set; }
 
         [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "El stock es requerido.")]
         [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue, ErrorMessage = "El stock debe ser mayor o igual a cero.")]

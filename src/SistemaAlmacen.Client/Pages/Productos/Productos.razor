@@ -56,6 +56,11 @@ else
                 <th>Nombre</th>
                 <th>Categoría</th>
                 <th>Precio</th>
+                @if (_isAdmin)
+                {
+                    <th>Costo</th>
+                    <th>Margen</th>
+                }
                 <th>Stock</th>
                 @if (_isAdmin)
                 {
@@ -70,6 +75,11 @@ else
                     <td>@producto.Nombre</td>
                     <td>@producto.CategoriaNombre</td>
                     <td>@producto.Precio.ToString("C2")</td>
+                    @if (_isAdmin)
+                    {
+                        <td>@producto.PrecioCosto.ToString("C2")</td>
+                        <td>@producto.MargenEfectivo.ToString("0.##")%</td>
+                    }
                     <td>@producto.Stock</td>
                     @if (_isAdmin)
                     {

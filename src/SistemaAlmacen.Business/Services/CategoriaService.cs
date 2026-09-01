@@ -45,6 +45,7 @@ public class CategoriaService : ICategoriaService
         {
             Nombre = request.Nombre.Trim(),
             Descripcion = request.Descripcion?.Trim(),
+            MargenGanancia = request.MargenGanancia,
             FechaCreacion = DateTime.UtcNow
         };
 
@@ -72,6 +73,7 @@ public class CategoriaService : ICategoriaService
 
         categoria.Nombre = request.Nombre.Trim();
         categoria.Descripcion = request.Descripcion?.Trim();
+        categoria.MargenGanancia = request.MargenGanancia;
 
         _unitOfWork.Categorias.Update(categoria);
         await _unitOfWork.SaveChangesAsync();
@@ -128,6 +130,7 @@ public class CategoriaService : ICategoriaService
             Id = categoria.Id,
             Nombre = categoria.Nombre,
             Descripcion = categoria.Descripcion,
+            MargenGanancia = categoria.MargenGanancia,
             FechaCreacion = categoria.FechaCreacion
         };
     }

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using SistemaAlmacen.Business.Interfaces;
 using SistemaAlmacen.Data.Entities;
 using SistemaAlmacen.Data.Repositories;
@@ -13,11 +14,15 @@ namespace SistemaAlmacen.Business.Services;
 public class ProductoService : IProductoService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IConfiguration _configuration;
 
-    public ProductoService(IUnitOfWork unitOfWork)
+    public ProductoService(IUnitOfWork unitOfWork, IConfiguration configuration)
     {
         _unitOfWork = unitOfWork;
+        _configuration = configuration;
     }
+
+    private decimal MargenDefecto => _configuration.GetValue<decimal>("Compras:MargenDefecto", 40m);
 
     /// <inheritdoc />
     public async Task<PaginatedResult<ProductoDto>> GetProductosAsync(ProductoFilter filter)
@@ -98,6 +103,8 @@ public class ProductoService : IProductoService
             CodigoBarras = string.IsNullOrWhiteSpace(request.CodigoBarras) ? null : request.CodigoBarras.Trim(),
             Descripcion = request.Descripcion?.Trim(),
             Precio = request.Precio,
+            PrecioCosto = request.PrecioCosto,
+            MargenGanancia = request.MargenGanancia,
             Stock = request.Stock,
             CategoriaId = request.CategoriaId,
             Activo = true,
@@ -143,6 +150,8 @@ public class ProductoService : IProductoService
         producto.CodigoBarras = string.IsNullOrWhiteSpace(request.CodigoBarras) ? null : request.CodigoBarras.Trim();
         producto.Descripcion = request.Descripcion?.Trim();
         producto.Precio = request.Precio;
+        producto.PrecioCosto = request.PrecioCosto;
+        producto.MargenGanancia = request.MargenGanancia;
         producto.Stock = request.Stock;
         producto.CategoriaId = request.CategoriaId;
         producto.FechaModificacion = DateTime.UtcNow;
@@ -199,8 +208,10 @@ public class ProductoService : IProductoService
         return null;
     }
 
-    private static ProductoDto MapToDto(Producto producto)
+    private ProductoDto MapToDto(Producto producto)
     {
+        var (margenEfectivo, _) = MargenCalculator.ResolverMargenProducto(producto, MargenDefecto);
+
         return new ProductoDto
         {
             Id = producto.Id,
@@ -208,6 +219,9 @@ public class ProductoService : IProductoService
             CodigoBarras = producto.CodigoBarras,
             Descripcion = producto.Descripcion,
             Precio = producto.Precio,
+            PrecioCosto = producto.PrecioCosto,
+            MargenGanancia = producto.MargenGanancia,
+            MargenEfectivo = margenEfectivo,
             Stock = producto.Stock,
             CategoriaId = producto.CategoriaId,
             CategoriaNombre = producto.Categoria?.Nombre ?? string.Empty,

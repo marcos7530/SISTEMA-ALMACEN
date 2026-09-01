@@ -42,6 +42,9 @@ public class MovimientoStock
     [MaxLength(200)]
     public string? Observacion { get; set; }
 
+    /// <summary>Compra que originó el movimiento (ingreso por compra o su anulación). Opcional.</summary>
+    public int? CompraId { get; set; }
+
     [Required]
     public DateTime Fecha { get; set; }
 
@@ -51,4 +54,7 @@ public class MovimientoStock
 
     [ForeignKey(nameof(UsuarioId))]
     public Usuario Usuario { get; set; } = null!;
+
+    [ForeignKey(nameof(CompraId))]
+    public Compra? Compra { get; set; }
 }
