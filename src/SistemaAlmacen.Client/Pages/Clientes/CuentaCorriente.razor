@@ -1,0 +1,215 @@
+@page "/clientes/{ClienteId:int}/cuenta-corriente"
+@attribute [Authorize(Roles = "Administrador")]
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h3>Cuenta Corriente</h3>
+
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <div class="alert alert-danger" role="alert">@_errorMessage</div>
+}
+@if (!string.IsNullOrWhiteSpace(_successMessage))
+{
+    <div class="alert alert-success" role="alert">@_successMessage</div>
+}
+
+@if (_isLoading)
+{
+    <p>Cargando cuenta corriente...</p>
+}
+else if (_estado is not null)
+{
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">@_estado.ClienteNombre</h4>
+        <button class="btn btn-outline-secondary btn-sm" @onclick="Volver">Volver a clientes</button>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-subtitle text-muted mb-2">Saldo deudor</h6>
+                    <h3 class="@(_estado.Saldo > 0 ? "text-danger" : "text-success")">@_estado.Saldo.ToString("C2")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-subtitle text-muted mb-2">Límite de crédito</h6>
+                    <h3>@(_estado.LimiteCredito > 0 ? _estado.LimiteCredito.ToString("C2") : "Sin límite")</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="card-subtitle text-muted mb-2">Crédito disponible</h6>
+                    <h3>@(_estado.CreditoDisponible.HasValue ? _estado.CreditoDisponible.Value.ToString("C2") : "-")</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">Registrar cobro</div>
+        <div class="card-body">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Monto</label>
+                    <input type="number" class="form-control" step="0.01" min="0.01" @bind="_montoPago"
+                           disabled="@(_estado.Saldo <= 0)" />
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Descripción (opcional)</label>
+                    <input type="text" class="form-control" maxlength="250" @bind="_descripcionPago"
+                           disabled="@(_estado.Saldo <= 0)" />
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-success w-100" @onclick="RegistrarPago"
+                            disabled="@(_isSaving || _estado.Saldo <= 0)">
+                        @(_isSaving ? "Registrando..." : "Registrar cobro")
+                    </button>
+                </div>
+            </div>
+            @if (_estado.Saldo <= 0)
+            {
+                <small class="text-muted">El cliente no tiene saldo pendiente.</small>
+            }
+        </div>
+    </div>
+
+    <h5>Movimientos</h5>
+    @if (_estado.Movimientos.Count == 0)
+    {
+        <p class="text-muted">Sin movimientos registrados.</p>
+    }
+    else
+    {
+        <table class="table table-sm table-striped">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                    <th class="text-end">Debe</th>
+                    <th class="text-end">Haber</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var m in _estado.Movimientos)
+                {
+                    <tr>
+                        <td>@m.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@FormatTipo(m.Tipo)</td>
+                        <td>@m.Descripcion</td>
+                        <td class="text-end">@(m.Tipo == TipoMovimientoCuentaCorriente.Cargo ? m.Monto.ToString("C2") : "")</td>
+                        <td class="text-end">@(m.Tipo != TipoMovimientoCuentaCorriente.Cargo ? m.Monto.ToString("C2") : "")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@code {
+    [Parameter] public int ClienteId { get; set; }
+
+    private EstadoCuentaCorrienteDto? _estado;
+    private bool _isLoading = true;
+    private bool _isSaving;
+    private decimal _montoPago;
+    private string? _descripcionPago;
+    private string? _errorMessage;
+    private string? _successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEstado();
+    }
+
+    private async Task LoadEstado()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            var response = await Http.GetAsync($"api/cuenta-corriente/{ClienteId}");
+            if (response.IsSuccessStatusCode)
+            {
+                _estado = await response.Content.ReadFromJsonAsync<EstadoCuentaCorrienteDto>();
+            }
+            else
+            {
+                var errorResult = await ApiErrorParser.ParseAsync(response);
+                _errorMessage = errorResult.GeneralError ?? "Error al cargar la cuenta corriente.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión. Intente nuevamente.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private static string FormatTipo(TipoMovimientoCuentaCorriente tipo) => tipo switch
+    {
+        TipoMovimientoCuentaCorriente.Cargo => "Cargo (venta)",
+        TipoMovimientoCuentaCorriente.Pago => "Cobro",
+        TipoMovimientoCuentaCorriente.AjusteAnulacion => "Ajuste (anulación)",
+        _ => tipo.ToString()
+    };
+
+    private async Task RegistrarPago()
+    {
+        _errorMessage = null;
+        _successMessage = null;
+
+        if (_montoPago <= 0)
+        {
+            _errorMessage = "El monto debe ser mayor a cero.";
+            return;
+        }
+
+        _isSaving = true;
+
+        try
+        {
+            var request = new RegistrarPagoRequest
+            {
+                Monto = _montoPago,
+                Descripcion = _descripcionPago
+            };
+
+            var response = await Http.PostAsJsonAsync($"api/cuenta-corriente/{ClienteId}/pagos", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _successMessage = $"Cobro de {_montoPago:C2} registrado correctamente.";
+                _montoPago = 0;
+                _descripcionPago = null;
+                await LoadEstado();
+            }
+            else
+            {
+                var errorResult = await ApiErrorParser.ParseAsync(response);
+                _errorMessage = errorResult.GeneralError ?? "Error al registrar el cobro.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión. Intente nuevamente.";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private void Volver() => Navigation.NavigateTo("/clientes");
+}

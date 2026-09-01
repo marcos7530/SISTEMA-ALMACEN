@@ -45,4 +45,19 @@ public class AfipVoucherRequest
     /// Fecha del comprobante.
     /// </summary>
     public DateTime FechaComprobante { get; set; }
+
+    /// <summary>
+    /// Tipo del comprobante asociado (para notas de crédito, la factura original). Null para facturas.
+    /// </summary>
+    public int? TipoComprobanteAsociado { get; set; }
+
+    /// <summary>
+    /// Número del comprobante asociado (para notas de crédito). Null para facturas.
+    /// </summary>
+    public long? NumeroComprobanteAsociado { get; set; }
+
+    /// <summary>
+    /// Punto de venta del comprobante asociado (para notas de crédito). Null para facturas.
+    /// </summary>
+    public int? PuntoDeVentaAsociado { get; set; }
 }

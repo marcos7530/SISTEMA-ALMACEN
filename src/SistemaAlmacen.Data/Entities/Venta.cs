@@ -15,6 +15,9 @@ public class Venta
     [Required]
     public int UsuarioId { get; set; }
 
+    /// <summary>Cliente asociado a la venta. Opcional: las ventas de mostrador no tienen cliente.</summary>
+    public int? ClienteId { get; set; }
+
     [Required]
     public DateTime Fecha { get; set; }
 
@@ -32,7 +35,15 @@ public class Venta
     [ForeignKey(nameof(UsuarioId))]
     public Usuario Usuario { get; set; } = null!;
 
+    [ForeignKey(nameof(ClienteId))]
+    public Cliente? Cliente { get; set; }
+
     public ICollection<DetalleVenta> Detalles { get; set; } = new List<DetalleVenta>();
     public ICollection<VentaPago> Pagos { get; set; } = new List<VentaPago>();
-    public Comprobante? Comprobante { get; set; }
+
+    /// <summary>
+    /// Comprobantes fiscales asociados a la venta (factura y, eventualmente, nota de crédito).
+    /// </summary>
+    public ICollection<Comprobante> Comprobantes { get; set; } = new List<Comprobante>();
+    public ICollection<MovimientoCuentaCorriente> MovimientosCuentaCorriente { get; set; } = new List<MovimientoCuentaCorriente>();
 }

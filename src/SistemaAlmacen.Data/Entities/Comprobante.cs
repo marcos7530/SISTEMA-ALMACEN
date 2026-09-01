@@ -35,7 +35,16 @@ public class Comprobante
     [Required]
     public DateTime FechaEmision { get; set; }
 
+    /// <summary>
+    /// Id del comprobante asociado (para notas de crédito, referencia a la factura original).
+    /// Null para facturas.
+    /// </summary>
+    public int? ComprobanteAsociadoId { get; set; }
+
     // Navigation properties
     [ForeignKey(nameof(VentaId))]
     public Venta Venta { get; set; } = null!;
+
+    [ForeignKey(nameof(ComprobanteAsociadoId))]
+    public Comprobante? ComprobanteAsociado { get; set; }
 }

@@ -5,13 +5,30 @@
 
 <h3>Detalle de Venta</h3>
 
-<button class="btn btn-outline-secondary mb-3" @onclick="Volver">
-    &larr; Volver al historial
-</button>
+<div class="d-flex justify-content-between mb-3">
+    <button class="btn btn-outline-secondary" @onclick="Volver">
+        &larr; Volver al historial
+    </button>
+
+    @if (_venta is not null && EsAnulable)
+    {
+        <AuthorizeView Roles="Administrador">
+            <Authorized>
+                <button class="btn btn-danger" @onclick="OpenAnular">
+                    <i class="bi bi-x-octagon"></i> Anular venta
+                </button>
+            </Authorized>
+        </AuthorizeView>
+    }
+</div>
 
 @if (!string.IsNullOrEmpty(_errorMessage))
 {
     <div class="alert alert-danger">@_errorMessage</div>
+}
+@if (!string.IsNullOrEmpty(_successMessage))
+{
+    <div class="alert alert-success">@_successMessage</div>
 }
 
 @if (_isLoading)
@@ -34,9 +51,25 @@ else if (_venta is not null)
                     <strong>Vendedor:</strong> @_venta.Vendedor
                 </div>
                 <div class="col-md-3">
-                    <strong>Estado:</strong> @_venta.Estado
+                    <strong>Estado:</strong>
+                    @if (_venta.Estado == EstadoVenta.Anulada)
+                    {
+                        <span class="badge bg-danger">Anulada</span>
+                    }
+                    else
+                    {
+                        @_venta.Estado
+                    }
                 </div>
             </div>
+            @if (!string.IsNullOrEmpty(_venta.ClienteNombre))
+            {
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <strong>Cliente:</strong> @_venta.ClienteNombre
+                    </div>
+                </div>
+            }
         </div>
     </div>
 
@@ -106,6 +139,51 @@ else
     <p class="text-muted">No se encontró la venta solicitada.</p>
 }
 
+@* ----- Modal: Anular venta ----- *@
+@if (_showAnularModal && _venta is not null)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Anular venta #@_venta.Id</h5>
+                    <button type="button" class="btn-close" @onclick="CloseAnular"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">
+                        Se repondrá el stock de los productos, se revertirá el ingreso de caja en efectivo
+                        y el cargo en cuenta corriente si correspondiera. Esta acción no se puede deshacer.
+                    </p>
+
+                    @if (!string.IsNullOrWhiteSpace(_anularError))
+                    {
+                        <div class="alert alert-danger py-2">@_anularError</div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label">Motivo de la anulación *</label>
+                        <textarea class="form-control" rows="2" maxlength="250" @bind="_anularMotivo"
+                                  placeholder="Ej: error de carga, devolución del cliente..."></textarea>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="emitirNC" @bind="_emitirNotaCredito" />
+                        <label class="form-check-label" for="emitirNC">
+                            Emitir nota de crédito AFIP (si la venta tiene factura emitida)
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseAnular" disabled="@_anularProcessing">Cancelar</button>
+                    <button class="btn btn-danger" @onclick="ConfirmAnular" disabled="@_anularProcessing">
+                        @(_anularProcessing ? "Anulando..." : "Confirmar anulación")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     [Parameter]
     public int Id { get; set; }
@@ -113,6 +191,17 @@ else
     private VentaDetalleCompletoItemDto? _venta;
     private bool _isLoading;
     private string? _errorMessage;
+    private string? _successMessage;
+
+    // Anulación
+    private bool _showAnularModal;
+    private string _anularMotivo = string.Empty;
+    private bool _emitirNotaCredito = true;
+    private string? _anularError;
+    private bool _anularProcessing;
+
+    private bool EsAnulable => _venta is not null &&
+        (_venta.Estado == EstadoVenta.Confirmada || _venta.Estado == EstadoVenta.PendienteFacturacion);
 
     protected override async Task OnInitializedAsync()
     {
@@ -147,14 +236,72 @@ else
         Navigation.NavigateTo("/ventas/historial");
     }
 
+    private void OpenAnular()
+    {
+        _anularMotivo = string.Empty;
+        _emitirNotaCredito = true;
+        _anularError = null;
+        _showAnularModal = true;
+    }
+
+    private void CloseAnular()
+    {
+        _showAnularModal = false;
+    }
+
+    private async Task ConfirmAnular()
+    {
+        _anularError = null;
+
+        if (string.IsNullOrWhiteSpace(_anularMotivo) || _anularMotivo.Trim().Length < 3)
+        {
+            _anularError = "El motivo debe tener al menos 3 caracteres.";
+            return;
+        }
+
+        _anularProcessing = true;
+
+        try
+        {
+            var request = new AnularVentaRequest
+            {
+                Motivo = _anularMotivo.Trim(),
+                EmitirNotaCredito = _emitirNotaCredito
+            };
+
+            var response = await Http.PostAsJsonAsync($"api/ventas/{Id}/anular", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _successMessage = "Venta anulada correctamente.";
+                _showAnularModal = false;
+                await CargarVenta();
+            }
+            else
+            {
+                var errorResult = await ApiErrorParser.ParseAsync(response);
+                _anularError = errorResult.GeneralError ?? "Error al anular la venta.";
+            }
+        }
+        catch (Exception)
+        {
+            _anularError = "Error de conexión. Intente nuevamente.";
+        }
+        finally
+        {
+            _anularProcessing = false;
+        }
+    }
+
     // --- Local DTOs ---
     private class VentaDetalleCompletoItemDto
     {
         public int Id { get; set; }
         public DateTime Fecha { get; set; }
         public decimal Total { get; set; }
-        public string Estado { get; set; } = string.Empty;
+        public EstadoVenta Estado { get; set; }
         public string Vendedor { get; set; } = string.Empty;
+        public string? ClienteNombre { get; set; }
         public List<DetalleItemDto> Detalles { get; set; } = new();
         public List<PagoItemDto> Pagos { get; set; } = new();
     }

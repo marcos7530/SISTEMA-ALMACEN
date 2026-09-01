@@ -387,6 +387,19 @@ public static class DataSeeder
         await context.SaveChangesAsync();
 
         // ─────────────────────────────────────────────
+        // 9.b CLIENTES (con y sin cuenta corriente)
+        // ─────────────────────────────────────────────
+        var clientes = new List<Cliente>
+        {
+            new() { Nombre = "Consumidor Final", Documento = null, CondicionIva = CondicionIva.ConsumidorFinal, CuentaCorrienteHabilitada = false, LimiteCredito = 0m, Activo = true, FechaCreacion = now, FechaModificacion = now },
+            new() { Nombre = "Kiosco El Sol", Documento = "30712345678", CondicionIva = CondicionIva.ResponsableInscripto, Email = "elsol@mail.com", Telefono = "1145678900", Direccion = "Av. Siempreviva 742", CuentaCorrienteHabilitada = true, LimiteCredito = 100000m, Activo = true, FechaCreacion = now, FechaModificacion = now },
+            new() { Nombre = "Juan Pérez", Documento = "20304050607", CondicionIva = CondicionIva.Monotributista, Email = "juanperez@mail.com", Telefono = "1156781234", CuentaCorrienteHabilitada = true, LimiteCredito = 0m, Activo = true, FechaCreacion = now, FechaModificacion = now },
+        };
+
+        context.Clientes.AddRange(clientes);
+        await context.SaveChangesAsync();
+
+        // ─────────────────────────────────────────────
         // 10. LOGS DE AUDITORÍA
         // ─────────────────────────────────────────────
         var admin = await context.Usuarios.FirstAsync(u => u.Rol == Rol.Administrador);

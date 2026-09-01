@@ -30,14 +30,18 @@ public class ComprobanteConfiguration : IEntityTypeConfiguration<Comprobante>
         builder.Property(c => c.FechaEmision)
             .IsRequired();
 
-        // Relación uno a uno con Venta, cascade delete
+        // Autorreferencia opcional: nota de crédito -> factura original
+        builder.HasOne(c => c.ComprobanteAsociado)
+            .WithMany()
+            .HasForeignKey(c => c.ComprobanteAsociadoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Relación uno a muchos con Venta (factura + eventuales notas de crédito), cascade delete
         builder.HasOne(c => c.Venta)
-            .WithOne(v => v.Comprobante)
-            .HasForeignKey<Comprobante>(c => c.VentaId)
+            .WithMany(v => v.Comprobantes)
+            .HasForeignKey(c => c.VentaId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Índice único en VentaId (relación 1:1)
-        builder.HasIndex(c => c.VentaId)
-            .IsUnique();
+        builder.HasIndex(c => c.VentaId);
     }
 }

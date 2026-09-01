@@ -21,6 +21,7 @@ public class UnitOfWork : IUnitOfWork
     private IComprobanteRepository? _comprobantes;
     private ITokenRecuperacionRepository? _tokensRecuperacion;
     private IMovimientoStockRepository? _movimientosStock;
+    private IClienteRepository? _clientes;
 
     public UnitOfWork(ApplicationDbContext context)
     {
@@ -56,6 +57,9 @@ public class UnitOfWork : IUnitOfWork
 
     public IMovimientoStockRepository MovimientosStock =>
         _movimientosStock ??= new MovimientoStockRepository(_context);
+
+    public IClienteRepository Clientes =>
+        _clientes ??= new ClienteRepository(_context);
 
     public async Task<int> SaveChangesAsync()
     {

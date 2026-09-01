@@ -14,11 +14,37 @@ public class ComprobanteRepository : Repository<Comprobante>, IComprobanteReposi
     {
     }
 
+    private static readonly int[] TiposNotaCredito =
+    {
+        (int)TipoComprobante.NotaCreditoA,
+        (int)TipoComprobante.NotaCreditoB,
+        (int)TipoComprobante.NotaCreditoC
+    };
+
     public async Task<Comprobante?> GetByVentaIdAsync(int ventaId)
     {
         return await _dbSet
             .Include(c => c.Venta)
-            .FirstOrDefaultAsync(c => c.VentaId == ventaId);
+            .Where(c => c.VentaId == ventaId && !TiposNotaCredito.Contains(c.TipoComprobante))
+            .OrderByDescending(c => c.Id)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<List<Comprobante>> GetTodosPorVentaIdAsync(int ventaId)
+    {
+        return await _dbSet
+            .Where(c => c.VentaId == ventaId)
+            .OrderBy(c => c.Id)
+            .ToListAsync();
+    }
+
+    public async Task<Comprobante?> GetNotaCreditoPorVentaIdAsync(int ventaId)
+    {
+        return await _dbSet
+            .Include(c => c.Venta)
+            .Where(c => c.VentaId == ventaId && TiposNotaCredito.Contains(c.TipoComprobante))
+            .OrderByDescending(c => c.Id)
+            .FirstOrDefaultAsync();
     }
 
     public async Task<List<Comprobante>> GetPendientesAsync()

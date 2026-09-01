@@ -69,6 +69,8 @@ builder.Services.AddScoped<SistemaAlmacen.Business.Interfaces.IPasswordRecoveryS
 builder.Services.AddScoped<SistemaAlmacen.Business.Interfaces.ICajaService, SistemaAlmacen.Business.Services.CajaService>();
 builder.Services.AddScoped<SistemaAlmacen.Business.Interfaces.IAuditoriaService, SistemaAlmacen.Business.Services.AuditoriaService>();
 builder.Services.AddScoped<SistemaAlmacen.Business.Interfaces.IMedioPagoService, SistemaAlmacen.Business.Services.MedioPagoService>();
+builder.Services.AddScoped<SistemaAlmacen.Business.Interfaces.IClienteService, SistemaAlmacen.Business.Services.ClienteService>();
+builder.Services.AddScoped<SistemaAlmacen.Business.Interfaces.ICuentaCorrienteService, SistemaAlmacen.Business.Services.CuentaCorrienteService>();
 builder.Services.AddScoped<SistemaAlmacen.Business.Interfaces.IVentaService, SistemaAlmacen.Business.Services.VentaService>();
 builder.Services.AddScoped<SistemaAlmacen.Business.Interfaces.IStockService, SistemaAlmacen.Business.Services.StockService>();
 builder.Services.AddScoped<SistemaAlmacen.Business.Interfaces.IAfipClientWrapper, SistemaAlmacen.Business.Services.AfipClientWrapper>();

@@ -198,17 +198,125 @@ public class FacturacionService : IFacturacionService
         return _pdfGenerator.Generar(comprobante, venta, vendedor);
     }
 
+    /// <inheritdoc />
+    public async Task<Result<ComprobanteDto>> EmitirNotaCreditoAsync(int ventaId)
+    {
+        var venta = await _unitOfWork.Ventas.GetVentaConDetallesAsync(ventaId);
+        if (venta is null)
+            return Result<ComprobanteDto>.Failure("La venta no existe.", "VENTA_NO_ENCONTRADA");
+
+        // Verificar que exista una factura emitida para poder emitir la NC asociada
+        var factura = await _unitOfWork.Comprobantes.GetByVentaIdAsync(ventaId);
+        if (factura is null || factura.Estado != EstadoComprobante.Emitido)
+            return Result<ComprobanteDto>.Failure(
+                "La venta no tiene una factura emitida sobre la cual emitir la nota de crédito.",
+                "SIN_FACTURA");
+
+        // Evitar duplicar la nota de crédito
+        var ncExistente = await _unitOfWork.Comprobantes.GetNotaCreditoPorVentaIdAsync(ventaId);
+        if (ncExistente is not null && ncExistente.Estado == EstadoComprobante.Emitido)
+            return Result<ComprobanteDto>.Failure(
+                "La venta ya tiene una nota de crédito emitida.", "NC_EXISTENTE");
+
+        var tipoNotaCredito = DeterminarTipoNotaCredito(factura.TipoComprobante);
+        var (netoGravado, iva, exento) = CalcularImportes(venta.Total);
+
+        var request = new AfipVoucherRequest
+        {
+            PuntoDeVenta = PuntoDeVentaAfip,
+            TipoComprobante = tipoNotaCredito,
+            Total = venta.Total,
+            NetoGravado = netoGravado,
+            Iva = iva,
+            Exento = exento,
+            Moneda = "PES",
+            FechaComprobante = DateTime.UtcNow,
+            TipoComprobanteAsociado = factura.TipoComprobante,
+            NumeroComprobanteAsociado = factura.NumeroComprobante,
+            PuntoDeVentaAsociado = PuntoDeVentaAfip
+        };
+
+        try
+        {
+            var response = await _afipClient.CreateNextVoucherAsync(request);
+
+            if (response.HasCae)
+            {
+                var notaCredito = new Comprobante
+                {
+                    VentaId = venta.Id,
+                    TipoComprobante = tipoNotaCredito,
+                    NumeroComprobante = response.NumeroComprobante!.Value,
+                    CAE = response.Cae,
+                    FechaVencimientoCAE = response.CaeVencimiento,
+                    Estado = EstadoComprobante.Emitido,
+                    FechaEmision = DateTime.UtcNow,
+                    ComprobanteAsociadoId = factura.Id
+                };
+
+                await _unitOfWork.Comprobantes.AddAsync(notaCredito);
+                await _unitOfWork.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "Nota de crédito emitida: Venta {VentaId}, Tipo {Tipo}, CAE {Cae}, Nro {Numero}",
+                    venta.Id, tipoNotaCredito, response.Cae, response.NumeroComprobante);
+
+                return Result<ComprobanteDto>.Success(MapToDto(notaCredito));
+            }
+
+            return Result<ComprobanteDto>.Failure(
+                $"AFIP rechazó la nota de crédito: {response.ErrorMessage}",
+                "AFIP_RECHAZO");
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Error de conexión con AFIP al emitir nota de crédito para venta {VentaId}", ventaId);
+            return Result<ComprobanteDto>.Failure(
+                "No se pudo conectar con AFIP para emitir la nota de crédito.",
+                "AFIP_CONEXION_ERROR");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error inesperado al emitir nota de crédito para venta {VentaId}", ventaId);
+            return Result<ComprobanteDto>.Failure(
+                "Error inesperado al emitir la nota de crédito.",
+                "AFIP_ERROR_INESPERADO");
+        }
+    }
+
+    /// <summary>
+    /// Determina el tipo de nota de crédito según el tipo de la factura original.
+    /// Factura A (1) → NC A (3); Factura B (6) → NC B (8); Factura C (11) → NC C (13).
+    /// </summary>
+    private static int DeterminarTipoNotaCredito(int tipoFactura)
+    {
+        return tipoFactura switch
+        {
+            (int)TipoComprobante.FacturaA => (int)TipoComprobante.NotaCreditoA,
+            (int)TipoComprobante.FacturaC => (int)TipoComprobante.NotaCreditoC,
+            _ => (int)TipoComprobante.NotaCreditoB
+        };
+    }
+
     /// <summary>
     /// Determina el tipo de comprobante según la condición IVA del receptor.
     /// Por defecto retorna Factura B (consumidor final).
     /// </summary>
     private int DeterminarTipoComprobante(Venta venta)
     {
-        // Por simplicidad, se usa Factura B (tipo 6) como default para consumidor final.
-        // En una implementación completa, se determinaría por la condición IVA del cliente.
-        // Factura A (1): Responsable Inscripto → Responsable Inscripto
-        // Factura B (6): Responsable Inscripto → Consumidor Final / Monotributista
-        // Factura C (11): Monotributista → Cualquier receptor
+        // Si la venta tiene cliente, se determina por su condición frente al IVA.
+        // Factura A (1): receptor Responsable Inscripto
+        // Factura B (6): Consumidor Final / Monotributista / Exento (default)
+        // Factura C (11): reservado para emisor Monotributista (no se infiere del receptor)
+        if (venta.Cliente is not null)
+        {
+            return venta.Cliente.CondicionIva switch
+            {
+                CondicionIva.ResponsableInscripto => (int)TipoComprobante.FacturaA,
+                _ => (int)TipoComprobante.FacturaB
+            };
+        }
+
         return (int)TipoComprobante.FacturaB;
     }
 

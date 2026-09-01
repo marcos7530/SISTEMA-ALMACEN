@@ -9,4 +9,5 @@ public class MedioPagoDto
     public string Nombre { get; set; } = string.Empty;
     public bool Activo { get; set; }
     public bool EsSistema { get; set; }
+    public bool EsCuentaCorriente { get; set; }
 }

@@ -41,8 +41,10 @@ else if (_ventas.Any())
             <tr>
                 <th>Fecha</th>
                 <th>Vendedor</th>
+                <th>Cliente</th>
                 <th>Productos</th>
                 <th>Total</th>
+                <th>Estado</th>
                 <th></th>
             </tr>
         </thead>
@@ -52,8 +54,23 @@ else if (_ventas.Any())
                 <tr>
                     <td>@v.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
                     <td>@v.Vendedor</td>
+                    <td>@(string.IsNullOrEmpty(v.ClienteNombre) ? "-" : v.ClienteNombre)</td>
                     <td>@v.CantidadProductos</td>
                     <td>$@v.Total.ToString("N2")</td>
+                    <td>
+                        @if (v.Estado == EstadoVenta.Anulada)
+                        {
+                            <span class="badge bg-danger">Anulada</span>
+                        }
+                        else if (v.Estado == EstadoVenta.PendienteFacturacion)
+                        {
+                            <span class="badge bg-warning text-dark">Pend. Facturación</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">Confirmada</span>
+                        }
+                    </td>
                     <td>
                         <button class="btn btn-sm btn-outline-primary" @onclick="() => VerDetalle(v.Id)">Ver</button>
                     </td>
@@ -173,8 +190,10 @@ else
         public int Id { get; set; }
         public DateTime Fecha { get; set; }
         public string Vendedor { get; set; } = string.Empty;
+        public string? ClienteNombre { get; set; }
         public int CantidadProductos { get; set; }
         public decimal Total { get; set; }
+        public EstadoVenta Estado { get; set; }
     }
 
     private class PaginatedResultDto<T>

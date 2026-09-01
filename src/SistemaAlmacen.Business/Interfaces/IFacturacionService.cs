@@ -49,4 +49,12 @@ public interface IFacturacionService
     /// <param name="ventaId">ID de la venta.</param>
     /// <returns>Bytes del archivo PDF.</returns>
     Task<byte[]> GenerarPdfComprobanteAsync(int ventaId);
+
+    /// <summary>
+    /// Emite una nota de crédito electrónica AFIP asociada a la factura de una venta anulada.
+    /// El tipo de NC (A/B/C) se determina según el tipo de la factura original.
+    /// </summary>
+    /// <param name="ventaId">ID de la venta cuya factura se anula con nota de crédito.</param>
+    /// <returns>Resultado con la nota de crédito emitida o error.</returns>
+    Task<Result<ComprobanteDto>> EmitirNotaCreditoAsync(int ventaId);
 }

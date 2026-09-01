@@ -45,6 +45,13 @@ public interface ICajaService
     Task<Result<MovimientoDto>> RegistrarVentaEfectivoAsync(decimal monto, int usuarioId, int puntoDeVentaId);
 
     /// <summary>
+    /// Revierte un ingreso de venta en efectivo (por anulación) registrando un retiro
+    /// equivalente en la caja abierta. NO persiste cambios (SaveChanges): participa de
+    /// la transacción de anulación. Devuelve false si no hay caja abierta.
+    /// </summary>
+    Task<Result> RevertirVentaEfectivoAsync(decimal monto, int usuarioId, int ventaId, int puntoDeVentaId);
+
+    /// <summary>
     /// Verifica si existe una caja abierta para el punto de venta.
     /// </summary>
     Task<bool> HayCajaAbiertaAsync(int puntoDeVentaId);

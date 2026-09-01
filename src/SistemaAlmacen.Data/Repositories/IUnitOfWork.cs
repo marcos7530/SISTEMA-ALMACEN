@@ -15,6 +15,7 @@ public interface IUnitOfWork : IDisposable
     IComprobanteRepository Comprobantes { get; }
     ITokenRecuperacionRepository TokensRecuperacion { get; }
     IMovimientoStockRepository MovimientosStock { get; }
+    IClienteRepository Clientes { get; }
 
     Task<int> SaveChangesAsync();
     Task BeginTransactionAsync();

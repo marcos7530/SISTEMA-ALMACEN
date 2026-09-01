@@ -10,4 +10,6 @@ public class VentaResumenDto
     public string Vendedor { get; set; } = string.Empty;
     public int CantidadProductos { get; set; }
     public decimal Total { get; set; }
+    public Enums.EstadoVenta Estado { get; set; }
+    public string? ClienteNombre { get; set; }
 }

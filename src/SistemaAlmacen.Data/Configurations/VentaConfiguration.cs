@@ -31,6 +31,12 @@ public class VentaConfiguration : IEntityTypeConfiguration<Venta>
             .HasForeignKey(v => v.UsuarioId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // FK opcional a Cliente con RESTRICT
+        builder.HasOne(v => v.Cliente)
+            .WithMany(c => c.Ventas)
+            .HasForeignKey(v => v.ClienteId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // CASCADE a Detalles
         builder.HasMany(v => v.Detalles)
             .WithOne(d => d.Venta)

@@ -56,6 +56,43 @@ public class StockService : IStockService
     }
 
     /// <inheritdoc />
+    public async Task<Result> RestoreStockAsync(List<StockDeduction> restorations, int usuarioId, string observacion)
+    {
+        var now = DateTime.UtcNow;
+
+        foreach (var restoration in restorations)
+        {
+            var producto = await _unitOfWork.Productos.GetByIdAsync(restoration.ProductoId);
+
+            if (producto is null)
+                return Result.Failure(
+                    $"El producto con ID {restoration.ProductoId} no fue encontrado.",
+                    "PRODUCTO_NO_ENCONTRADO");
+
+            var stockAnterior = producto.Stock;
+            producto.Stock += restoration.Cantidad;
+            producto.FechaModificacion = now;
+            _unitOfWork.Productos.Update(producto);
+
+            await _unitOfWork.MovimientosStock.AddAsync(new MovimientoStock
+            {
+                ProductoId = producto.Id,
+                UsuarioId = usuarioId,
+                Tipo = TipoMovimientoStock.Ingreso,
+                Motivo = null,
+                Cantidad = restoration.Cantidad,
+                StockAnterior = stockAnterior,
+                StockNuevo = producto.Stock,
+                Observacion = string.IsNullOrWhiteSpace(observacion) ? null : observacion.Trim(),
+                Fecha = now
+            });
+        }
+
+        // No se llama SaveChanges: participa de la transacción de anulación.
+        return Result.Success();
+    }
+
+    /// <inheritdoc />
     public async Task<Result<ProductoDto>> RegistrarBajaAsync(int productoId, AjusteBajaStockRequest request, int usuarioId)
     {
         if (request.Cantidad < 1)

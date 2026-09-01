@@ -7,5 +7,6 @@ public enum EstadoVenta
 {
     Borrador = 1,
     Confirmada = 2,
-    PendienteFacturacion = 3
+    PendienteFacturacion = 3,
+    Anulada = 4
 }

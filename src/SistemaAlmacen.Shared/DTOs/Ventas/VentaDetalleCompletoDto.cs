@@ -12,6 +12,8 @@ public class VentaDetalleCompletoDto
     public decimal Total { get; set; }
     public EstadoVenta Estado { get; set; }
     public string Vendedor { get; set; } = string.Empty;
+    public int? ClienteId { get; set; }
+    public string? ClienteNombre { get; set; }
     public List<DetalleVentaDto> Detalles { get; set; } = new();
     public List<VentaPagoDto> Pagos { get; set; } = new();
 }

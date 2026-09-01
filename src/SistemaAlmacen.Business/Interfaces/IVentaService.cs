@@ -55,4 +55,15 @@ public interface IVentaService
     /// <param name="ventaId">ID de la venta.</param>
     /// <returns>DTO con detalle completo o null si no existe.</returns>
     Task<VentaDetalleCompletoDto?> GetDetalleCompletoAsync(int ventaId);
+
+    /// <summary>
+    /// Anula una venta confirmada: repone el stock, revierte el ingreso de caja en efectivo
+    /// (si corresponde), revierte el cargo en cuenta corriente (si corresponde), cambia el
+    /// estado a Anulada y registra la operación en auditoría. Todo de forma transaccional.
+    /// </summary>
+    /// <param name="ventaId">ID de la venta a anular.</param>
+    /// <param name="request">Motivo de la anulación.</param>
+    /// <param name="usuarioId">Usuario que realiza la anulación.</param>
+    /// <returns>Resultado con la venta anulada o error.</returns>
+    Task<Result<VentaDto>> AnularVentaAsync(int ventaId, AnularVentaRequest request, int usuarioId);
 }

@@ -24,7 +24,8 @@ public class VentaRepository : Repository<Venta>, IVentaRepository
             .Include(v => v.Pagos)
                 .ThenInclude(p => p.MedioPago)
             .Include(v => v.Usuario)
-            .Include(v => v.Comprobante)
+            .Include(v => v.Cliente)
+            .Include(v => v.Comprobantes)
             .FirstOrDefaultAsync(v => v.Id == id);
     }
 
@@ -32,6 +33,7 @@ public class VentaRepository : Repository<Venta>, IVentaRepository
     {
         var query = _dbSet
             .Include(v => v.Usuario)
+            .Include(v => v.Cliente)
             .Include(v => v.Detalles)
             .AsQueryable();
 

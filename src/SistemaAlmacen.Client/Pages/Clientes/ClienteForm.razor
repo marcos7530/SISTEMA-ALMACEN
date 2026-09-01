@@ -1,0 +1,228 @@
+@page "/clientes/crear"
+@page "/clientes/editar/{Id:int}"
+@attribute [Authorize(Roles = "Administrador")]
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<h3>@(_isEdit ? "Editar Cliente" : "Nuevo Cliente")</h3>
+
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <div class="alert alert-danger" role="alert">@_errorMessage</div>
+}
+
+@if (_isLoading)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <EditForm Model="_model" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Nombre / Razón social *</label>
+                <InputText class="form-control" @bind-Value="_model.Nombre" />
+                <ValidationMessage For="() => _model.Nombre" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Documento (CUIT/DNI)</label>
+                <InputText class="form-control" @bind-Value="_model.Documento" />
+                <ValidationMessage For="() => _model.Documento" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Condición frente al IVA *</label>
+                <InputSelect class="form-select" @bind-Value="_model.CondicionIva">
+                    <option value="@CondicionIva.ConsumidorFinal">Consumidor Final</option>
+                    <option value="@CondicionIva.ResponsableInscripto">Responsable Inscripto</option>
+                    <option value="@CondicionIva.Monotributista">Monotributista</option>
+                    <option value="@CondicionIva.Exento">Exento</option>
+                </InputSelect>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Email</label>
+                <InputText class="form-control" @bind-Value="_model.Email" />
+                <ValidationMessage For="() => _model.Email" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Teléfono</label>
+                <InputText class="form-control" @bind-Value="_model.Telefono" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Dirección</label>
+                <InputText class="form-control" @bind-Value="_model.Direccion" />
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">Cuenta Corriente (Fiado)</div>
+            <div class="card-body">
+                <div class="form-check mb-3">
+                    <InputCheckbox class="form-check-input" id="ccHab" @bind-Value="_model.CuentaCorrienteHabilitada" />
+                    <label class="form-check-label" for="ccHab">Habilitar cuenta corriente para este cliente</label>
+                </div>
+
+                @if (_model.CuentaCorrienteHabilitada)
+                {
+                    <div class="mb-3 col-md-6">
+                        <label class="form-label">Límite de crédito (0 = sin límite)</label>
+                        <InputNumber class="form-control" @bind-Value="_model.LimiteCredito" />
+                        <ValidationMessage For="() => _model.LimiteCredito" />
+                    </div>
+                }
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" disabled="@_isSaving">
+            @(_isSaving ? "Guardando..." : "Guardar")
+        </button>
+        <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancelar</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private ClienteFormModel _model = new();
+    private bool _isEdit;
+    private bool _isLoading;
+    private bool _isSaving;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isEdit = Id.HasValue;
+
+        if (_isEdit)
+        {
+            _isLoading = true;
+            try
+            {
+                var cliente = await Http.GetFromJsonAsync<ClienteDto>($"api/clientes/{Id}");
+                if (cliente is not null)
+                {
+                    _model = new ClienteFormModel
+                    {
+                        Nombre = cliente.Nombre,
+                        Documento = cliente.Documento,
+                        CondicionIva = cliente.CondicionIva,
+                        Email = cliente.Email,
+                        Telefono = cliente.Telefono,
+                        Direccion = cliente.Direccion,
+                        CuentaCorrienteHabilitada = cliente.CuentaCorrienteHabilitada,
+                        LimiteCredito = cliente.LimiteCredito
+                    };
+                }
+                else
+                {
+                    _errorMessage = "Cliente no encontrado.";
+                }
+            }
+            catch (Exception)
+            {
+                _errorMessage = "Error al cargar el cliente.";
+            }
+            finally
+            {
+                _isLoading = false;
+            }
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        _isSaving = true;
+        _errorMessage = null;
+
+        try
+        {
+            HttpResponseMessage response;
+
+            if (_isEdit)
+            {
+                var request = new UpdateClienteRequest
+                {
+                    Nombre = _model.Nombre,
+                    Documento = _model.Documento,
+                    CondicionIva = _model.CondicionIva,
+                    Email = _model.Email,
+                    Telefono = _model.Telefono,
+                    Direccion = _model.Direccion,
+                    CuentaCorrienteHabilitada = _model.CuentaCorrienteHabilitada,
+                    LimiteCredito = _model.LimiteCredito
+                };
+                response = await Http.PutAsJsonAsync($"api/clientes/{Id}", request);
+            }
+            else
+            {
+                var request = new CreateClienteRequest
+                {
+                    Nombre = _model.Nombre,
+                    Documento = _model.Documento,
+                    CondicionIva = _model.CondicionIva,
+                    Email = _model.Email,
+                    Telefono = _model.Telefono,
+                    Direccion = _model.Direccion,
+                    CuentaCorrienteHabilitada = _model.CuentaCorrienteHabilitada,
+                    LimiteCredito = _model.LimiteCredito
+                };
+                response = await Http.PostAsJsonAsync("api/clientes", request);
+            }
+
+            if (response.IsSuccessStatusCode)
+            {
+                Navigation.NavigateTo("/clientes");
+            }
+            else
+            {
+                var errorResult = await ApiErrorParser.ParseAsync(response);
+                _errorMessage = errorResult.GeneralError ?? "Error al guardar el cliente.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión. Intente nuevamente.";
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
+
+    private void Cancel() => Navigation.NavigateTo("/clientes");
+
+    private class ClienteFormModel
+    {
+        [Required(ErrorMessage = "El nombre es obligatorio.")]
+        [StringLength(150, MinimumLength = 1, ErrorMessage = "El nombre debe tener entre 1 y 150 caracteres.")]
+        public string Nombre { get; set; } = string.Empty;
+
+        [StringLength(20, ErrorMessage = "El documento no puede superar los 20 caracteres.")]
+        public string? Documento { get; set; }
+
+        public CondicionIva CondicionIva { get; set; } = CondicionIva.ConsumidorFinal;
+
+        [EmailAddress(ErrorMessage = "El correo electrónico no es válido.")]
+        [StringLength(254, ErrorMessage = "El correo no puede superar los 254 caracteres.")]
+        public string? Email { get; set; }
+
+        [StringLength(30, ErrorMessage = "El teléfono no puede superar los 30 caracteres.")]
+        public string? Telefono { get; set; }
+
+        [StringLength(250, ErrorMessage = "La dirección no puede superar los 250 caracteres.")]
+        public string? Direccion { get; set; }
+
+        public bool CuentaCorrienteHabilitada { get; set; }
+
+        [Range(0, 999999999.99, ErrorMessage = "El límite de crédito debe estar entre 0 y 999.999.999,99.")]
+        public decimal LimiteCredito { get; set; }
+    }
+}

@@ -241,6 +241,34 @@ public class CajaService : ICajaService
     }
 
     /// <inheritdoc />
+    public async Task<Result> RevertirVentaEfectivoAsync(decimal monto, int usuarioId, int ventaId, int puntoDeVentaId)
+    {
+        if (monto <= 0)
+            return Result.Success();
+
+        var caja = await _unitOfWork.Cajas.GetCajaAbiertaAsync(puntoDeVentaId);
+        if (caja is null)
+            return Result.Failure(
+                "No hay una caja abierta para revertir el ingreso en efectivo de la venta.",
+                "NO_HAY_CAJA_ABIERTA");
+
+        var movimiento = new CajaMovimiento
+        {
+            CajaId = caja.Id,
+            UsuarioId = usuarioId,
+            Tipo = TipoMovimiento.Retiro,
+            Monto = monto,
+            Motivo = $"Reverso por anulación de venta #{ventaId}",
+            Fecha = DateTime.UtcNow
+        };
+
+        await _unitOfWork.Cajas.AddMovimientoAsync(caja.Id, movimiento);
+        // No se llama SaveChanges: participa de la transacción de anulación.
+
+        return Result.Success();
+    }
+
+    /// <inheritdoc />
     public async Task<bool> HayCajaAbiertaAsync(int puntoDeVentaId)
     {
         var caja = await _unitOfWork.Cajas.GetCajaAbiertaAsync(puntoDeVentaId);

@@ -167,6 +167,54 @@ public class VentasController : ControllerBase
     }
 
     /// <summary>
+    /// Anula una venta confirmada: repone stock, revierte caja/cuenta corriente y,
+    /// opcionalmente, emite una nota de crédito AFIP. Solo Administrador.
+    /// </summary>
+    [HttpPost("{id}/anular")]
+    [Authorize(Policy = "RequireAdmin")]
+    [ProducesResponseType(typeof(VentaDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<VentaDto>> AnularVenta(int id, [FromBody] AnularVentaRequest request)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var usuarioId = GetCurrentUserId();
+        if (usuarioId is null)
+            return BadRequest(new { message = "No se pudo identificar al usuario actual." });
+
+        var result = await _ventaService.AnularVentaAsync(id, request, usuarioId.Value);
+
+        if (!result.IsSuccess)
+        {
+            if (result.ErrorCode == "NOT_FOUND")
+                return NotFound(new { message = result.ErrorMessage });
+
+            return BadRequest(new { message = result.ErrorMessage });
+        }
+
+        // Emitir nota de crédito AFIP si se solicitó y la venta tenía factura.
+        // No bloqueante: si falla, la anulación ya quedó registrada.
+        if (request.EmitirNotaCredito)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _facturacionService.EmitirNotaCreditoAsync(id);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Nota de crédito AFIP no pudo emitirse para venta anulada {VentaId}.", id);
+                }
+            });
+        }
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
     /// Obtiene el detalle completo de una venta por su ID.
     /// </summary>
     [HttpGet("{id}")]

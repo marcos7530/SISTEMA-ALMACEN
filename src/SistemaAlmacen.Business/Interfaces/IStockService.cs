@@ -42,6 +42,16 @@ public interface IStockService
     /// <param name="deductions">Lista de deducciones de stock a aplicar.</param>
     /// <returns>Resultado exitoso o fallido con mensaje de error.</returns>
     Task<Result> DeductStockAsync(List<StockDeduction> deductions);
+
+    /// <summary>
+    /// Repone (incrementa) stock de forma atómica para una lista de deducciones,
+    /// por ejemplo al anular una venta. Registra los movimientos de stock como Ingreso.
+    /// NO persiste cambios (SaveChanges): debe ejecutarse dentro de una transacción.
+    /// </summary>
+    /// <param name="restorations">Lista de reposiciones de stock a aplicar.</param>
+    /// <param name="usuarioId">Usuario que origina la reposición.</param>
+    /// <param name="observacion">Observación a registrar en el movimiento de stock.</param>
+    Task<Result> RestoreStockAsync(List<StockDeduction> restorations, int usuarioId, string observacion);
 }
 
 /// <summary>

@@ -17,17 +17,23 @@ public class VentaService : IVentaService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IStockService _stockService;
     private readonly ICajaService _cajaService;
+    private readonly ICuentaCorrienteService _cuentaCorrienteService;
+    private readonly IAuditoriaService _auditoriaService;
     private readonly ILogger<VentaService> _logger;
 
     public VentaService(
         IUnitOfWork unitOfWork,
         IStockService stockService,
         ICajaService cajaService,
+        ICuentaCorrienteService cuentaCorrienteService,
+        IAuditoriaService auditoriaService,
         ILogger<VentaService> logger)
     {
         _unitOfWork = unitOfWork;
         _stockService = stockService;
         _cajaService = cajaService;
+        _cuentaCorrienteService = cuentaCorrienteService;
+        _auditoriaService = auditoriaService;
         _logger = logger;
     }
 
@@ -232,14 +238,19 @@ public class VentaService : IVentaService
                     "PAGO_MONTO_NO_COINCIDE");
             }
 
-            // 4. Determinar si hay pago en efectivo y validar caja abierta
+            // 4. Determinar montos por efectivo y por cuenta corriente
             var montoEfectivo = 0m;
+            var montoCuentaCorriente = 0m;
             foreach (var pago in request.Pagos)
             {
                 var medioPago = mediosPagoDict[pago.MedioPagoId];
                 if (medioPago.EsSistema) // Efectivo es el medio de pago del sistema
                 {
                     montoEfectivo += pago.Monto;
+                }
+                else if (medioPago.EsCuentaCorriente)
+                {
+                    montoCuentaCorriente += pago.Monto;
                 }
             }
 
@@ -254,6 +265,21 @@ public class VentaService : IVentaService
                         "No se puede aceptar pago en efectivo sin una caja abierta.",
                         "CAJA_NO_ABIERTA");
                 }
+            }
+
+            // 5. Si hay pago en cuenta corriente, exigir cliente asociado
+            if (montoCuentaCorriente > 0 && request.ClienteId is null)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                return Result<VentaDto>.Failure(
+                    "Debe seleccionar un cliente para vender en cuenta corriente.",
+                    "CLIENTE_REQUERIDO");
+            }
+
+            // Asociar cliente a la venta (si se indicó)
+            if (request.ClienteId is not null)
+            {
+                venta.ClienteId = request.ClienteId;
             }
 
             // --- Fin validación de pagos ---
@@ -284,6 +310,19 @@ public class VentaService : IVentaService
                     Monto = pago.Monto
                 };
                 venta.Pagos.Add(ventaPago);
+            }
+
+            // Registrar cargo en cuenta corriente (participa de la transacción, no persiste solo)
+            if (montoCuentaCorriente > 0)
+            {
+                var cargoResult = await _cuentaCorrienteService.RegistrarCargoVentaAsync(
+                    request.ClienteId!.Value, ventaId, montoCuentaCorriente, venta.UsuarioId);
+
+                if (!cargoResult.IsSuccess)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return Result<VentaDto>.Failure(cargoResult.ErrorMessage!, cargoResult.ErrorCode);
+                }
             }
 
             // Marcar venta como confirmada
@@ -349,7 +388,9 @@ public class VentaService : IVentaService
                 Fecha = v.Fecha,
                 Vendedor = v.Usuario?.Nombre ?? string.Empty,
                 CantidadProductos = v.Detalles.Count,
-                Total = v.Total
+                Total = v.Total,
+                Estado = v.Estado,
+                ClienteNombre = v.Cliente?.Nombre
             }).ToList(),
             TotalCount = result.TotalCount,
             Page = result.Page,
@@ -372,6 +413,8 @@ public class VentaService : IVentaService
             Total = venta.Total,
             Estado = venta.Estado,
             Vendedor = venta.Usuario?.Nombre ?? string.Empty,
+            ClienteId = venta.ClienteId,
+            ClienteNombre = venta.Cliente?.Nombre,
             Detalles = venta.Detalles.Select(d => new DetalleVentaDto
             {
                 Id = d.Id,
@@ -388,5 +431,120 @@ public class VentaService : IVentaService
                 Monto = p.Monto
             }).ToList()
         };
+    }
+
+    /// <inheritdoc />
+    public async Task<Result<VentaDto>> AnularVentaAsync(int ventaId, AnularVentaRequest request, int usuarioId)
+    {
+        if (string.IsNullOrWhiteSpace(request.Motivo))
+            return Result<VentaDto>.Failure("Debe indicar el motivo de la anulación.", "MOTIVO_REQUERIDO");
+
+        try
+        {
+            await _unitOfWork.BeginTransactionAsync();
+
+            var venta = await _unitOfWork.Ventas.GetVentaConDetallesAsync(ventaId);
+
+            if (venta is null)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                return Result<VentaDto>.Failure("La venta no fue encontrada.", "NOT_FOUND");
+            }
+
+            // Solo se pueden anular ventas confirmadas o pendientes de facturación
+            if (venta.Estado != EstadoVenta.Confirmada && venta.Estado != EstadoVenta.PendienteFacturacion)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                return Result<VentaDto>.Failure(
+                    "Solo se pueden anular ventas confirmadas.",
+                    "VENTA_NO_ANULABLE");
+            }
+
+            // 1. Reponer stock de todos los detalles
+            var restorations = venta.Detalles.Select(d => new StockDeduction
+            {
+                ProductoId = d.ProductoId,
+                Cantidad = d.Cantidad
+            }).ToList();
+
+            var restoreResult = await _stockService.RestoreStockAsync(
+                restorations, usuarioId, $"Reposición por anulación de venta #{ventaId}");
+
+            if (!restoreResult.IsSuccess)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                return Result<VentaDto>.Failure(restoreResult.ErrorMessage!, restoreResult.ErrorCode);
+            }
+
+            // 2. Determinar montos por medio de pago para revertir caja y cuenta corriente
+            var mediosPago = await _unitOfWork.MediosPago.GetAllAsync();
+            var mediosPagoDict = mediosPago.ToDictionary(m => m.Id);
+
+            var montoEfectivo = 0m;
+            var montoCuentaCorriente = 0m;
+            foreach (var pago in venta.Pagos)
+            {
+                if (mediosPagoDict.TryGetValue(pago.MedioPagoId, out var mp))
+                {
+                    if (mp.EsSistema)
+                        montoEfectivo += pago.Monto;
+                    else if (mp.EsCuentaCorriente)
+                        montoCuentaCorriente += pago.Monto;
+                }
+            }
+
+            // 3. Revertir ingreso de caja en efectivo (si corresponde)
+            if (montoEfectivo > 0)
+            {
+                var reversoCaja = await _cajaService.RevertirVentaEfectivoAsync(
+                    montoEfectivo, usuarioId, ventaId, 1);
+
+                if (!reversoCaja.IsSuccess)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return Result<VentaDto>.Failure(reversoCaja.ErrorMessage!, reversoCaja.ErrorCode);
+                }
+            }
+
+            // 4. Revertir cargo en cuenta corriente (si corresponde)
+            if (montoCuentaCorriente > 0 && venta.ClienteId is not null)
+            {
+                await _cuentaCorrienteService.RevertirCargoVentaAsync(
+                    venta.ClienteId.Value, ventaId, montoCuentaCorriente, usuarioId);
+            }
+
+            // 5. Cambiar estado a Anulada
+            venta.Estado = EstadoVenta.Anulada;
+            _unitOfWork.Ventas.Update(venta);
+
+            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.CommitTransactionAsync();
+
+            // 6. Registrar auditoría explícita con el motivo (fuera de la transacción principal)
+            await _auditoriaService.RegistrarOperacionAsync(
+                usuarioId,
+                TipoOperacion.Anulacion,
+                nameof(Venta),
+                ventaId.ToString(),
+                $"Anulación de venta #{ventaId}. Motivo: {request.Motivo.Trim()}");
+
+            return Result<VentaDto>.Success(new VentaDto
+            {
+                Id = venta.Id,
+                Fecha = venta.Fecha,
+                Total = venta.Total,
+                Estado = venta.Estado,
+                VendedorId = venta.UsuarioId,
+                VendedorNombre = venta.Usuario?.Nombre ?? string.Empty
+            });
+        }
+        catch (Exception ex)
+        {
+            await _unitOfWork.RollbackTransactionAsync();
+            _logger.LogError(ex, "Error anulando venta {VentaId}", ventaId);
+            return Result<VentaDto>.Failure(
+                "La operación no pudo completarse. Los datos no fueron modificados.",
+                "ERROR_INTERNO");
+        }
     }
 }

@@ -43,7 +43,9 @@ public class AuditoriaInterceptor : SaveChangesInterceptor
         typeof(Caja),
         typeof(CajaMovimiento),
         typeof(Comprobante),
-        typeof(MovimientoStock)
+        typeof(MovimientoStock),
+        typeof(Cliente),
+        typeof(MovimientoCuentaCorriente)
     };
 
     /// <summary>

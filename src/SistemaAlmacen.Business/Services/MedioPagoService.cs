@@ -146,7 +146,8 @@ public class MedioPagoService : IMedioPagoService
             Id = medioPago.Id,
             Nombre = medioPago.Nombre,
             Activo = medioPago.Activo,
-            EsSistema = medioPago.EsSistema
+            EsSistema = medioPago.EsSistema,
+            EsCuentaCorriente = medioPago.EsCuentaCorriente
         };
     }
 }

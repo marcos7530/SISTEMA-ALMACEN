@@ -26,6 +26,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<MovimientoStock> MovimientosStock => Set<MovimientoStock>();
     public DbSet<AuditoriaLog> AuditoriaLogs => Set<AuditoriaLog>();
     public DbSet<TokenRecuperacion> TokensRecuperacion => Set<TokenRecuperacion>();
+    public DbSet<Cliente> Clientes => Set<Cliente>();
+    public DbSet<MovimientoCuentaCorriente> MovimientosCuentaCorriente => Set<MovimientoCuentaCorriente>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

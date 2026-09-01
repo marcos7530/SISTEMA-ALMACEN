@@ -131,6 +131,60 @@ else
         </div>
     </div>
 
+    <!-- Cliente Section -->
+    @if (_detalles.Any())
+    {
+        <div class="card mb-3">
+            <div class="card-header">Cliente @(RequiereCliente ? "(requerido para cuenta corriente)" : "(opcional)")</div>
+            <div class="card-body">
+                @if (_clienteSeleccionado is not null)
+                {
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>
+                            <strong>@_clienteSeleccionado.Nombre</strong>
+                            @if (!string.IsNullOrEmpty(_clienteSeleccionado.Documento))
+                            {
+                                <small class="text-muted ms-1">(@_clienteSeleccionado.Documento)</small>
+                            }
+                            @if (_clienteSeleccionado.CuentaCorrienteHabilitada)
+                            {
+                                <span class="badge bg-success ms-2">Cta. Cte.</span>
+                            }
+                        </span>
+                        <button class="btn btn-sm btn-outline-danger" @onclick="QuitarCliente">Quitar</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="position-relative">
+                        <input type="text" class="form-control" placeholder="Buscar cliente por nombre o documento..."
+                               @bind="_busquedaCliente" @bind:event="oninput" @onkeyup="BuscarClientes" autocomplete="off" />
+                        @if (_clientesDisponibles.Any())
+                        {
+                            <ul class="list-group position-absolute w-100 shadow-sm" style="z-index:1000; max-height:240px; overflow-y:auto;">
+                                @foreach (var c in _clientesDisponibles)
+                                {
+                                    <li class="list-group-item list-group-item-action" style="cursor:pointer;"
+                                        @onclick="() => SeleccionarCliente(c)">
+                                        <strong>@c.Nombre</strong>
+                                        @if (!string.IsNullOrEmpty(c.Documento))
+                                        {
+                                            <small class="text-muted ms-1">(@c.Documento)</small>
+                                        }
+                                        @if (c.CuentaCorrienteHabilitada)
+                                        {
+                                            <span class="badge bg-success ms-2">Cta. Cte.</span>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
     <!-- Payment Section -->
     @if (_detalles.Any())
     {
@@ -204,9 +258,20 @@ else
     private List<PagoItem> _pagos = new() { new PagoItem() };
     private List<MedioPagoItemDto> _mediosPago = new();
 
+    // Cliente
+    private string _busquedaCliente = string.Empty;
+    private List<ClienteItemDto> _clientesDisponibles = new();
+    private ClienteItemDto? _clienteSeleccionado;
+
     private decimal SumaPagos => _pagos.Sum(p => p.Monto);
+
+    /// <summary>Indica si algún medio de pago elegido corresponde a cuenta corriente.</summary>
+    private bool RequiereCliente => _pagos.Any(p =>
+        _mediosPago.FirstOrDefault(m => m.Id == p.MedioPagoId)?.EsCuentaCorriente == true);
+
     private bool PagoValido => _pagos.All(p => p.MedioPagoId > 0 && p.Monto > 0)
-                               && Math.Abs(SumaPagos - _total) <= 0.01m;
+                               && Math.Abs(SumaPagos - _total) <= 0.01m
+                               && (!RequiereCliente || _clienteSeleccionado is not null);
 
     private async Task IniciarVenta()
     {
@@ -449,6 +514,38 @@ else
         }
     }
 
+    private async Task BuscarClientes(KeyboardEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_busquedaCliente) || _busquedaCliente.Length < 2)
+        {
+            _clientesDisponibles.Clear();
+            return;
+        }
+
+        try
+        {
+            var url = $"api/clientes?searchTerm={Uri.EscapeDataString(_busquedaCliente.Trim())}&pageSize=10";
+            var result = await Http.GetFromJsonAsync<PaginatedResultDto<ClienteItemDto>>(url);
+            _clientesDisponibles = result?.Items ?? new();
+        }
+        catch
+        {
+            _clientesDisponibles.Clear();
+        }
+    }
+
+    private void SeleccionarCliente(ClienteItemDto cliente)
+    {
+        _clienteSeleccionado = cliente;
+        _busquedaCliente = string.Empty;
+        _clientesDisponibles.Clear();
+    }
+
+    private void QuitarCliente()
+    {
+        _clienteSeleccionado = null;
+    }
+
     private void AgregarPago()
     {
         _pagos.Add(new PagoItem());
@@ -473,7 +570,8 @@ else
         {
             var request = new
             {
-                Pagos = _pagos.Select(p => new { p.MedioPagoId, p.Monto }).ToList()
+                Pagos = _pagos.Select(p => new { p.MedioPagoId, p.Monto }).ToList(),
+                ClienteId = _clienteSeleccionado?.Id
             };
 
             var response = await Http.PostAsJsonAsync($"api/ventas/{_ventaId}/confirmar", request);
@@ -486,6 +584,9 @@ else
                 _detalles.Clear();
                 _total = 0;
                 _pagos = new() { new PagoItem() };
+                _clienteSeleccionado = null;
+                _busquedaCliente = string.Empty;
+                _clientesDisponibles.Clear();
             }
             else
             {
@@ -538,6 +639,15 @@ else
     {
         public int Id { get; set; }
         public string Nombre { get; set; } = string.Empty;
+        public bool EsCuentaCorriente { get; set; }
+    }
+
+    private class ClienteItemDto
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public string? Documento { get; set; }
+        public bool CuentaCorrienteHabilitada { get; set; }
     }
 
     private class PagoItem
