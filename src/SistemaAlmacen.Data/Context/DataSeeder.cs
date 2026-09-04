@@ -52,6 +52,9 @@ public static class DataSeeder
 
             // Seed idempotente de clientes y proveedores (corre también en bases ya existentes)
             await SeedClientesYProveedoresAsync(context, logger);
+
+            // Seed idempotente de ventas fiadas (cuenta corriente) para pruebas
+            await SeedVentasFiadasAsync(context, logger);
         }
         catch (Exception ex)
         {
@@ -122,6 +125,180 @@ public static class DataSeeder
                 "Seed idempotente: se agregaron {Clientes} cliente(s) y {Proveedores} proveedor(es) de prueba.",
                 clientesAgregados, proveedoresAgregados);
         }
+    }
+
+    /// <summary>
+    /// Siembra ventas "fiadas" (a cuenta corriente) de forma idempotente para poder probar
+    /// el módulo de cuentas corrientes. Solo se ejecuta si aún no existen movimientos de
+    /// cuenta corriente, y depende de que existan clientes con CC habilitada, productos y
+    /// al menos un usuario. El saldo del cliente se deriva de estos movimientos
+    /// (Cargo por venta a crédito, Pago por cobro parcial).
+    /// </summary>
+    private static async Task SeedVentasFiadasAsync(ApplicationDbContext context, ILogger logger)
+    {
+        // Idempotencia: si ya hay movimientos de cuenta corriente, no hacer nada.
+        if (await context.Set<MovimientoCuentaCorriente>().AnyAsync())
+        {
+            return;
+        }
+
+        // Necesitamos clientes con cuenta corriente habilitada.
+        var clientesCC = await context.Clientes
+            .Where(c => c.CuentaCorrienteHabilitada && c.Activo)
+            .OrderBy(c => c.Id)
+            .ToListAsync();
+
+        if (clientesCC.Count == 0)
+        {
+            logger.LogInformation("Seed ventas fiadas: no hay clientes con cuenta corriente habilitada. Se omite.");
+            return;
+        }
+
+        // Necesitamos algunos productos para armar los detalles.
+        var productos = await context.Productos
+            .Where(p => p.Activo)
+            .OrderBy(p => p.Id)
+            .Take(6)
+            .ToListAsync();
+
+        if (productos.Count == 0)
+        {
+            logger.LogInformation("Seed ventas fiadas: no hay productos cargados. Se omite.");
+            return;
+        }
+
+        // Un usuario que registra las ventas (preferimos un vendedor, si no el admin).
+        var usuario = await context.Usuarios.FirstOrDefaultAsync(u => u.Rol == Rol.Vendedor && u.Activo)
+                      ?? await context.Usuarios.FirstOrDefaultAsync(u => u.Activo);
+
+        if (usuario is null)
+        {
+            logger.LogInformation("Seed ventas fiadas: no hay usuarios cargados. Se omite.");
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+        const int medioPagoCuentaCorriente = 5; // "Cuenta Corriente" (EsCuentaCorriente = true)
+
+        var ventas = new List<Venta>();
+        var detalles = new List<DetalleVenta>();
+        var pagos = new List<VentaPago>();
+        var movimientos = new List<MovimientoCuentaCorriente>();
+
+        // Genera una venta fiada completa: Venta + Detalles + Pago (cuenta corriente) + Cargo en CC.
+        void CrearVentaFiada(Cliente cliente, DateTime fecha, params (Producto producto, int cantidad)[] items)
+        {
+            var total = items.Sum(i => i.producto.Precio * i.cantidad);
+
+            var venta = new Venta
+            {
+                UsuarioId = usuario!.Id,
+                ClienteId = cliente.Id,
+                Fecha = fecha,
+                Total = total,
+                Estado = EstadoVenta.Confirmada,
+                FechaCreacion = fecha
+            };
+            ventas.Add(venta);
+
+            foreach (var (producto, cantidad) in items)
+            {
+                detalles.Add(new DetalleVenta
+                {
+                    Venta = venta,
+                    ProductoId = producto.Id,
+                    Cantidad = cantidad,
+                    PrecioUnitario = producto.Precio,
+                    Subtotal = producto.Precio * cantidad
+                });
+            }
+
+            pagos.Add(new VentaPago
+            {
+                Venta = venta,
+                MedioPagoId = medioPagoCuentaCorriente,
+                Monto = total
+            });
+
+            movimientos.Add(new MovimientoCuentaCorriente
+            {
+                ClienteId = cliente.Id,
+                Venta = venta,
+                Tipo = TipoMovimientoCuentaCorriente.Cargo,
+                Monto = total,
+                UsuarioId = usuario.Id,
+                Descripcion = "Venta a crédito (fiado) de prueba",
+                Fecha = fecha
+            });
+        }
+
+        // Registra un pago (cobro) parcial en la cuenta corriente de un cliente.
+        void CrearPago(Cliente cliente, decimal monto, DateTime fecha, string descripcion)
+        {
+            if (monto <= 0) return;
+            movimientos.Add(new MovimientoCuentaCorriente
+            {
+                ClienteId = cliente.Id,
+                Tipo = TipoMovimientoCuentaCorriente.Pago,
+                Monto = monto,
+                UsuarioId = usuario!.Id,
+                Descripcion = descripcion,
+                Fecha = fecha
+            });
+        }
+
+        Producto P(int i) => productos[i % productos.Count];
+
+        // ── Escenario 1: cliente con varias ventas y un pago parcial (saldo deudor intermedio) ──
+        var clienteA = clientesCC[0];
+        CrearVentaFiada(clienteA, now.AddDays(-12).Date.AddHours(11), (P(0), 3), (P(1), 2));
+        CrearVentaFiada(clienteA, now.AddDays(-6).Date.AddHours(16), (P(2), 1), (P(3), 4));
+        var totalClienteA = movimientos.Where(m => m.ClienteId == clienteA.Id).Sum(m => m.Monto);
+        CrearPago(clienteA, Math.Round(totalClienteA * 0.4m, 2), now.AddDays(-2).Date.AddHours(12),
+            "Pago parcial de cuenta corriente (prueba)");
+
+        // ── Escenario 2: segundo cliente con una venta fiada, saldo completo pendiente ──
+        if (clientesCC.Count > 1)
+        {
+            var clienteB = clientesCC[1];
+            CrearVentaFiada(clienteB, now.AddDays(-4).Date.AddHours(10), (P(4), 2), (P(5), 1));
+            CrearVentaFiada(clienteB, now.AddDays(-1).Date.AddHours(18), (P(0), 5));
+        }
+
+        // ── Escenario 3: cliente dejado cerca de su límite de crédito ──
+        // Buscamos un cliente con límite de crédito definido (> 0) para provocar el escenario
+        // de "límite excedido" al intentar una nueva venta fiada desde la aplicación.
+        var clienteConLimite = clientesCC
+            .Where(c => c.LimiteCredito > 0 && c.Id != clienteA.Id)
+            .OrderBy(c => c.LimiteCredito)
+            .FirstOrDefault();
+
+        if (clienteConLimite is not null)
+        {
+            // Dejar el saldo al ~90% del límite: una venta fiada adicional lo superará.
+            var objetivoSaldo = Math.Round(clienteConLimite.LimiteCredito * 0.9m, 2);
+
+            // Cargo directo (sin venta asociada) para fijar el saldo con precisión.
+            movimientos.Add(new MovimientoCuentaCorriente
+            {
+                ClienteId = clienteConLimite.Id,
+                Tipo = TipoMovimientoCuentaCorriente.Cargo,
+                Monto = objetivoSaldo,
+                UsuarioId = usuario.Id,
+                Descripcion = "Saldo inicial cercano al límite de crédito (prueba)",
+                Fecha = now.AddDays(-8).Date.AddHours(9)
+            });
+        }
+
+        context.Ventas.AddRange(ventas);
+        context.DetallesVenta.AddRange(detalles);
+        context.VentaPagos.AddRange(pagos);
+        context.Set<MovimientoCuentaCorriente>().AddRange(movimientos);
+        await context.SaveChangesAsync();
+
+        logger.LogInformation(
+            "Seed ventas fiadas: se crearon {Ventas} venta(s) a cuenta corriente y {Movimientos} movimiento(s) de cuenta corriente para pruebas.",
+            ventas.Count, movimientos.Count);
     }
 
     /// <summary>
