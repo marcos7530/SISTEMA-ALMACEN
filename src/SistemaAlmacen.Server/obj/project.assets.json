@@ -2,6 +2,15 @@
   "version": 4,
   "targets": {
     "net10.0": {
+      "Afip.Net/1.1.2": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/afip.net.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/afip.net.dll": {}
+        }
+      },
       "Azure.Core/1.50.0": {
         "type": "package",
         "dependencies": {
@@ -1436,6 +1445,7 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
+          "Afip.Net": "1.1.2",
           "BCrypt.Net-Next": "4.2.0",
           "ClosedXML": "0.105.1",
           "Microsoft.EntityFrameworkCore": "10.0.11",
@@ -1501,6 +1511,20 @@
     }
   },
   "libraries": {
+    "Afip.Net/1.1.2": {
+      "sha512": "npe2dXl4ytnIILfhXz+wFnFBUqWxZ80Lu3T6XR4ZrpAqO1kShcOxos422voEmA4fxRvfXNWRpTru7HvwgfSWcw==",
+      "type": "package",
+      "path": "afip.net/1.1.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "afip.net.1.1.2.nupkg.sha512",
+        "afip.net.nuspec",
+        "icon.png",
+        "lib/netstandard2.0/afip.net.dll"
+      ]
+    },
     "Azure.Core/1.50.0": {
       "sha512": "GBNKZEhdIbTXxedvD3R7I/yDVFX9jJJEz02kCziFSJxspSQ5RMHc3GktulJ1s7+ffXaXD7kMgrtdQTaggyInLw==",
       "type": "package",

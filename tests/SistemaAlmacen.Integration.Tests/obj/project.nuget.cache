@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "tiIqd8Vfko4=",
+  "dgSpecHash": "eHbXo91fo6s=",
   "success": true,
   "projectFilePath": "C:\\Users\\Marcos\\Desktop\\SISTEMA-ALMACEN\\tests\\SistemaAlmacen.Integration.Tests\\SistemaAlmacen.Integration.Tests.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\Marcos\\.nuget\\packages\\afip.net\\1.1.2\\afip.net.1.1.2.nupkg.sha512",
     "C:\\Users\\Marcos\\.nuget\\packages\\azure.core\\1.50.0\\azure.core.1.50.0.nupkg.sha512",
     "C:\\Users\\Marcos\\.nuget\\packages\\azure.identity\\1.17.1\\azure.identity.1.17.1.nupkg.sha512",
     "C:\\Users\\Marcos\\.nuget\\packages\\bcrypt.net-next\\4.2.0\\bcrypt.net-next.4.2.0.nupkg.sha512",

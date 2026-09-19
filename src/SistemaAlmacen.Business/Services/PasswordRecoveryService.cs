@@ -1,6 +1,9 @@
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SistemaAlmacen.Business.Interfaces;
+using SistemaAlmacen.Business.Models.Email;
 using SistemaAlmacen.Data.Entities;
 using SistemaAlmacen.Data.Repositories;
 using SistemaAlmacen.Shared.Common;
@@ -14,6 +17,9 @@ namespace SistemaAlmacen.Business.Services;
 public class PasswordRecoveryService : IPasswordRecoveryService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IEmailSender _emailSender;
+    private readonly EmailOptions _emailOptions;
+    private readonly ILogger<PasswordRecoveryService> _logger;
 
     private const int TokenLength = 32;
     private const int TokenExpirationHours = 24;
@@ -25,9 +31,16 @@ public class PasswordRecoveryService : IPasswordRecoveryService
     private static readonly Regex LowercaseRegex = new(@"[a-z]", RegexOptions.Compiled);
     private static readonly Regex DigitRegex = new(@"\d", RegexOptions.Compiled);
 
-    public PasswordRecoveryService(IUnitOfWork unitOfWork)
+    public PasswordRecoveryService(
+        IUnitOfWork unitOfWork,
+        IEmailSender emailSender,
+        IOptions<EmailOptions> emailOptions,
+        ILogger<PasswordRecoveryService> logger)
     {
         _unitOfWork = unitOfWork;
+        _emailSender = emailSender;
+        _emailOptions = emailOptions.Value;
+        _logger = logger;
     }
 
     /// <inheritdoc />
@@ -60,7 +73,56 @@ public class PasswordRecoveryService : IPasswordRecoveryService
         await _unitOfWork.TokensRecuperacion.AddAsync(tokenEntity);
         await _unitOfWork.SaveChangesAsync();
 
+        // Enviar email con el enlace de recuperación.
+        // No propagar errores de envío al llamador para no revelar la existencia del email
+        // ni romper el flujo; se registran en el log para diagnóstico.
+        try
+        {
+            var resetLink = BuildResetLink(tokenValue);
+            var htmlBody = BuildRecoveryEmailBody(usuario.Nombre, resetLink);
+            await _emailSender.SendEmailAsync(usuario.Email, "Recuperación de contraseña - Sistema Almacén", htmlBody);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "No se pudo enviar el email de recuperación al usuario {UsuarioId}.", usuario.Id);
+        }
+
         return true;
+    }
+
+    /// <summary>
+    /// Construye el enlace de restablecimiento apuntando a la página del cliente,
+    /// codificando el token para uso seguro en la query string.
+    /// </summary>
+    private string BuildResetLink(string token)
+    {
+        var baseUrl = (_emailOptions.BaseUrl ?? string.Empty).TrimEnd('/');
+        return $"{baseUrl}/restablecer-contrasena?token={Uri.EscapeDataString(token)}";
+    }
+
+    /// <summary>
+    /// Genera el cuerpo HTML del correo de recuperación de contraseña.
+    /// </summary>
+    private string BuildRecoveryEmailBody(string nombre, string resetLink)
+    {
+        var nombreSeguro = System.Net.WebUtility.HtmlEncode(nombre);
+        var linkSeguro = System.Net.WebUtility.HtmlEncode(resetLink);
+
+        return $@"
+<div style=""font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; color: #222;"">
+    <h2 style=""color: #4338ca;"">Recuperación de contraseña</h2>
+    <p>Hola {nombreSeguro},</p>
+    <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en <strong>Sistema Almacén</strong>.</p>
+    <p>Hacé clic en el siguiente botón para elegir una nueva contraseña. El enlace vence en {TokenExpirationHours} horas.</p>
+    <p style=""text-align: center; margin: 28px 0;"">
+        <a href=""{linkSeguro}"" style=""background-color: #4338ca; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block;"">Restablecer contraseña</a>
+    </p>
+    <p style=""font-size: 13px; color: #666;"">Si el botón no funciona, copiá y pegá este enlace en tu navegador:<br />
+        <a href=""{linkSeguro}"">{linkSeguro}</a>
+    </p>
+    <hr style=""border: none; border-top: 1px solid #eee; margin: 24px 0;"" />
+    <p style=""font-size: 12px; color: #999;"">Si no solicitaste este cambio, podés ignorar este correo. Tu contraseña actual seguirá siendo válida.</p>
+</div>";
     }
 
     /// <inheritdoc />

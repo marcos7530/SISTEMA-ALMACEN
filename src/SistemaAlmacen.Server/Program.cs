@@ -79,6 +79,11 @@ builder.Services.AddScoped<SistemaAlmacen.Business.Interfaces.IAfipClientWrapper
 builder.Services.AddScoped<SistemaAlmacen.Business.Interfaces.IFacturacionService, SistemaAlmacen.Business.Services.FacturacionService>();
 builder.Services.AddScoped<SistemaAlmacen.Business.Interfaces.IReporteService, SistemaAlmacen.Business.Services.ReporteService>();
 
+// --- Email ---
+builder.Services.Configure<SistemaAlmacen.Business.Models.Email.EmailOptions>(
+    builder.Configuration.GetSection(SistemaAlmacen.Business.Models.Email.EmailOptions.SectionName));
+builder.Services.AddScoped<SistemaAlmacen.Business.Interfaces.IEmailSender, SistemaAlmacen.Business.Services.SmtpEmailSender>();
+
 // --- HttpContextAccessor (necesario para AuditoriaInterceptor) ---
 builder.Services.AddHttpContextAccessor();
 

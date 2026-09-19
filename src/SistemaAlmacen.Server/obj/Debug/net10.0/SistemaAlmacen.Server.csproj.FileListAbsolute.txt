@@ -484,3 +484,4 @@ C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net1
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net10.0\SistemaAlmacen.Server.pdb
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net10.0\SistemaAlmacen.Server.genruntimeconfig.cache
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net10.0\ref\SistemaAlmacen.Server.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\bin\Debug\net10.0\afip.net.dll

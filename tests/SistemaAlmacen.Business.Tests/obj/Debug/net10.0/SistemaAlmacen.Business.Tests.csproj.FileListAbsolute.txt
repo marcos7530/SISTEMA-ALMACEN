@@ -441,3 +441,4 @@ C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Business.Tests\obj\
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Business.Tests\obj\Debug\net10.0\SistemaAlmacen.Business.Tests.pdb
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Business.Tests\obj\Debug\net10.0\SistemaAlmacen.Business.Tests.genruntimeconfig.cache
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Business.Tests\obj\Debug\net10.0\ref\SistemaAlmacen.Business.Tests.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Business.Tests\bin\Debug\net10.0\afip.net.dll
