@@ -17,16 +17,16 @@ namespace SistemaAlmacen.Server.Controllers;
 public class VentasController : ControllerBase
 {
     private readonly IVentaService _ventaService;
-    private readonly IFacturacionService _facturacionService;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<VentasController> _logger;
 
     public VentasController(
         IVentaService ventaService,
-        IFacturacionService facturacionService,
+        IServiceScopeFactory scopeFactory,
         ILogger<VentasController> logger)
     {
         _ventaService = ventaService;
-        _facturacionService = facturacionService;
+        _scopeFactory = scopeFactory;
         _logger = logger;
     }
 
@@ -117,15 +117,23 @@ public class VentasController : ControllerBase
 
         // Disparar facturación AFIP de forma no bloqueante.
         // Si falla, la venta queda como pendiente de facturación.
+        // IMPORTANTE: se crea un scope de DI propio para la tarea en background. No se pueden
+        // reutilizar servicios scoped del controller (como IFacturacionService y su DbContext),
+        // porque el DbContext se descarta al finalizar el request HTTP y la tarea seguiría
+        // ejecutándose con un contexto ya dispuesto (ObjectDisposedException).
         _ = Task.Run(async () =>
         {
+            using var scope = _scopeFactory.CreateScope();
+            var facturacionService = scope.ServiceProvider.GetRequiredService<IFacturacionService>();
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<VentasController>>();
+
             try
             {
-                await _facturacionService.EmitirComprobanteAsync(id);
+                await facturacionService.EmitirComprobanteAsync(id);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Facturación AFIP no pudo completarse para venta {VentaId}. Queda pendiente.", id);
+                logger.LogWarning(ex, "Facturación AFIP no pudo completarse para venta {VentaId}. Queda pendiente.", id);
             }
         });
 
@@ -196,17 +204,22 @@ public class VentasController : ControllerBase
 
         // Emitir nota de crédito AFIP si se solicitó y la venta tenía factura.
         // No bloqueante: si falla, la anulación ya quedó registrada.
+        // Igual que en ConfirmarVenta, se usa un scope de DI propio para la tarea en background.
         if (request.EmitirNotaCredito)
         {
             _ = Task.Run(async () =>
             {
+                using var scope = _scopeFactory.CreateScope();
+                var facturacionService = scope.ServiceProvider.GetRequiredService<IFacturacionService>();
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<VentasController>>();
+
                 try
                 {
-                    await _facturacionService.EmitirNotaCreditoAsync(id);
+                    await facturacionService.EmitirNotaCreditoAsync(id);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Nota de crédito AFIP no pudo emitirse para venta anulada {VentaId}.", id);
+                    logger.LogWarning(ex, "Nota de crédito AFIP no pudo emitirse para venta anulada {VentaId}.", id);
                 }
             });
         }

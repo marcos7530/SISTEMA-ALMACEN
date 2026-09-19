@@ -472,7 +472,6 @@ C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net1
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net10.0\jsmodules\jsmodules.build.manifest.json
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net10.0\scopedcss\bundle\SistemaAlmacen.Server.styles.css
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net10.0\compressed\f32kn295nz-{0}-mhh8mf6cmj-mhh8mf6cmj.gz
-C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net10.0\compressed\4d872x3xn7-{0}-rebfl1bnxw-rebfl1bnxw.gz
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net10.0\staticwebassets.build.json
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net10.0\staticwebassets.build.json.cache
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net10.0\staticwebassets.development.json
@@ -485,3 +484,4 @@ C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net1
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net10.0\SistemaAlmacen.Server.genruntimeconfig.cache
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net10.0\ref\SistemaAlmacen.Server.dll
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\bin\Debug\net10.0\afip.net.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net10.0\compressed\4d872x3xn7-{0}-ju26yswere-ju26yswere.gz

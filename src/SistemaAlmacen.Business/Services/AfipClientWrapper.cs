@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using AfipSDK.Afip.Net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -240,16 +241,27 @@ public class AfipClientWrapper : IAfipClientWrapper
         }
 
         // 4) Mapear la respuesta a nuestro modelo.
-        var cae = GetString(respuesta, "CAE");
+        // Con returnResponse=true, el WSFEv1 devuelve la estructura anidada del SOAP:
+        //   { FeCabResp: { Resultado }, FeDetResp: { FECAEDetResponse: [ { Resultado, CAE, CAEFchVto, ... } ] } }
+        // por lo que el CAE NO está en el nivel raíz sino dentro de FECAEDetResponse.
+        var rawJson = SerializeSafe(respuesta);
+        var (cae, caeFchVto) = ExtractCae(rawJson);
+
         if (string.IsNullOrWhiteSpace(cae))
         {
-            var detalle = GetString(respuesta, "Observaciones", "Errors", "FchProceso");
-            _logger.LogWarning("AFIP no devolvió CAE. Detalle: {Detalle}", detalle);
+            // Sin CAE: log de diagnóstico con la respuesta completa y extracción de observaciones/errores.
+            _logger.LogWarning("AFIP no devolvió CAE. Respuesta completa: {Raw}", rawJson);
+
+            var observaciones = ExtractObservaciones(rawJson);
+            var detalle = observaciones.Count > 0
+                ? string.Join(" | ", observaciones)
+                : GetString(respuesta, "Observaciones", "Errors", "FchProceso");
+
             return new AfipVoucherResponse
             {
                 HasCae = false,
                 ErrorMessage = string.IsNullOrWhiteSpace(detalle) ? "AFIP no devolvió un CAE." : detalle,
-                Errors = new List<string> { detalle }
+                Errors = observaciones.Count > 0 ? observaciones : new List<string> { detalle }
             };
         }
 
@@ -261,7 +273,7 @@ public class AfipClientWrapper : IAfipClientWrapper
         {
             HasCae = true,
             Cae = cae,
-            CaeVencimiento = ParseAfipDate(GetString(respuesta, "CAEFchVto")),
+            CaeVencimiento = ParseAfipDate(caeFchVto),
             NumeroComprobante = proximoNumero,
             ErrorMessage = null,
             Errors = null
@@ -380,6 +392,154 @@ public class AfipClientWrapper : IAfipClientWrapper
     }
 
     // --- Helpers de parsing de respuestas del SDK (Dictionary<string, object>) ---
+
+    /// <summary>
+    /// Serializa la respuesta del SDK a JSON para diagnóstico, sin lanzar excepciones.
+    /// </summary>
+    private static string SerializeSafe(object? value)
+    {
+        try
+        {
+            return JsonSerializer.Serialize(value);
+        }
+        catch (Exception ex)
+        {
+            return $"(no serializable: {ex.Message})";
+        }
+    }
+
+    /// <summary>
+    /// Extrae el CAE y su fecha de vencimiento de la respuesta cruda del WSFEv1.
+    /// El CAE puede venir en el nivel raíz (cuando el SDK ya lo aplana) o anidado en
+    /// FeDetResp → FECAEDetResponse[0] → { CAE, CAEFchVto }. Busca recursivamente el primer
+    /// par CAE/CAEFchVto no vacío para cubrir ambas formas.
+    /// </summary>
+    private static (string cae, string caeFchVto) ExtractCae(string rawJson)
+    {
+        if (string.IsNullOrWhiteSpace(rawJson))
+            return (string.Empty, string.Empty);
+
+        try
+        {
+            using var doc = JsonDocument.Parse(rawJson);
+            return FindCae(doc.RootElement);
+        }
+        catch (JsonException)
+        {
+            return (string.Empty, string.Empty);
+        }
+    }
+
+    /// <summary>
+    /// Recorre recursivamente el JSON buscando el primer objeto que tenga una propiedad "CAE"
+    /// con valor no vacío, y devuelve su CAE junto al CAEFchVto del mismo objeto (si existe).
+    /// </summary>
+    private static (string cae, string caeFchVto) FindCae(JsonElement element)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                if (element.TryGetProperty("CAE", out var caeProp))
+                {
+                    var cae = JsonValueToString(caeProp);
+                    if (!string.IsNullOrWhiteSpace(cae))
+                    {
+                        var fchVto = element.TryGetProperty("CAEFchVto", out var vtoProp)
+                            ? JsonValueToString(vtoProp)
+                            : string.Empty;
+                        return (cae, fchVto);
+                    }
+                }
+
+                foreach (var prop in element.EnumerateObject())
+                {
+                    var result = FindCae(prop.Value);
+                    if (!string.IsNullOrWhiteSpace(result.cae))
+                        return result;
+                }
+                break;
+
+            case JsonValueKind.Array:
+                foreach (var item in element.EnumerateArray())
+                {
+                    var result = FindCae(item);
+                    if (!string.IsNullOrWhiteSpace(result.cae))
+                        return result;
+                }
+                break;
+        }
+
+        return (string.Empty, string.Empty);
+    }
+
+    /// <summary>
+    /// Convierte un valor JSON (string o número) a su representación de texto.
+    /// </summary>
+    private static string JsonValueToString(JsonElement value)
+    {
+        return value.ValueKind switch
+        {
+            JsonValueKind.String => value.GetString() ?? string.Empty,
+            JsonValueKind.Number => value.ToString(),
+            _ => string.Empty
+        };
+    }
+
+    /// <summary>
+    /// Recorre el JSON crudo de la respuesta de AFIP y extrae los mensajes de observaciones y
+    /// errores. El WSFEv1 los devuelve anidados (FeDetResp → Observaciones → Obs → {Code, Msg},
+    /// y también Errors → Err → {Code, Msg}). Busca recursivamente cualquier propiedad "Msg".
+    /// </summary>
+    private static List<string> ExtractObservaciones(string rawJson)
+    {
+        var mensajes = new List<string>();
+        if (string.IsNullOrWhiteSpace(rawJson))
+            return mensajes;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(rawJson);
+            CollectMsg(doc.RootElement, mensajes);
+        }
+        catch (JsonException)
+        {
+            // Si no es JSON válido, no hay nada que extraer.
+        }
+
+        return mensajes;
+    }
+
+    /// <summary>
+    /// Recorre recursivamente un elemento JSON acumulando el texto de toda propiedad "Msg"
+    /// (case-insensitive), tal como las usa AFIP para observaciones y errores.
+    /// </summary>
+    private static void CollectMsg(JsonElement element, List<string> mensajes)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                foreach (var prop in element.EnumerateObject())
+                {
+                    if (string.Equals(prop.Name, "Msg", StringComparison.OrdinalIgnoreCase)
+                        && prop.Value.ValueKind == JsonValueKind.String)
+                    {
+                        var msg = prop.Value.GetString();
+                        if (!string.IsNullOrWhiteSpace(msg))
+                            mensajes.Add(msg!.Trim());
+                    }
+                    else
+                    {
+                        CollectMsg(prop.Value, mensajes);
+                    }
+                }
+                break;
+
+            case JsonValueKind.Array:
+                foreach (var item in element.EnumerateArray())
+                    CollectMsg(item, mensajes);
+                break;
+        }
+    }
 
     /// <summary>
     /// Obtiene el primer valor no vacío entre las claves dadas del diccionario de respuesta.

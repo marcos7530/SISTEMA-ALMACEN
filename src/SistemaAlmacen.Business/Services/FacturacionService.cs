@@ -76,7 +76,11 @@ public class FacturacionService : IFacturacionService
             Iva = iva,
             Exento = exento,
             Moneda = "PES",
-            FechaComprobante = venta.Fecha
+            // La fecha del comprobante es la fecha de EMISIÓN (hoy), no la de la venta.
+            // AFIP rechaza (error 10016) comprobantes de productos con fecha fuera de la
+            // ventana permitida (±5 días de hoy), por lo que una venta facturada días
+            // después debe emitirse con la fecha actual.
+            FechaComprobante = DateTime.Now
         };
 
         try
@@ -230,7 +234,8 @@ public class FacturacionService : IFacturacionService
             Iva = iva,
             Exento = exento,
             Moneda = "PES",
-            FechaComprobante = DateTime.UtcNow,
+            // Fecha de emisión local (Argentina). Ver nota en EmitirComprobanteAsync.
+            FechaComprobante = DateTime.Now,
             TipoComprobanteAsociado = factura.TipoComprobante,
             NumeroComprobanteAsociado = factura.NumeroComprobante,
             PuntoDeVentaAsociado = PuntoDeVentaAfip

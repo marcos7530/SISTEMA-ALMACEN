@@ -222,11 +222,20 @@
 
         try
         {
-            var response = await Http.PostAsync("api/facturacion/test-connection", null);
+            var response = await Http.GetAsync("api/facturacion/test-connection");
             if (response.IsSuccessStatusCode)
             {
-                _connectionTestResult = "Conexión con AFIP exitosa.";
-                _connectionTestSuccess = true;
+                var result = await response.Content.ReadFromJsonAsync<TestConnectionResult>();
+                if (result?.Connected == true)
+                {
+                    _connectionTestResult = $"Conexión con AFIP exitosa (modo {result.Mode}).";
+                    _connectionTestSuccess = true;
+                }
+                else
+                {
+                    _connectionTestResult = "No se pudo conectar con AFIP. Revisá el token, el certificado y la conexión a internet.";
+                    _connectionTestSuccess = false;
+                }
             }
             else
             {
@@ -244,5 +253,11 @@
         {
             _isTesting = false;
         }
+    }
+
+    private sealed class TestConnectionResult
+    {
+        public bool Connected { get; set; }
+        public string? Mode { get; set; }
     }
 }

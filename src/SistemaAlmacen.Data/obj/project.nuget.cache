@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "ORwlUslywAA=",
+  "dgSpecHash": "yeLnbEqxjpA=",
   "success": true,
   "projectFilePath": "C:\\Users\\Marcos\\Desktop\\SISTEMA-ALMACEN\\src\\SistemaAlmacen.Data\\SistemaAlmacen.Data.csproj",
   "expectedPackageFiles": [
@@ -61,7 +61,7 @@
     {
       "code": "NU1510",
       "level": "Warning",
-      "message": "PackageReference Microsoft.Extensions.DependencyInjection.Abstractions no se eliminará. Considere la posibilidad de quitar este paquete de las dependencias, ya que es probable que no sea necesario.",
+      "message": "PackageReference Microsoft.Extensions.DependencyInjection.Abstractions no se eliminará. Este paquete está disponible automáticamente y no es necesario hacer referencia a él explícitamente. Quite el elemento PackageReference.",
       "projectPath": "C:\\Users\\Marcos\\Desktop\\SISTEMA-ALMACEN\\src\\SistemaAlmacen.Data\\SistemaAlmacen.Data.csproj",
       "warningLevel": 1,
       "filePath": "C:\\Users\\Marcos\\Desktop\\SISTEMA-ALMACEN\\src\\SistemaAlmacen.Data\\SistemaAlmacen.Data.csproj",
@@ -73,7 +73,7 @@
     {
       "code": "NU1510",
       "level": "Warning",
-      "message": "PackageReference Microsoft.Extensions.Logging.Abstractions no se eliminará. Considere la posibilidad de quitar este paquete de las dependencias, ya que es probable que no sea necesario.",
+      "message": "PackageReference Microsoft.Extensions.Logging.Abstractions no se eliminará. Este paquete está disponible automáticamente y no es necesario hacer referencia a él explícitamente. Quite el elemento PackageReference.",
       "projectPath": "C:\\Users\\Marcos\\Desktop\\SISTEMA-ALMACEN\\src\\SistemaAlmacen.Data\\SistemaAlmacen.Data.csproj",
       "warningLevel": 1,
       "filePath": "C:\\Users\\Marcos\\Desktop\\SISTEMA-ALMACEN\\src\\SistemaAlmacen.Data\\SistemaAlmacen.Data.csproj",

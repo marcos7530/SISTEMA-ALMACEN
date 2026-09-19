@@ -1118,3 +1118,4 @@ C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Integration.Tests\o
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Integration.Tests\obj\Debug\net10.0\SistemaAlmacen.Integration.Tests.pdb
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Integration.Tests\obj\Debug\net10.0\SistemaAlmacen.Integration.Tests.genruntimeconfig.cache
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Integration.Tests\obj\Debug\net10.0\ref\SistemaAlmacen.Integration.Tests.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Integration.Tests\bin\Debug\net10.0\afip.net.dll
