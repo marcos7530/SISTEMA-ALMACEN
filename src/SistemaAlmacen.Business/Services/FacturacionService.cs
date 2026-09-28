@@ -304,15 +304,26 @@ public class FacturacionService : IFacturacionService
     }
 
     /// <summary>
-    /// Determina el tipo de comprobante según la condición IVA del receptor.
-    /// Por defecto retorna Factura B (consumidor final).
+    /// Indica si el EMISOR (el contribuyente que factura) es Monotributista.
+    /// Un monotributista siempre emite Factura C, independientemente del receptor.
+    /// Configurable vía Afip:EmisorMonotributo (default false = Responsable Inscripto).
+    /// </summary>
+    private bool EmisorEsMonotributo => _configuration.GetValue<bool>("Afip:EmisorMonotributo", false);
+
+    /// <summary>
+    /// Determina el tipo de comprobante a emitir.
+    /// - Emisor Monotributista: siempre Factura C (11), no discrimina IVA.
+    /// - Emisor Responsable Inscripto: Factura A (1) si el receptor es RI, sino Factura B (6).
     /// </summary>
     private int DeterminarTipoComprobante(Venta venta)
     {
-        // Si la venta tiene cliente, se determina por su condición frente al IVA.
+        // El monotributista solo puede emitir Factura C, sin importar la condición del receptor.
+        if (EmisorEsMonotributo)
+            return (int)TipoComprobante.FacturaC;
+
+        // Emisor Responsable Inscripto: el tipo depende de la condición IVA del receptor.
         // Factura A (1): receptor Responsable Inscripto
         // Factura B (6): Consumidor Final / Monotributista / Exento (default)
-        // Factura C (11): reservado para emisor Monotributista (no se infiere del receptor)
         if (venta.Cliente is not null)
         {
             return venta.Cliente.CondicionIva switch

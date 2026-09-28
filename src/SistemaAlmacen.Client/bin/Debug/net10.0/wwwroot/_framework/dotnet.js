@@ -5,7 +5,7 @@ var e=!1;const t=async()=>WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,
   "mainAssemblyName": "SistemaAlmacen.Client",
   "applicationEnvironment": "Development",
   "resources": {
-    "hash": "sha256-8nKnADoz+Z4hQQuNr4YAzvPhEFqh+SpIp8y2J0IAZME=",
+    "hash": "sha256-SNDYeU0RddGDb0mRh6B/5Q7FLVI7qZBf/zkmuPLhHGU=",
     "jsModuleNative": [
       {
         "name": "dotnet.native.b6l13xorvf.js"
@@ -1284,8 +1284,8 @@ var e=!1;const t=async()=>WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,
       },
       {
         "virtualPath": "SistemaAlmacen.Shared.wasm",
-        "name": "SistemaAlmacen.Shared.3ceixn0faa.wasm",
-        "hash": "sha256-E1Y3UKCAEm85b8HXCzzEAT1qZYwuGYZt/ItM3HJWR20=",
+        "name": "SistemaAlmacen.Shared.t64vyd8w5l.wasm",
+        "hash": "sha256-C6M+0ERwCG3gElIBLTKTKX0EC/SjZCo4OSxIYKgk7TI=",
         "cache": "force-cache"
       },
       {
@@ -1296,22 +1296,22 @@ var e=!1;const t=async()=>WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,
       },
       {
         "virtualPath": "SistemaAlmacen.Client.wasm",
-        "name": "SistemaAlmacen.Client.glg5we5gi1.wasm",
-        "hash": "sha256-vLStS42l4OLgSaBfmjls3xfepT9T6oduJ6AhRkVVk5g=",
+        "name": "SistemaAlmacen.Client.e1mccqr7px.wasm",
+        "hash": "sha256-kp6I+s/T6IlAAVUB+qd8KcwNcLu42mRiZR9oOrWThD8=",
         "cache": "force-cache"
       }
     ],
     "pdb": [
       {
         "virtualPath": "SistemaAlmacen.Shared.pdb",
-        "name": "SistemaAlmacen.Shared.xhdxdsc2ql.pdb",
-        "hash": "sha256-lR9OUf+6dBYkl7xGaGsDTcN5Im1bjpzbO+ybn2Xz2Gg=",
+        "name": "SistemaAlmacen.Shared.ibz4vtp2kl.pdb",
+        "hash": "sha256-MlGwgFomDVrEp/I2qlm4UJ4McE24NvbpJr6JXtiwzjM=",
         "cache": "force-cache"
       },
       {
         "virtualPath": "SistemaAlmacen.Client.pdb",
-        "name": "SistemaAlmacen.Client.lghj9lcvcx.pdb",
-        "hash": "sha256-24ONfcQkK26ejQVCRyZTA1qz9uZyiWtrXcum0aogsuk=",
+        "name": "SistemaAlmacen.Client.huj46n797g.pdb",
+        "hash": "sha256-eW/CVrRqC25eHF8d431cG6LO52n4wGypecQWUK8XZWw=",
         "cache": "force-cache"
       }
     ],

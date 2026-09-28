@@ -49,10 +49,15 @@ public class ComprobanteRepository : Repository<Comprobante>, IComprobanteReposi
 
     public async Task<List<Comprobante>> GetPendientesAsync()
     {
+        // Incluye comprobantes Pendientes (fallo de conexión) y Rechazados (rechazo de AFIP).
+        // Ambos representan ventas que aún no lograron facturarse y deben poder reintentarse
+        // desde la pantalla de facturación. Sin los Rechazados, un comprobante rechazado por AFIP
+        // quedaría invisible y sin forma de reintentar desde la UI.
         return await _dbSet
             .Include(c => c.Venta)
                 .ThenInclude(v => v.Usuario)
-            .Where(c => c.Estado == EstadoComprobante.Pendiente)
+            .Where(c => c.Estado == EstadoComprobante.Pendiente
+                     || c.Estado == EstadoComprobante.Rechazado)
             .OrderBy(c => c.FechaEmision)
             .ToListAsync();
     }
