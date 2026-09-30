@@ -14,4 +14,24 @@ public interface IEmailSender
     /// <param name="htmlBody">Cuerpo del correo en formato HTML.</param>
     /// <param name="cancellationToken">Token de cancelación.</param>
     Task SendEmailAsync(string to, string subject, string htmlBody, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Envía un correo electrónico con cuerpo HTML y un archivo adjunto
+    /// (por ejemplo, el PDF de un comprobante fiscal).
+    /// </summary>
+    /// <param name="to">Dirección de correo del destinatario.</param>
+    /// <param name="subject">Asunto del correo.</param>
+    /// <param name="htmlBody">Cuerpo del correo en formato HTML.</param>
+    /// <param name="attachmentContent">Contenido binario del adjunto.</param>
+    /// <param name="attachmentFileName">Nombre del archivo adjunto (ej: comprobante.pdf).</param>
+    /// <param name="attachmentContentType">Tipo MIME del adjunto (ej: application/pdf).</param>
+    /// <param name="cancellationToken">Token de cancelación.</param>
+    Task SendEmailWithAttachmentAsync(
+        string to,
+        string subject,
+        string htmlBody,
+        byte[] attachmentContent,
+        string attachmentFileName,
+        string attachmentContentType,
+        CancellationToken cancellationToken = default);
 }

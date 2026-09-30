@@ -5,7 +5,7 @@ var e=!1;const t=async()=>WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,
   "mainAssemblyName": "SistemaAlmacen.Client",
   "applicationEnvironment": "Development",
   "resources": {
-    "hash": "sha256-SNDYeU0RddGDb0mRh6B/5Q7FLVI7qZBf/zkmuPLhHGU=",
+    "hash": "sha256-LqUgAvINQ0DJiOgGmIQ6F+13VXWlo9tTUtJE/u/gUKM=",
     "jsModuleNative": [
       {
         "name": "dotnet.native.b6l13xorvf.js"
@@ -1284,8 +1284,8 @@ var e=!1;const t=async()=>WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,
       },
       {
         "virtualPath": "SistemaAlmacen.Shared.wasm",
-        "name": "SistemaAlmacen.Shared.t64vyd8w5l.wasm",
-        "hash": "sha256-C6M+0ERwCG3gElIBLTKTKX0EC/SjZCo4OSxIYKgk7TI=",
+        "name": "SistemaAlmacen.Shared.yjecjwybcc.wasm",
+        "hash": "sha256-UtiivG57BzmWerxDN8I6Vgvx7CDY2ld7EHLwCmQocpE=",
         "cache": "force-cache"
       },
       {
@@ -1296,22 +1296,22 @@ var e=!1;const t=async()=>WebAssembly.validate(new Uint8Array([0,97,115,109,1,0,
       },
       {
         "virtualPath": "SistemaAlmacen.Client.wasm",
-        "name": "SistemaAlmacen.Client.e1mccqr7px.wasm",
-        "hash": "sha256-kp6I+s/T6IlAAVUB+qd8KcwNcLu42mRiZR9oOrWThD8=",
+        "name": "SistemaAlmacen.Client.uwdjk9xmzq.wasm",
+        "hash": "sha256-LrUzt6atHC4FnbUN0oi8EhNn7fiq7AklpHqZ1dKlknY=",
         "cache": "force-cache"
       }
     ],
     "pdb": [
       {
         "virtualPath": "SistemaAlmacen.Shared.pdb",
-        "name": "SistemaAlmacen.Shared.ibz4vtp2kl.pdb",
-        "hash": "sha256-MlGwgFomDVrEp/I2qlm4UJ4McE24NvbpJr6JXtiwzjM=",
+        "name": "SistemaAlmacen.Shared.3m6jiwd93e.pdb",
+        "hash": "sha256-xXWB3U/LjrL3tn1WC+lERo31Ifa98DUCF06XeyvYC7A=",
         "cache": "force-cache"
       },
       {
         "virtualPath": "SistemaAlmacen.Client.pdb",
-        "name": "SistemaAlmacen.Client.huj46n797g.pdb",
-        "hash": "sha256-eW/CVrRqC25eHF8d431cG6LO52n4wGypecQWUK8XZWw=",
+        "name": "SistemaAlmacen.Client.7a19t96uyl.pdb",
+        "hash": "sha256-QbCG/esfrxTMltlKw9izZA6CycFX0yp9ERhdmKqSOlA=",
         "cache": "force-cache"
       }
     ],

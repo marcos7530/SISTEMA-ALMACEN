@@ -30,4 +30,10 @@ public interface IAfipClientWrapper
     /// </summary>
     /// <returns>True si la conexión fue exitosa.</returns>
     Task<bool> TestConnectionAsync();
+
+    /// <summary>
+    /// Verifica la conectividad con AFIP devolviendo un resultado detallado que distingue
+    /// una caída/congestión de AFIP de un problema de configuración local.
+    /// </summary>
+    Task<AfipConnectionResult> TestConnectionDetailedAsync();
 }

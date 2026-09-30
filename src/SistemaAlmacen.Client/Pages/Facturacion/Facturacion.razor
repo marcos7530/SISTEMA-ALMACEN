@@ -233,7 +233,10 @@
                 }
                 else
                 {
-                    _connectionTestResult = "No se pudo conectar con AFIP. Revisá el token, el certificado y la conexión a internet.";
+                    // Usa el mensaje del servidor, que distingue una caída de AFIP de un problema local.
+                    _connectionTestResult = !string.IsNullOrWhiteSpace(result?.Message)
+                        ? result!.Message
+                        : "No se pudo conectar con AFIP. Revisá el token, el certificado y la conexión a internet.";
                     _connectionTestSuccess = false;
                 }
             }
@@ -258,6 +261,8 @@
     private sealed class TestConnectionResult
     {
         public bool Connected { get; set; }
+        public bool AfipUnavailable { get; set; }
+        public string? Message { get; set; }
         public string? Mode { get; set; }
     }
 }

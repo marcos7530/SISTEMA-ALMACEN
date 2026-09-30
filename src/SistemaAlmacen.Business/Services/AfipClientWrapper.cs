@@ -105,6 +105,19 @@ public class AfipClientWrapper : IAfipClientWrapper
             return true;
         }
 
+        var resultado = await TestConnectionDetailedAsync();
+        return resultado.Connected;
+    }
+
+    /// <inheritdoc />
+    public async Task<AfipConnectionResult> TestConnectionDetailedAsync()
+    {
+        if (_useMock)
+        {
+            await Task.Delay(100); // Simular latencia
+            return new AfipConnectionResult { Connected = true, Message = "Conexión simulada (modo mock)." };
+        }
+
         try
         {
             var afip = BuildAfipClient();
@@ -116,13 +129,53 @@ public class AfipClientWrapper : IAfipClientWrapper
             var authOk = GetString(status, "AuthServer").Equals("OK", StringComparison.OrdinalIgnoreCase);
 
             _logger.LogInformation("AFIP ServerStatus: App={App} Db={Db} Auth={Auth}", appOk, dbOk, authOk);
-            return appOk && dbOk && authOk;
+
+            if (appOk && dbOk && authOk)
+                return new AfipConnectionResult { Connected = true, Message = "Conexión con AFIP exitosa." };
+
+            return new AfipConnectionResult
+            {
+                Connected = false,
+                AfipUnavailable = true,
+                Message = "Los servidores de AFIP no están operativos en este momento. Volvé a intentar en unos minutos."
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al verificar conectividad con AFIP.");
-            return false;
+
+            if (EsAfipNoDisponible(ex))
+            {
+                return new AfipConnectionResult
+                {
+                    Connected = false,
+                    AfipUnavailable = true,
+                    Message = "Los servidores de AFIP están caídos o congestionados. No es un problema del sistema; volvé a intentar en unos minutos."
+                };
+            }
+
+            return new AfipConnectionResult
+            {
+                Connected = false,
+                AfipUnavailable = false,
+                Message = "No se pudo conectar con AFIP. Revisá el token, el certificado y la conexión a internet."
+            };
         }
+    }
+
+    /// <summary>
+    /// Determina si una excepción corresponde a una caída o congestión de AFIP/ARCA
+    /// (problema del lado de AFIP), y no a un error de configuración local.
+    /// AFIP SDK devuelve HTTP 422 con el texto "congestionados" cuando ARCA está saturado.
+    /// </summary>
+    private static bool EsAfipNoDisponible(Exception ex)
+    {
+        var msg = ex.Message ?? string.Empty;
+        return msg.Contains("congestionad", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("422", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("ARCA están", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("service unavailable", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("503", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

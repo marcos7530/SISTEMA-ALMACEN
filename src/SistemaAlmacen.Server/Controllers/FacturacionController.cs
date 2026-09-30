@@ -163,11 +163,13 @@ public class FacturacionController : ControllerBase
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public async Task<IActionResult> TestConnection()
     {
-        var isConnected = await _afipClient.TestConnectionAsync();
+        var resultado = await _afipClient.TestConnectionDetailedAsync();
 
         return Ok(new
         {
-            connected = isConnected,
+            connected = resultado.Connected,
+            afipUnavailable = resultado.AfipUnavailable,
+            message = resultado.Message,
             mode = _configuration.GetValue<bool>("Afip:UseMock", true) ? "mock" : "produccion"
         });
     }
