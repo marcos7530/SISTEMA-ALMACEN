@@ -58,10 +58,18 @@ else
             </div>
         </div>
 
-        <div class="mb-3">
-            <label for="stock" class="form-label">Stock</label>
-            <InputNumber id="stock" class="form-control" @bind-Value="_model.Stock" />
-            <ValidationMessage For="@(() => _model.Stock)" />
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="stock" class="form-label">Stock</label>
+                <InputNumber id="stock" class="form-control" @bind-Value="_model.Stock" />
+                <ValidationMessage For="@(() => _model.Stock)" />
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="stockMinimo" class="form-label">Stock mínimo</label>
+                <InputNumber id="stockMinimo" class="form-control" @bind-Value="_model.StockMinimo" />
+                <ValidationMessage For="@(() => _model.StockMinimo)" />
+                <small class="text-muted">Umbral para alertar "stock bajo". Si es 0, usa el mínimo general del sistema.</small>
+            </div>
         </div>
 
         <div class="mb-3">
@@ -148,6 +156,7 @@ else
                     PrecioCosto = producto.PrecioCosto,
                     MargenGanancia = producto.MargenGanancia,
                     Stock = producto.Stock,
+                    StockMinimo = producto.StockMinimo,
                     CategoriaId = producto.CategoriaId
                 };
             }
@@ -190,6 +199,7 @@ else
                     PrecioCosto = _model.PrecioCosto,
                     MargenGanancia = _model.MargenGanancia,
                     Stock = _model.Stock,
+                    StockMinimo = _model.StockMinimo,
                     CategoriaId = _model.CategoriaId
                 };
                 response = await Http.PutAsJsonAsync($"api/productos/{Id}", request);
@@ -205,6 +215,7 @@ else
                     PrecioCosto = _model.PrecioCosto,
                     MargenGanancia = _model.MargenGanancia,
                     Stock = _model.Stock,
+                    StockMinimo = _model.StockMinimo,
                     CategoriaId = _model.CategoriaId
                 };
                 response = await Http.PostAsJsonAsync("api/productos", request);
@@ -263,6 +274,9 @@ else
         [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "El stock es requerido.")]
         [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue, ErrorMessage = "El stock debe ser mayor o igual a cero.")]
         public int Stock { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue, ErrorMessage = "El stock mínimo debe ser mayor o igual a cero.")]
+        public int StockMinimo { get; set; }
 
         [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "La categoría es requerida.")]
         [System.ComponentModel.DataAnnotations.Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar una categoría.")]

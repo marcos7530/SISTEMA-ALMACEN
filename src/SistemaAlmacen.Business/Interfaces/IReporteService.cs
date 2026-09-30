@@ -34,6 +34,13 @@ public interface IReporteService
     Task<List<ReporteInventarioDto>> GenerarReporteInventarioAsync();
 
     /// <summary>
+    /// Genera las métricas clave del negocio para el dashboard: ventas de hoy y del mes,
+    /// stock bajo/agotados, valor de inventario, comprobantes pendientes y top de productos del mes.
+    /// </summary>
+    /// <returns>Resumen de métricas del negocio.</returns>
+    Task<DashboardDto> GenerarDashboardAsync();
+
+    /// <summary>
     /// Exporta un reporte al formato solicitado (PDF, Excel, CSV).
     /// Placeholder: la implementación real se realizará en la tarea 17.2.
     /// </summary>

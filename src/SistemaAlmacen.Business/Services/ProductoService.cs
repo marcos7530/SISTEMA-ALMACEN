@@ -106,6 +106,7 @@ public class ProductoService : IProductoService
             PrecioCosto = request.PrecioCosto,
             MargenGanancia = request.MargenGanancia,
             Stock = request.Stock,
+            StockMinimo = request.StockMinimo,
             CategoriaId = request.CategoriaId,
             Activo = true,
             FechaCreacion = now,
@@ -153,6 +154,7 @@ public class ProductoService : IProductoService
         producto.PrecioCosto = request.PrecioCosto;
         producto.MargenGanancia = request.MargenGanancia;
         producto.Stock = request.Stock;
+        producto.StockMinimo = request.StockMinimo;
         producto.CategoriaId = request.CategoriaId;
         producto.FechaModificacion = DateTime.UtcNow;
 
@@ -223,6 +225,7 @@ public class ProductoService : IProductoService
             MargenGanancia = producto.MargenGanancia,
             MargenEfectivo = margenEfectivo,
             Stock = producto.Stock,
+            StockMinimo = producto.StockMinimo,
             CategoriaId = producto.CategoriaId,
             CategoriaNombre = producto.Categoria?.Nombre ?? string.Empty,
             Activo = producto.Activo

@@ -485,3 +485,9 @@ C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net1
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net10.0\ref\SistemaAlmacen.Server.dll
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\bin\Debug\net10.0\afip.net.dll
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\obj\Debug\net10.0\compressed\4d872x3xn7-{0}-ju26yswere-ju26yswere.gz
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\bin\Debug\net10.0\Microsoft.Win32.SystemEvents.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\bin\Debug\net10.0\QRCoder.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\bin\Debug\net10.0\System.Drawing.Common.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\bin\Debug\net10.0\runtimes\win\lib\net6.0\Microsoft.Win32.SystemEvents.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\bin\Debug\net10.0\runtimes\unix\lib\net6.0\System.Drawing.Common.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\src\SistemaAlmacen.Server\bin\Debug\net10.0\runtimes\win\lib\net6.0\System.Drawing.Common.dll

@@ -1,4 +1,7 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using SistemaAlmacen.Business.Interfaces;
+using SistemaAlmacen.Business.Models.Email;
 using SistemaAlmacen.Data.Entities;
 using SistemaAlmacen.Data.Repositories;
 using SistemaAlmacen.Shared.DTOs.Auth;
@@ -13,15 +16,24 @@ public class AuthService : IAuthService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ITokenService _tokenService;
     private readonly ISessionService _sessionService;
+    private readonly IEmailSender _emailSender;
+    private readonly EmailOptions _emailOptions;
+    private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         IUnitOfWork unitOfWork,
         ITokenService tokenService,
-        ISessionService sessionService)
+        ISessionService sessionService,
+        IEmailSender emailSender,
+        IOptions<EmailOptions> emailOptions,
+        ILogger<AuthService> logger)
     {
         _unitOfWork = unitOfWork;
         _tokenService = tokenService;
         _sessionService = sessionService;
+        _emailSender = emailSender;
+        _emailOptions = emailOptions.Value;
+        _logger = logger;
     }
 
     /// <inheritdoc/>
@@ -120,8 +132,40 @@ public class AuthService : IAuthService
         _unitOfWork.Usuarios.Update(usuario);
         await _unitOfWork.SaveChangesAsync();
 
-        // TODO (Task 6.2): Enviar email con enlace de recuperación
+        // Enviar el email con el enlace de recuperación. Tolerante a fallos: un error de envío
+        // no debe revelar información ni romper el flujo (siempre se retorna true por seguridad).
+        await EnviarEmailRecuperacionAsync(usuario, token);
         return true;
+    }
+
+    /// <summary>
+    /// Envía el correo con el enlace para restablecer la contraseña.
+    /// El enlace apunta a la página del cliente /restablecer-contrasena con el token en la query.
+    /// </summary>
+    private async Task EnviarEmailRecuperacionAsync(Usuario usuario, string token)
+    {
+        try
+        {
+            var baseUrl = (_emailOptions.BaseUrl ?? string.Empty).TrimEnd('/');
+            var enlace = $"{baseUrl}/restablecer-contrasena?token={Uri.EscapeDataString(token)}";
+
+            var asunto = "Recuperación de contraseña - Sistema Almacén";
+            var cuerpo =
+                $"<p>Hola {usuario.Nombre},</p>" +
+                "<p>Recibimos una solicitud para restablecer la contraseña de tu cuenta.</p>" +
+                $"<p><a href=\"{enlace}\">Hacé clic acá para crear una nueva contraseña</a></p>" +
+                "<p>Si el botón no funciona, copiá y pegá este enlace en tu navegador:<br/>" +
+                $"{enlace}</p>" +
+                "<p>El enlace vence en 24 horas. Si no solicitaste este cambio, ignorá este correo.</p>";
+
+            await _emailSender.SendEmailAsync(usuario.Email, asunto, cuerpo);
+            _logger.LogInformation("Email de recuperación enviado al usuario {UsuarioId}.", usuario.Id);
+        }
+        catch (Exception ex)
+        {
+            // No propagar: el resultado hacia el usuario no debe cambiar por un fallo de envío.
+            _logger.LogError(ex, "No se pudo enviar el email de recuperación al usuario {UsuarioId}.", usuario.Id);
+        }
     }
 
     /// <inheritdoc/>

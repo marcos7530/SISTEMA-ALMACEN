@@ -14,6 +14,7 @@ public class VentaDetalleCompletoDto
     public string Vendedor { get; set; } = string.Empty;
     public int? ClienteId { get; set; }
     public string? ClienteNombre { get; set; }
+    public string? ClienteEmail { get; set; }
     public List<DetalleVentaDto> Detalles { get; set; } = new();
     public List<VentaPagoDto> Pagos { get; set; } = new();
 }

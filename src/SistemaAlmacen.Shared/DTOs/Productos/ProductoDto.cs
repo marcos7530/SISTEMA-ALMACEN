@@ -18,6 +18,9 @@ public class ProductoDto
     /// <summary>Margen efectivo aplicado (producto > categoría > default), en porcentaje.</summary>
     public decimal MargenEfectivo { get; set; }
     public int Stock { get; set; }
+
+    /// <summary>Stock mínimo propio del producto. 0 = usa el umbral global del sistema.</summary>
+    public int StockMinimo { get; set; }
     public string CategoriaNombre { get; set; } = string.Empty;
     public int CategoriaId { get; set; }
     public bool Activo { get; set; }

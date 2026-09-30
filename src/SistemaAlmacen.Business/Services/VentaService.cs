@@ -415,6 +415,7 @@ public class VentaService : IVentaService
             Vendedor = venta.Usuario?.Nombre ?? string.Empty,
             ClienteId = venta.ClienteId,
             ClienteNombre = venta.Cliente?.Nombre,
+            ClienteEmail = venta.Cliente?.Email,
             Detalles = venta.Detalles.Select(d => new DetalleVentaDto
             {
                 Id = d.Id,

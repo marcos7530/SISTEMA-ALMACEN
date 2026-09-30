@@ -1,5 +1,5 @@
 self.assetsManifest = {
-  "version": "mdQ+IQFj",
+  "version": "CWbxN7kn",
   "assets": [
     {
       "hash": "sha256-zaLWJTjlmv1kP5sNx6NrZLD4d5wZ6nMBS9EH+62HBrk=",
@@ -170,20 +170,20 @@ self.assetsManifest = {
       "url": "_framework/Microsoft.Win32.Registry.2ywbsi2vy8.wasm"
     },
     {
-      "hash": "sha256-QbCG/esfrxTMltlKw9izZA6CycFX0yp9ERhdmKqSOlA=",
-      "url": "_framework/SistemaAlmacen.Client.7a19t96uyl.pdb"
+      "hash": "sha256-JNYOTyANdvhU43PCHcQtpBPMrwUYcTEHqbPdP6ZX2zU=",
+      "url": "_framework/SistemaAlmacen.Client.g99x1mfqjj.wasm"
     },
     {
-      "hash": "sha256-LrUzt6atHC4FnbUN0oi8EhNn7fiq7AklpHqZ1dKlknY=",
-      "url": "_framework/SistemaAlmacen.Client.uwdjk9xmzq.wasm"
+      "hash": "sha256-O+af2xheXSusDrxjkX7Lnc9724HgSTDmNpVfbt/4jn8=",
+      "url": "_framework/SistemaAlmacen.Client.l8tfk90is2.pdb"
     },
     {
-      "hash": "sha256-xXWB3U/LjrL3tn1WC+lERo31Ifa98DUCF06XeyvYC7A=",
-      "url": "_framework/SistemaAlmacen.Shared.3m6jiwd93e.pdb"
+      "hash": "sha256-Dopu1UWPFMBMTqZwyFBoLMVS61nlPD+EHO/81SbZgaU=",
+      "url": "_framework/SistemaAlmacen.Shared.6ut0baaco8.pdb"
     },
     {
-      "hash": "sha256-UtiivG57BzmWerxDN8I6Vgvx7CDY2ld7EHLwCmQocpE=",
-      "url": "_framework/SistemaAlmacen.Shared.yjecjwybcc.wasm"
+      "hash": "sha256-3A8RU8KUl4lQs8OlZgmUMWPS/1xb0v9QsAmc3R/OPjY=",
+      "url": "_framework/SistemaAlmacen.Shared.gj6bebgdzw.wasm"
     },
     {
       "hash": "sha256-DKbQ1XCUoVlDqDBwtLDzebj3HHSaXnZrJeofFxJ/uyE=",
@@ -854,7 +854,7 @@ self.assetsManifest = {
       "url": "_framework/blazor.webassembly.js"
     },
     {
-      "hash": "sha256-TkyN0xULerKiTjUasb8h8L2Wr5K+tDXmAyYf2FM/970=",
+      "hash": "sha256-n4OdLP21kMuXeGGhbVO75UEBSX9ZKKVVjP7oiohMZeg=",
       "url": "_framework/dotnet.js"
     },
     {
@@ -918,7 +918,7 @@ self.assetsManifest = {
       "url": "index.html"
     },
     {
-      "hash": "sha256-udSfjKOwOcFfwbZeuJ796NNdHErhTlwC0XwO+T9xFVo=",
+      "hash": "sha256-Eg1IOjMTDw2QIaNk/ZbJtx++jFMiu3S+REw43ajWaic=",
       "url": "js/offline.js"
     },
     {

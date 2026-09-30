@@ -88,6 +88,19 @@ public class ReportesController : ControllerBase
     }
 
     /// <summary>
+    /// Devuelve las métricas clave del negocio para el dashboard principal.
+    /// Acceso restringido a Administrador.
+    /// </summary>
+    [HttpGet("dashboard")]
+    [Authorize(Policy = "RequireAdmin")]
+    [ProducesResponseType(typeof(DashboardDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<DashboardDto>> GetDashboard()
+    {
+        var result = await _reporteService.GenerarDashboardAsync();
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Exporta un reporte al formato solicitado (PDF, Excel, CSV).
     /// Retorna el archivo para descarga.
     /// Acceso restringido a Administrador.

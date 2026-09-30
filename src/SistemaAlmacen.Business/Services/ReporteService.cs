@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -19,15 +20,17 @@ namespace SistemaAlmacen.Business.Services;
 public class ReporteService : IReporteService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IConfiguration _configuration;
 
     /// <summary>
     /// Rango máximo permitido para consultas de reportes de ventas (365 días).
     /// </summary>
     private const int MaxRangoDias = 365;
 
-    public ReporteService(ApplicationDbContext context)
+    public ReporteService(ApplicationDbContext context, IConfiguration configuration)
     {
         _context = context;
+        _configuration = configuration;
     }
 
     /// <inheritdoc />
@@ -143,6 +146,98 @@ public class ReporteService : IReporteService
             .ToListAsync();
 
         return productos;
+    }
+
+    /// <inheritdoc />
+    public async Task<DashboardDto> GenerarDashboardAsync()
+    {
+        var umbralStockBajo = _configuration.GetValue<int>("Dashboard:StockBajoUmbral", 5);
+
+        var ahora = DateTime.Now;
+        var inicioHoy = ahora.Date;
+        var finHoy = inicioHoy.AddDays(1).AddTicks(-1);
+        var inicioMes = new DateTime(ahora.Year, ahora.Month, 1);
+        var finMes = inicioMes.AddMonths(1).AddTicks(-1);
+
+        // Estados considerados como venta concretada (comercialmente).
+        // Ventas de hoy
+        var ventasHoy = await _context.Ventas
+            .AsNoTracking()
+            .Where(v => v.Fecha >= inicioHoy && v.Fecha <= finHoy &&
+                        (v.Estado == EstadoVenta.Confirmada || v.Estado == EstadoVenta.PendienteFacturacion))
+            .Select(v => v.Total)
+            .ToListAsync();
+
+        var ventasHoyMonto = ventasHoy.Sum();
+        var ventasHoyTransacciones = ventasHoy.Count;
+        var ticketPromedioHoy = ventasHoyTransacciones > 0
+            ? Math.Round(ventasHoyMonto / ventasHoyTransacciones, 2)
+            : 0m;
+
+        // Ventas del mes
+        var ventasMes = await _context.Ventas
+            .AsNoTracking()
+            .Where(v => v.Fecha >= inicioMes && v.Fecha <= finMes &&
+                        (v.Estado == EstadoVenta.Confirmada || v.Estado == EstadoVenta.PendienteFacturacion))
+            .Select(v => v.Total)
+            .ToListAsync();
+
+        var ventasMesMonto = ventasMes.Sum();
+        var ventasMesTransacciones = ventasMes.Count;
+
+        // Inventario (solo productos activos)
+        var productosActivos = await _context.Productos
+            .AsNoTracking()
+            .Where(p => p.Activo)
+            .Select(p => new { p.Stock, p.StockMinimo, p.Precio, p.PrecioCosto })
+            .ToListAsync();
+
+        var productosAgotados = productosActivos.Count(p => p.Stock <= 0);
+        // Stock bajo: usa el mínimo propio del producto; si es 0 (no configurado), cae al umbral global.
+        var productosStockBajo = productosActivos.Count(p =>
+        {
+            var minimo = p.StockMinimo > 0 ? p.StockMinimo : umbralStockBajo;
+            return p.Stock > 0 && p.Stock <= minimo;
+        });
+        var valorInventarioCosto = productosActivos.Sum(p => p.PrecioCosto * p.Stock);
+        var valorInventarioVenta = productosActivos.Sum(p => p.Precio * p.Stock);
+
+        // Comprobantes pendientes o rechazados (no lograron facturarse)
+        var comprobantesPendientes = await _context.Comprobantes
+            .AsNoTracking()
+            .CountAsync(c => c.Estado == EstadoComprobante.Pendiente || c.Estado == EstadoComprobante.Rechazado);
+
+        // Top 5 productos del mes
+        var topProductos = await _context.DetallesVenta
+            .AsNoTracking()
+            .Where(d => d.Venta.Fecha >= inicioMes && d.Venta.Fecha <= finMes &&
+                        (d.Venta.Estado == EstadoVenta.Confirmada || d.Venta.Estado == EstadoVenta.PendienteFacturacion))
+            .GroupBy(d => new { d.ProductoId, d.Producto.Nombre, Categoria = d.Producto.Categoria.Nombre })
+            .Select(g => new ProductoMasVendidoDto
+            {
+                Nombre = g.Key.Nombre,
+                Categoria = g.Key.Categoria,
+                CantidadVendida = g.Sum(d => d.Cantidad)
+            })
+            .OrderByDescending(p => p.CantidadVendida)
+            .Take(5)
+            .ToListAsync();
+
+        return new DashboardDto
+        {
+            VentasHoyMonto = ventasHoyMonto,
+            VentasHoyTransacciones = ventasHoyTransacciones,
+            TicketPromedioHoy = ticketPromedioHoy,
+            VentasMesMonto = ventasMesMonto,
+            VentasMesTransacciones = ventasMesTransacciones,
+            ProductosStockBajo = productosStockBajo,
+            ProductosAgotados = productosAgotados,
+            ValorInventarioCosto = valorInventarioCosto,
+            ValorInventarioVenta = valorInventarioVenta,
+            ComprobantesPendientes = comprobantesPendientes,
+            TopProductosMes = topProductos,
+            StockBajoUmbral = umbralStockBajo
+        };
     }
 
     /// <inheritdoc />

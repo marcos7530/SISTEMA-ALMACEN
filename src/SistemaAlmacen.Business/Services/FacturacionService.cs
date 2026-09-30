@@ -21,6 +21,7 @@ public class FacturacionService : IFacturacionService
     private readonly IAfipClientWrapper _afipClient;
     private readonly IConfiguration _configuration;
     private readonly ILogger<FacturacionService> _logger;
+    private readonly IEmailSender _emailSender;
     private readonly ComprobantePdfGenerator _pdfGenerator;
 
     /// <summary>
@@ -37,13 +38,15 @@ public class FacturacionService : IFacturacionService
         IUnitOfWork unitOfWork,
         IAfipClientWrapper afipClient,
         IConfiguration configuration,
-        ILogger<FacturacionService> logger)
+        ILogger<FacturacionService> logger,
+        IEmailSender emailSender)
     {
         _unitOfWork = unitOfWork;
         _afipClient = afipClient;
         _configuration = configuration;
         _logger = logger;
-        _pdfGenerator = new ComprobantePdfGenerator();
+        _emailSender = emailSender;
+        _pdfGenerator = new ComprobantePdfGenerator(configuration);
     }
 
     /// <inheritdoc />

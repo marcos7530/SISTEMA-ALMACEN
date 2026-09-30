@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <h3>Detalle de Venta</h3>
 
@@ -133,6 +134,39 @@ else if (_venta is not null)
             </div>
         </div>
     }
+
+    <!-- Comprobante / Factura -->
+    @if (_venta.Estado == EstadoVenta.Confirmada)
+    {
+        <div class="card mb-3">
+            <div class="card-header">Comprobante / Factura</div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap align-items-end gap-3">
+                    <button class="btn btn-outline-secondary"
+                            @onclick="DescargarPdf"
+                            disabled="@_procesandoComprobante">
+                        <i class="bi bi-download"></i> Descargar PDF
+                    </button>
+
+                    <div class="flex-grow-1" style="min-width: 260px;">
+                        <label class="form-label mb-1">Enviar por email a:</label>
+                        <div class="input-group">
+                            <input type="email" class="form-control" @bind="_emailDestino"
+                                   placeholder="correo@ejemplo.com" />
+                            <button class="btn btn-outline-success"
+                                    @onclick="EnviarEmail"
+                                    disabled="@(_procesandoComprobante || string.IsNullOrWhiteSpace(_emailDestino))">
+                                @(_procesandoComprobante ? "Enviando..." : "Enviar")
+                            </button>
+                        </div>
+                        <small class="text-muted">
+                            Se enviará el PDF del comprobante a: <strong>@(string.IsNullOrWhiteSpace(_emailDestino) ? "(ingresá un email)" : _emailDestino)</strong>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 }
 else
 {
@@ -193,6 +227,10 @@ else
     private string? _errorMessage;
     private string? _successMessage;
 
+    // Comprobante (PDF / email)
+    private string? _emailDestino;
+    private bool _procesandoComprobante;
+
     // Anulación
     private bool _showAnularModal;
     private string _anularMotivo = string.Empty;
@@ -216,6 +254,9 @@ else
         try
         {
             _venta = await Http.GetFromJsonAsync<VentaDetalleCompletoItemDto>($"api/ventas/{Id}");
+
+            // Precargar el email del cliente (editable) para el envío del comprobante.
+            _emailDestino = _venta?.ClienteEmail;
         }
         catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
@@ -234,6 +275,72 @@ else
     private void Volver()
     {
         Navigation.NavigateTo("/ventas/historial");
+    }
+
+    private async Task DescargarPdf()
+    {
+        _procesandoComprobante = true;
+        _errorMessage = null;
+        _successMessage = null;
+
+        try
+        {
+            var response = await Http.GetAsync($"api/facturacion/comprobante/{Id}/pdf");
+            if (response.IsSuccessStatusCode)
+            {
+                var bytes = await response.Content.ReadAsByteArrayAsync();
+                await JS.InvokeVoidAsync("downloadFileFromBytes", $"comprobante_venta_{Id}.pdf", "application/pdf", bytes);
+            }
+            else
+            {
+                _errorMessage = "No se pudo descargar el comprobante. Verificá que la venta tenga una factura emitida.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error al descargar el comprobante.";
+        }
+        finally
+        {
+            _procesandoComprobante = false;
+        }
+    }
+
+    private async Task EnviarEmail()
+    {
+        if (string.IsNullOrWhiteSpace(_emailDestino))
+        {
+            _errorMessage = "Ingresá un email de destino.";
+            return;
+        }
+
+        _procesandoComprobante = true;
+        _errorMessage = null;
+        _successMessage = null;
+
+        try
+        {
+            var request = new { Email = _emailDestino.Trim() };
+            var response = await Http.PostAsJsonAsync($"api/facturacion/comprobante/{Id}/enviar-email", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _successMessage = $"Comprobante enviado por email a {_emailDestino.Trim()}.";
+            }
+            else
+            {
+                var errorResult = await ApiErrorParser.ParseAsync(response);
+                _errorMessage = errorResult.GeneralError ?? "No se pudo enviar el comprobante por email.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Error de conexión al enviar el comprobante por email.";
+        }
+        finally
+        {
+            _procesandoComprobante = false;
+        }
     }
 
     private void OpenAnular()
@@ -302,6 +409,7 @@ else
         public EstadoVenta Estado { get; set; }
         public string Vendedor { get; set; } = string.Empty;
         public string? ClienteNombre { get; set; }
+        public string? ClienteEmail { get; set; }
         public List<DetalleItemDto> Detalles { get; set; } = new();
         public List<PagoItemDto> Pagos { get; set; } = new();
     }

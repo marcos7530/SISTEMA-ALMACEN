@@ -54,3 +54,23 @@ window.offlineInterop = {
         localStorage.removeItem(key);
     }
 };
+
+// Descarga un archivo en el navegador a partir de un arreglo de bytes.
+// Usado para descargar PDFs de comprobantes y exportaciones de reportes desde Blazor.
+// fileName: nombre del archivo | contentType: tipo MIME | bytes: Uint8Array/array de bytes desde .NET
+window.downloadFileFromBytes = function (fileName, contentType, bytes) {
+    // Blazor puede pasar los bytes como Uint8Array o como array normal; normalizamos.
+    const data = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+    const blob = new Blob([data], { type: contentType || 'application/octet-stream' });
+
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = fileName || 'archivo';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+
+    // Liberar el object URL luego de un breve lapso para asegurar que la descarga inició.
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+};

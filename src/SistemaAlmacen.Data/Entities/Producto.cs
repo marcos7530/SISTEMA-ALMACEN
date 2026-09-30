@@ -40,6 +40,13 @@ public class Producto
     [Required]
     public int Stock { get; set; }
 
+    /// <summary>
+    /// Stock mínimo del producto: umbral para considerarlo "stock bajo".
+    /// 0 significa que no tiene mínimo propio y se usa el umbral global del sistema.
+    /// </summary>
+    [Required]
+    public int StockMinimo { get; set; }
+
     [Required]
     public int CategoriaId { get; set; }
 

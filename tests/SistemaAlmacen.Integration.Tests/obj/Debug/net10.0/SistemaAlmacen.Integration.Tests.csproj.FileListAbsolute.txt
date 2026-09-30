@@ -1119,3 +1119,9 @@ C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Integration.Tests\o
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Integration.Tests\obj\Debug\net10.0\SistemaAlmacen.Integration.Tests.genruntimeconfig.cache
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Integration.Tests\obj\Debug\net10.0\ref\SistemaAlmacen.Integration.Tests.dll
 C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Integration.Tests\bin\Debug\net10.0\afip.net.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Integration.Tests\bin\Debug\net10.0\Microsoft.Win32.SystemEvents.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Integration.Tests\bin\Debug\net10.0\QRCoder.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Integration.Tests\bin\Debug\net10.0\System.Drawing.Common.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Integration.Tests\bin\Debug\net10.0\runtimes\win\lib\net6.0\Microsoft.Win32.SystemEvents.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Integration.Tests\bin\Debug\net10.0\runtimes\unix\lib\net6.0\System.Drawing.Common.dll
+C:\Users\Marcos\Desktop\SISTEMA-ALMACEN\tests\SistemaAlmacen.Integration.Tests\bin\Debug\net10.0\runtimes\win\lib\net6.0\System.Drawing.Common.dll

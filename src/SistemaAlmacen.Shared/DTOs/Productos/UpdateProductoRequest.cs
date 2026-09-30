@@ -31,6 +31,9 @@ public class UpdateProductoRequest
     [Range(0, int.MaxValue, ErrorMessage = "El stock debe ser mayor o igual a cero.")]
     public int Stock { get; set; }
 
+    [Range(0, int.MaxValue, ErrorMessage = "El stock mínimo debe ser mayor o igual a cero.")]
+    public int StockMinimo { get; set; }
+
     [Required(ErrorMessage = "La categoría es requerida.")]
     public int CategoriaId { get; set; }
 }

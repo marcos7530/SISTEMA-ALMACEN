@@ -24,16 +24,50 @@ public class SmtpEmailSender : IEmailSender
     }
 
     /// <inheritdoc />
-    public async Task SendEmailAsync(string to, string subject, string htmlBody, CancellationToken cancellationToken = default)
+    public Task SendEmailAsync(string to, string subject, string htmlBody, CancellationToken cancellationToken = default)
+    {
+        return SendInternalAsync(to, subject, htmlBody, null, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task SendEmailWithAttachmentAsync(
+        string to,
+        string subject,
+        string htmlBody,
+        byte[] attachmentContent,
+        string attachmentFileName,
+        string attachmentContentType,
+        CancellationToken cancellationToken = default)
+    {
+        if (attachmentContent is null || attachmentContent.Length == 0)
+            throw new ArgumentException("El contenido del adjunto es requerido.", nameof(attachmentContent));
+        if (string.IsNullOrWhiteSpace(attachmentFileName))
+            throw new ArgumentException("El nombre del adjunto es requerido.", nameof(attachmentFileName));
+
+        var adjunto = new EmailAttachment(attachmentContent, attachmentFileName, attachmentContentType);
+        return SendInternalAsync(to, subject, htmlBody, adjunto, cancellationToken);
+    }
+
+    /// <summary>
+    /// Lógica común de envío. Si <paramref name="adjunto"/> no es null, lo agrega al mensaje.
+    /// En modo mock solo registra en el log.
+    /// </summary>
+    private async Task SendInternalAsync(
+        string to,
+        string subject,
+        string htmlBody,
+        EmailAttachment? adjunto,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(to))
             throw new ArgumentException("El destinatario es requerido.", nameof(to));
 
         if (_options.UseMock)
         {
+            var adjuntoInfo = adjunto is null ? "" : $" | Adjunto: {adjunto.FileName} ({adjunto.Content.Length} bytes)";
             _logger.LogInformation(
-                "Email MOCK (no enviado). Para: {To} | Asunto: {Subject}\n{Body}",
-                to, subject, htmlBody);
+                "Email MOCK (no enviado). Para: {To} | Asunto: {Subject}{Adjunto}\n{Body}",
+                to, subject, adjuntoInfo, htmlBody);
             return;
         }
 
@@ -51,6 +85,16 @@ public class SmtpEmailSender : IEmailSender
             IsBodyHtml = true
         };
         message.To.Add(new MailAddress(to));
+
+        // El stream del adjunto debe seguir vivo hasta que se envíe el mensaje.
+        MemoryStream? attachmentStream = null;
+        Attachment? mailAttachment = null;
+        if (adjunto is not null)
+        {
+            attachmentStream = new MemoryStream(adjunto.Content);
+            mailAttachment = new Attachment(attachmentStream, adjunto.FileName, adjunto.ContentType);
+            message.Attachments.Add(mailAttachment);
+        }
 
         using var client = new SmtpClient(_options.Host, _options.Port)
         {
@@ -74,5 +118,13 @@ public class SmtpEmailSender : IEmailSender
             _logger.LogError(ex, "Error al enviar email a {To} (asunto: {Subject}).", to, subject);
             throw;
         }
+        finally
+        {
+            mailAttachment?.Dispose();
+            attachmentStream?.Dispose();
+        }
     }
+
+    /// <summary>Representa un adjunto de correo en memoria.</summary>
+    private sealed record EmailAttachment(byte[] Content, string FileName, string ContentType);
 }

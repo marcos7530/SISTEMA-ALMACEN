@@ -18,15 +18,24 @@ public class FacturacionController : ControllerBase
     private readonly IFacturacionService _facturacionService;
     private readonly IAfipClientWrapper _afipClient;
     private readonly IConfiguration _configuration;
+    private readonly IVentaService _ventaService;
+    private readonly IEmailSender _emailSender;
+    private readonly ILogger<FacturacionController> _logger;
 
     public FacturacionController(
         IFacturacionService facturacionService,
         IAfipClientWrapper afipClient,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IVentaService ventaService,
+        IEmailSender emailSender,
+        ILogger<FacturacionController> logger)
     {
         _facturacionService = facturacionService;
         _afipClient = afipClient;
         _configuration = configuration;
+        _ventaService = ventaService;
+        _emailSender = emailSender;
+        _logger = logger;
     }
 
     /// <summary>
@@ -152,6 +161,69 @@ public class FacturacionController : ControllerBase
             return BadRequest(new { error = "La generación de PDF no está disponible aún." });
 
         return File(pdf, "application/pdf", $"comprobante_{ventaId}.pdf");
+    }
+
+    /// <summary>
+    /// Envía por email al cliente de la venta el PDF del comprobante fiscal emitido.
+    /// </summary>
+    /// <param name="ventaId">ID de la venta cuyo comprobante se enviará.</param>
+    [HttpPost("comprobante/{ventaId:int}/enviar-email")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> EnviarComprobantePorEmail(int ventaId, [FromBody] EnviarComprobanteEmailRequest? request)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        // 1) Verificar que exista un comprobante emitido para la venta.
+        var comprobante = await _facturacionService.ConsultarComprobanteAsync(ventaId);
+        if (comprobante is null)
+            return NotFound(new { error = "No se encontró comprobante para esta venta." });
+
+        // 2) Determinar el email destino: el del request (editable) o, si viene vacío,
+        //    el email guardado del cliente asociado a la venta.
+        var venta = await _ventaService.GetDetalleCompletoAsync(ventaId);
+        if (venta is null)
+            return NotFound(new { error = "No se encontró la venta." });
+
+        var emailDestino = request?.Email?.Trim();
+        if (string.IsNullOrWhiteSpace(emailDestino))
+        {
+            emailDestino = venta.ClienteEmail;
+        }
+
+        if (string.IsNullOrWhiteSpace(emailDestino))
+            return BadRequest(new { error = "No se indicó un email de destino y el cliente no tiene uno configurado." });
+
+        // 3) Generar el PDF del comprobante.
+        var pdf = await _facturacionService.GenerarPdfComprobanteAsync(ventaId);
+        if (pdf.Length == 0)
+            return BadRequest(new { error = "No se pudo generar el PDF del comprobante." });
+
+        // 4) Armar y enviar el email con el PDF adjunto.
+        var nombreCliente = string.IsNullOrWhiteSpace(venta.ClienteNombre) ? "Cliente" : venta.ClienteNombre;
+        var asunto = $"Comprobante de tu compra - N° {comprobante.NumeroComprobante:D8}";
+        var cuerpo =
+            $"<p>Hola {nombreCliente},</p>" +
+            "<p>Adjuntamos el comprobante de tu compra en formato PDF.</p>" +
+            $"<p><strong>Comprobante N°:</strong> {comprobante.NumeroComprobante:D8}<br/>" +
+            $"<strong>CAE:</strong> {comprobante.CAE}</p>" +
+            "<p>¡Gracias por tu compra!</p>";
+        var nombreArchivo = $"comprobante_{comprobante.NumeroComprobante:D8}.pdf";
+
+        try
+        {
+            await _emailSender.SendEmailWithAttachmentAsync(
+                emailDestino, asunto, cuerpo, pdf, nombreArchivo, "application/pdf");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al enviar el comprobante de la venta {VentaId} por email.", ventaId);
+            return BadRequest(new { error = "No se pudo enviar el email. Intentá nuevamente en unos minutos." });
+        }
+
+        return Ok(new { message = $"Comprobante enviado a {emailDestino}." });
     }
 
     /// <summary>

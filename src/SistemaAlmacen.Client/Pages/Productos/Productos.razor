@@ -80,7 +80,17 @@ else
                         <td>@producto.PrecioCosto.ToString("C2")</td>
                         <td>@producto.MargenEfectivo.ToString("0.##")%</td>
                     }
-                    <td>@producto.Stock</td>
+                    <td>
+                        @producto.Stock
+                        @if (producto.Stock <= 0)
+                        {
+                            <span class="badge bg-danger ms-1">Agotado</span>
+                        }
+                        else if (producto.StockMinimo > 0 && producto.Stock <= producto.StockMinimo)
+                        {
+                            <span class="badge bg-warning text-dark ms-1">Stock bajo</span>
+                        }
+                    </td>
                     @if (_isAdmin)
                     {
                         <td>
