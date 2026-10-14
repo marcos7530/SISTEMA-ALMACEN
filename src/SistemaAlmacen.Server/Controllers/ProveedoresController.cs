@@ -26,12 +26,14 @@ public class ProveedoresController : ControllerBase
     [Authorize(Policy = "RequireVendedorOrAdmin")]
     public async Task<ActionResult<PaginatedResult<ProveedorDto>>> GetProveedores(
         [FromQuery] string? searchTerm,
+        [FromQuery] bool? activo = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
         var filter = new ProveedorFilter
         {
             SearchTerm = searchTerm,
+            Activo = activo,
             Page = page,
             PageSize = pageSize
         };
@@ -100,5 +102,25 @@ public class ProveedoresController : ControllerBase
         }
 
         return Ok(new { message = "Proveedor desactivado correctamente." });
+    }
+
+    /// <summary>
+    /// Habilita o inhabilita un proveedor (eliminación/reactivación lógica). Solo Administrador.
+    /// </summary>
+    [HttpPatch("{id:int}/estado")]
+    [Authorize(Policy = "RequireAdmin")]
+    public async Task<IActionResult> SetEstado(int id, [FromBody] CambiarEstadoRequest request)
+    {
+        var result = await _proveedorService.SetActivoAsync(id, request.Activo);
+
+        if (!result.IsSuccess)
+        {
+            if (result.ErrorCode == "NOT_FOUND")
+                return NotFound(new { message = result.ErrorMessage });
+            return BadRequest(new { message = result.ErrorMessage });
+        }
+
+        var mensaje = request.Activo ? "Proveedor habilitado correctamente." : "Proveedor inhabilitado correctamente.";
+        return Ok(new { message = mensaje });
     }
 }

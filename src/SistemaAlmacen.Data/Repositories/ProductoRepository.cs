@@ -19,7 +19,13 @@ public class ProductoRepository : Repository<Producto>, IProductoRepository
     {
         var query = _dbSet
             .Include(p => p.Categoria)
-            .Where(p => p.Activo);
+            .AsQueryable();
+
+        // Filtro de estado: null = todos; true = activos; false = inactivos.
+        if (filter.Activo.HasValue)
+        {
+            query = query.Where(p => p.Activo == filter.Activo.Value);
+        }
 
         if (filter.CategoriaId.HasValue)
         {

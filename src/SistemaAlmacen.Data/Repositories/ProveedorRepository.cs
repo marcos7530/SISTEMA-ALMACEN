@@ -17,7 +17,13 @@ public class ProveedorRepository : Repository<Proveedor>, IProveedorRepository
 
     public async Task<PaginatedResult<Proveedor>> GetActivosAsync(ProveedorFilter filter)
     {
-        var query = _dbSet.Where(p => p.Activo);
+        var query = _dbSet.AsQueryable();
+
+        // Filtro de estado: null = todos; true = activos; false = inactivos.
+        if (filter.Activo.HasValue)
+        {
+            query = query.Where(p => p.Activo == filter.Activo.Value);
+        }
 
         if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
         {

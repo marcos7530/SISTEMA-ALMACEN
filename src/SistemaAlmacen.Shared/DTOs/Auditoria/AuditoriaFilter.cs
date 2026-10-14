@@ -13,5 +13,5 @@ public class AuditoriaFilter
     public TipoOperacion? TipoOperacion { get; set; }
     public string? EntidadAfectada { get; set; }
     public int Page { get; set; } = 1;
-    public int PageSize { get; set; } = 20;
+    public int PageSize { get; set; } = 10;
 }

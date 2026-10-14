@@ -29,12 +29,14 @@ public class UsuariosController : ControllerBase
     [ProducesResponseType(typeof(PaginatedResult<UsuarioDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PaginatedResult<UsuarioDto>>> GetUsuarios(
         [FromQuery] string? searchTerm,
+        [FromQuery] bool? activo,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
         var filter = new UsuarioFilter
         {
             SearchTerm = searchTerm,
+            Activo = activo,
             Page = page,
             PageSize = pageSize
         };
@@ -130,6 +132,33 @@ public class UsuariosController : ControllerBase
         }
 
         return Ok(new { message = "Usuario desactivado exitosamente." });
+    }
+
+    /// <summary>
+    /// Habilita o inhabilita un usuario (eliminación/reactivación lógica).
+    /// </summary>
+    [HttpPatch("{id:int}/estado")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetEstado(int id, [FromBody] CambiarEstadoUsuarioRequest request)
+    {
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId is null)
+            return BadRequest(new { message = "No se pudo identificar al usuario actual." });
+
+        var result = await _usuarioService.SetActivoAsync(id, request.Activo, currentUserId.Value);
+
+        if (!result.IsSuccess)
+        {
+            if (result.ErrorCode == "USUARIO_NO_ENCONTRADO")
+                return NotFound(new { message = result.ErrorMessage });
+
+            return BadRequest(new { message = result.ErrorMessage });
+        }
+
+        var mensaje = request.Activo ? "Usuario habilitado exitosamente." : "Usuario inhabilitado exitosamente.";
+        return Ok(new { message = mensaje });
     }
 
     /// <summary>

@@ -9,6 +9,11 @@ namespace SistemaAlmacen.Data.Repositories;
 public interface IUsuarioRepository : IRepository<Usuario>
 {
     Task<Usuario?> GetByEmailAsync(string email);
-    Task<PaginatedResult<Usuario>> GetActiveUsuariosAsync(string? searchTerm, int page, int pageSize);
+
+    /// <summary>
+    /// Lista usuarios paginados con búsqueda y filtro de estado opcional.
+    /// activo: null = todos, true = solo activos, false = solo inactivos.
+    /// </summary>
+    Task<PaginatedResult<Usuario>> GetUsuariosAsync(string? searchTerm, bool? activo, int page, int pageSize);
     Task<int> CountActiveAdminsAsync();
 }

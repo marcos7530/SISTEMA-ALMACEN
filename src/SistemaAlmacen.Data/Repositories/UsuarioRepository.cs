@@ -21,9 +21,15 @@ public class UsuarioRepository : Repository<Usuario>, IUsuarioRepository
             .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
     }
 
-    public async Task<PaginatedResult<Usuario>> GetActiveUsuariosAsync(string? searchTerm, int page, int pageSize)
+    public async Task<PaginatedResult<Usuario>> GetUsuariosAsync(string? searchTerm, bool? activo, int page, int pageSize)
     {
-        var query = _dbSet.Where(u => u.Activo);
+        var query = _dbSet.AsQueryable();
+
+        // Filtro de estado: null = todos; true = activos; false = inactivos.
+        if (activo.HasValue)
+        {
+            query = query.Where(u => u.Activo == activo.Value);
+        }
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {

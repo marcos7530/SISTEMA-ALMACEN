@@ -18,7 +18,13 @@ public class ClienteRepository : Repository<Cliente>, IClienteRepository
 
     public async Task<PaginatedResult<Cliente>> GetActivosAsync(ClienteFilter filter)
     {
-        var query = _dbSet.Where(c => c.Activo);
+        var query = _dbSet.AsQueryable();
+
+        // Filtro de estado: null = todos; true = activos; false = inactivos.
+        if (filter.Activo.HasValue)
+        {
+            query = query.Where(c => c.Activo == filter.Activo.Value);
+        }
 
         if (filter.SoloCuentaCorriente)
         {

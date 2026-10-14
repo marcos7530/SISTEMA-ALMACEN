@@ -33,6 +33,7 @@ public class ProductosController : ControllerBase
     public async Task<ActionResult<PaginatedResult<ProductoDto>>> GetProductos(
         [FromQuery] string? searchTerm,
         [FromQuery] int? categoriaId,
+        [FromQuery] bool? activo,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
@@ -40,6 +41,7 @@ public class ProductosController : ControllerBase
         {
             SearchTerm = searchTerm,
             CategoriaId = categoriaId,
+            Activo = activo,
             Page = page,
             PageSize = pageSize
         };
@@ -139,6 +141,26 @@ public class ProductosController : ControllerBase
         }
 
         return Ok(new { message = "Producto desactivado correctamente." });
+    }
+
+    /// <summary>
+    /// Habilita o inhabilita un producto (eliminación/reactivación lógica). Solo Administrador.
+    /// </summary>
+    [HttpPatch("{id:int}/estado")]
+    [Authorize(Policy = "RequireAdmin")]
+    public async Task<IActionResult> SetEstado(int id, [FromBody] SistemaAlmacen.Shared.DTOs.CambiarEstadoRequest request)
+    {
+        var result = await _productoService.SetActivoAsync(id, request.Activo);
+
+        if (!result.IsSuccess)
+        {
+            if (result.ErrorCode == "PRODUCTO_NO_ENCONTRADO")
+                return NotFound(new { message = result.ErrorMessage });
+            return BadRequest(new { message = result.ErrorMessage });
+        }
+
+        var mensaje = request.Activo ? "Producto habilitado correctamente." : "Producto inhabilitado correctamente.";
+        return Ok(new { message = mensaje });
     }
 
     /// <summary>

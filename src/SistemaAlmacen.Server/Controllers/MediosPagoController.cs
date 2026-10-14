@@ -105,4 +105,25 @@ public class MediosPagoController : ControllerBase
 
         return Ok(new { message = "Medio de pago desactivado correctamente." });
     }
+
+    /// <summary>
+    /// Habilita o inhabilita un medio de pago. Solo Administrador.
+    /// </summary>
+    [HttpPatch("{id:int}/estado")]
+    [Authorize(Policy = "RequireAdmin")]
+    public async Task<IActionResult> SetEstado(int id, [FromBody] SistemaAlmacen.Shared.DTOs.CambiarEstadoRequest request)
+    {
+        var result = await _medioPagoService.SetActivoAsync(id, request.Activo);
+
+        if (!result.IsSuccess)
+        {
+            if (result.ErrorCode == "NO_ENCONTRADO")
+                return NotFound(new { message = result.ErrorMessage });
+
+            return BadRequest(new { message = result.ErrorMessage });
+        }
+
+        var mensaje = request.Activo ? "Medio de pago habilitado correctamente." : "Medio de pago inhabilitado correctamente.";
+        return Ok(new { message = mensaje });
+    }
 }
