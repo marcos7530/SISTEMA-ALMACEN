@@ -1,0 +1,28 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Blazor UI: add the enable/disable form-switch and the default active-only estado filter to the Categorias management page, mirroring Productos.razor. Depends on FEAT-001 (CategoriaDto.Activo, the ?activo query filter, and the PATCH {id}/estado endpoint). Do NOT modify Productos.razor or ProductoForm.razor.",
+  "status": "completed",
+  "steps": [
+    "In src/SistemaAlmacen.Client/Pages/Categorias/Categorias.razor add an estado filter <select> rendered only when _isAdmin (options Activos=activos default, Inhabilitados=inactivos, Todos=todos) bound to a new field 'private string _estadoFiltro = \"activos\";' with @bind:after calling a reload (e.g. ApplyEstadoFilter that calls LoadCategorias). Mirror the estado <select> in Productos.razor.",
+    "Add a new table column header '<th>Estado</th>' shown only when _isAdmin (place it before the existing Acciones column), and a matching cell in the non-editing row branch containing a Bootstrap 'form-check form-switch': <input class=\"form-check-input\" type=\"checkbox\" role=\"switch\" checked=\"@categoria.Activo\" disabled=\"@(_togglingId == categoria.Id)\" @onchange=\"@(e => CambiarEstado(categoria, (bool)e.Value!))\" /> plus a span with class @(categoria.Activo ? \"text-success\" : \"text-muted\") showing Habilitado/Inhabilitado. Mirror the Estado cell in Productos.razor.",
+    "Add field 'private int? _togglingId;' and method 'private async Task CambiarEstado(CategoriaDto categoria, bool nuevoEstado)' that sets _togglingId, clears messages, PATCHes api/categorias/{categoria.Id}/estado with new CambiarEstadoRequest { Activo = nuevoEstado }, on success sets _successMessage (habilitada/inhabilitada) and reloads, on failure uses ApiErrorParser.ParseAsync and reloads, and clears _togglingId in finally. Mirror Productos.razor CambiarEstado.",
+    "Update LoadCategorias to build the url: start with 'api/categorias', and when _isAdmin append '?activo=true' for _estadoFiltro == \"activos\", '?activo=false' for \"inactivos\", and no param for \"todos\". Non-admin keeps calling 'api/categorias' with no param. Mirror how Productos.razor LoadProductos builds its estado filter.",
+    "Ensure the inline create row (_showCreateRow) and edit row still render correctly with the added column so admins see consistent columns; the Nueva Categoria button and inline create/edit behavior must remain intact.",
+    "Confirm Productos.razor and ProductoForm.razor were NOT modified."
+  ],
+  "acceptance_criteria": [
+    "Categorias.razor shows an Estado column with a working form-switch (only for admins) that toggles a category's Activo via PATCH api/categorias/{id}/estado and shows a success/error message.",
+    "An estado filter select (Activos default | Inhabilitados | Todos) is shown for admins; on load the page shows only active categorias (sends ?activo=true); selecting Inhabilitados sends ?activo=false; Todos sends no activo param.",
+    "Non-admin users see the page behaving as before (no Estado column, no filter, api/categorias with no param).",
+    "Inline create/edit rows and the Nueva Categoria button still work.",
+    "Building src/SistemaAlmacen.Client succeeds with 0 errors.",
+    "Productos.razor and ProductoForm.razor are byte-for-byte unchanged."
+  ],
+  "verification": [
+    "dotnet build src/SistemaAlmacen.Client/SistemaAlmacen.Client.csproj -c Debug  (0 errors)",
+    "git diff --name-only shows Productos.razor and ProductoForm.razor are NOT in the changed set"
+  ],
+  "blocked_reason": null,
+  "findings": "UI complete. Only src/SistemaAlmacen.Client/Pages/Categorias/Categorias.razor was modified; Productos.razor and ProductoForm.razor are byte-for-byte unchanged (git diff --name-only shows neither). Implemented by mirroring Productos.razor:\n- Admin-only estado <select> (Activos default | Inhabilitados | Todos) bound to new field 'private string _estadoFiltro = \"activos\";' with @bind:after=\"ApplyEstadoFilter\" (ApplyEstadoFilter calls LoadCategorias). Placed in a row alongside the existing 'Nueva Categoría' button so the admin controls stay intact.\n- Admin-only '<th>Estado</th>' header before the Acciones column, and a matching cell in the non-editing row branch with a Bootstrap 'form-check form-switch' input (checked=@categoria.Activo, disabled=@(_togglingId == categoria.Id), @onchange calling CambiarEstado) plus a span (text-success/text-muted) showing Habilitado/Inhabilitado.\n- New field 'private int? _togglingId;' and 'private async Task CambiarEstado(CategoriaDto categoria, bool nuevoEstado)' that sets _togglingId, clears messages, PATCHes api/categorias/{id}/estado with new CambiarEstadoRequest { Activo = nuevoEstado }, sets _successMessage on success (habilitada/inhabilitada), uses ApiErrorParser.ParseAsync on failure, reloads in all branches, clears _togglingId in finally.\n- LoadCategorias builds url starting 'api/categorias' and, only when _isAdmin, appends '?activo=true' for activos, '?activo=false' for inactivos, no param for todos. Non-admin keeps calling 'api/categorias' with no param.\n- Inline create row (_showCreateRow) and edit row and the Nueva Categoría button remain intact; the create/edit rows keep their original Acciones-only layout (the extra Estado column only renders in the non-editing admin row, matching Productos.razor behavior).\nVerification: 'dotnet build src/SistemaAlmacen.Client/SistemaAlmacen.Client.csproj -c Debug' -> 'Compilación realizado correctamente', 0 errors. Committed locally on branch (not pushed)."
+}
