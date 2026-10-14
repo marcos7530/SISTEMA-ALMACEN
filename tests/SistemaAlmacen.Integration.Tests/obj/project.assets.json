@@ -5611,7 +5611,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.401/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.402/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(,4.7.32767]",
           "Microsoft.VisualBasic": "(,10.4.32767]",
@@ -5894,8 +5894,48 @@
       "code": "NU1903",
       "level": "Warning",
       "warningLevel": 1,
+      "message": "El paquete \"Microsoft.AspNetCore.Components.WebAssembly.Server\" 10.0.11 tiene una vulnerabilidad de gravedad alta conocida, https://github.com/advisories/GHSA-g27p-qf6j-c96c",
+      "libraryId": "Microsoft.AspNetCore.Components.WebAssembly.Server",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "El paquete \"Microsoft.AspNetCore.Components.WebAssembly.Server\" 10.0.11 tiene una vulnerabilidad de gravedad alta conocida, https://github.com/advisories/GHSA-qjpx-jqm5-h2c4",
+      "libraryId": "Microsoft.AspNetCore.Components.WebAssembly.Server",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
       "message": "El paquete \"Microsoft.OpenApi\" 2.0.0 tiene una vulnerabilidad de gravedad alta conocida, https://github.com/advisories/GHSA-v5pm-xwqc-g5wc",
       "libraryId": "Microsoft.OpenApi",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "El paquete \"System.Security.Cryptography.Pkcs\" 9.0.11 tiene una vulnerabilidad de gravedad moderada conocida, https://github.com/advisories/GHSA-2fmv-rv2c-59x7",
+      "libraryId": "System.Security.Cryptography.Pkcs",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "El paquete \"System.Security.Cryptography.Pkcs\" 9.0.11 tiene una vulnerabilidad de gravedad alta conocida, https://github.com/advisories/GHSA-846f-f764-76mx",
+      "libraryId": "System.Security.Cryptography.Pkcs",
       "targetGraphs": [
         "net10.0"
       ]

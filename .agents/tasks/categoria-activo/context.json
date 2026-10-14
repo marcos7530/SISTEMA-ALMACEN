@@ -1,0 +1,33 @@
+{
+  "project_type": "ASP.NET Core Web API host (SistemaAlmacen.Server) serving a Blazor WebAssembly PWA client (SistemaAlmacen.Client), with Data (EF Core + SQL Server), Business (services), and Shared (DTOs) class libraries. POS/almacen system.",
+  "language": "C# / .NET 10",
+  "build_system": "dotnet / MSBuild. Solution file is SistemaAlmacen.slnx (XML solution format) at repo root. Projects under src/, tests under tests/.",
+  "test_framework": "xUnit 2.9.3 + FluentAssertions 8.3.0 + Moq 4.20.72 (Business.Tests) + Microsoft.EntityFrameworkCore.Sqlite (Data.Tests). Existing tests are placeholders only; no categoria-specific tests exist yet.",
+  "build_command": "dotnet build SistemaAlmacen.slnx -c Debug   (per-project fallback: dotnet build src/SistemaAlmacen.Data/SistemaAlmacen.Data.csproj etc.)",
+  "test_command": "dotnet test SistemaAlmacen.slnx",
+  "verification_instructions": "1) After backend edits, build the affected libraries: dotnet build src/SistemaAlmacen.Data/SistemaAlmacen.Data.csproj, then .Business, then .Server. 2) After the Razor edit: dotnet build src/SistemaAlmacen.Client/SistemaAlmacen.Client.csproj. 3) Final: with the dev server stopped, dotnet build SistemaAlmacen.slnx (0 errors) and dotnet test SistemaAlmacen.slnx (all pass). Migrations apply automatically on app startup via DataSeeder.SeedAsync -> context.Database.MigrateAsync(); no manual database update needed.",
+  "snapshot_or_generated_files": "EF migrations in src/SistemaAlmacen.Data/Migrations/. Generate the new one with: dotnet ef migrations add AddActivoToCategoria --project src/SistemaAlmacen.Data --startup-project src/SistemaAlmacen.Server. This also updates ApplicationDbContextModelSnapshot.cs and creates *_AddActivoToCategoria.cs + .Designer.cs. The new column must be nullable:false with defaultValue: true.",
+  "environment_constraints": "A dev server process named SistemaAlmacen.Server is RUNNING and locks the Server project output DLLs (SistemaAlmacen.Data.dll/.Business.dll/.Shared.dll under src/SistemaAlmacen.Server/bin). A full 'dotnet build SistemaAlmacen.slnx' or any build/ef command that outputs the Server project FAILS with MSB3021/MSB3026/MSB3027 file-copy errors that are NOT compile errors. Do NOT kill or restart the server unless the user explicitly asks. To verify compilation meanwhile, build the individual non-host projects (.Data, .Business, .Shared, .Client). The full-solution build, 'dotnet ef migrations add' (builds the startup/Server project), and 'dotnet test' may require the user to stop the server first. Toolchain: .NET SDK 10.0.402, dotnet-ef 10.0.12 global.",
+  "contribution_requirements": "No AGENTS.md/CONTRIBUTING.md present. README states migrations are applied automatically on startup; no manual 'dotnet ef database update' required. Follow existing code conventions. Only create commits if explicitly requested; commit locally on the branch, never push.",
+  "key_patterns": "Result/Result<T> pattern (SistemaAlmacen.Shared.Common) for service returns with ErrorCode strings. Controllers map ErrorCode to HTTP (NotFound/BadRequest). CategoriaService uses error code 'NO_ENCONTRADA' for not-found (NOT 'PRODUCTO_NO_ENCONTRADO' which ProductoService uses). Reusable toggle DTO CambiarEstadoRequest { bool Activo } already exists in SistemaAlmacen.Shared.DTOs. Blazor pages determine _isAdmin from role claim and conditionally render admin-only columns. Productos.razor is the exact UI pattern to mirror: a form-check form-switch bound to Activo with _togglingId guard and a CambiarEstado PATCH method, plus an estado <select> (activos|inactivos|todos) that omits the activo query param for 'todos'.",
+  "relevant_files": [
+    "src/SistemaAlmacen.Data/Entities/Categoria.cs (MODIFY: add Activo)",
+    "src/SistemaAlmacen.Data/Entities/Producto.cs (PATTERN: bool Activo = true)",
+    "src/SistemaAlmacen.Data/Configurations/CategoriaConfiguration.cs (MODIFY: map Activo HasDefaultValue(true))",
+    "src/SistemaAlmacen.Data/Configurations/ProductoConfiguration.cs (PATTERN)",
+    "src/SistemaAlmacen.Data/Migrations/20260930161734_AddStockMinimoToProducto.cs (PATTERN: AddColumn with defaultValue)",
+    "src/SistemaAlmacen.Shared/DTOs/CambiarEstadoRequest.cs (REUSE as-is)",
+    "src/SistemaAlmacen.Shared/DTOs/Categorias/CategoriaDto.cs (MODIFY: add Activo)",
+    "src/SistemaAlmacen.Business/Interfaces/ICategoriaService.cs (MODIFY: GetAllAsync(bool? activo), SetActivoAsync)",
+    "src/SistemaAlmacen.Business/Services/CategoriaService.cs (MODIFY: filter, SetActivoAsync, MapToDto, CreateAsync sets Activo=true)",
+    "src/SistemaAlmacen.Business/Services/ProductoService.cs (PATTERN: SetActivoAsync)",
+    "src/SistemaAlmacen.Server/Controllers/CategoriasController.cs (MODIFY: GetAll ?activo, PATCH {id}/estado)",
+    "src/SistemaAlmacen.Server/Controllers/ProductosController.cs (PATTERN: SetEstado)",
+    "src/SistemaAlmacen.Client/Pages/Categorias/Categorias.razor (MODIFY: switch + estado filter)",
+    "src/SistemaAlmacen.Client/Pages/Productos/Productos.razor (PATTERN: switch, CambiarEstado, LoadProductos estado filter; DO NOT MODIFY)",
+    "src/SistemaAlmacen.Client/Pages/Productos/ProductoForm.razor (CONSUMER of api/categorias with no param; DO NOT MODIFY)",
+    "src/SistemaAlmacen.Data/Context/DataSeeder.cs (applies migrations on startup; seed categorias omit Activo so default true applies)",
+    "src/SistemaAlmacen.Data/Repositories/CategoriaRepository.cs (no change needed; filter stays in service)"
+  ],
+  "directory_structure": "src/SistemaAlmacen.Data (EF entities, configurations, migrations, repositories, DbContext/DataSeeder); src/SistemaAlmacen.Business (service interfaces + implementations, Result pattern); src/SistemaAlmacen.Shared (DTOs incl. Categorias/ and shared CambiarEstadoRequest); src/SistemaAlmacen.Server (API controllers, startup host); src/SistemaAlmacen.Client (Blazor WASM pages under Pages/, incl. Categorias/ and Productos/); tests/ (Business.Tests, Data.Tests, Integration.Tests - placeholders)."
+}

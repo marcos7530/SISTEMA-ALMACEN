@@ -1,0 +1,7 @@
+{
+  "task_id": "task-categoria-activo",
+  "task_description": "Add an Activo (habilitar/inhabilitar) flag to Categorias mirroring the existing Productos feature: entity flag + EF migration (defaultValue true), reusable CambiarEstadoRequest DTO, CategoriaDto.Activo, service SetActivoAsync + GetAllAsync(bool? activo), controller optional ?activo filter + PATCH {id}/estado, and a Blazor form-switch + estado filter in Categorias.razor. GET api/categorias must stay all-by-default so the two Productos category dropdowns are unaffected.",
+  "status": "completed",
+  "feature_order": ["FEAT-001", "FEAT-002"],
+  "blocked_reason": null
+}
