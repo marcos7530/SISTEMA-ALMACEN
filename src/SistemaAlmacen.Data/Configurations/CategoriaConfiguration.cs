@@ -22,6 +22,10 @@ public class CategoriaConfiguration : IEntityTypeConfiguration<Categoria>
         builder.Property(c => c.MargenGanancia)
             .HasColumnType("decimal(5,2)");
 
+        builder.Property(c => c.Activo)
+            .IsRequired()
+            .HasDefaultValue(true);
+
         builder.Property(c => c.FechaCreacion)
             .IsRequired();
 

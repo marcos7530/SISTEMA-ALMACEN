@@ -19,9 +19,12 @@ public class CategoriaService : ICategoriaService
     }
 
     /// <inheritdoc />
-    public async Task<List<CategoriaDto>> GetAllAsync()
+    public async Task<List<CategoriaDto>> GetAllAsync(bool? activo = null)
     {
         var categorias = await _unitOfWork.Categorias.GetAllAsync();
+
+        if (activo.HasValue)
+            categorias = categorias.Where(c => c.Activo == activo.Value).ToList();
 
         return categorias
             .OrderBy(c => c.Nombre)
@@ -46,6 +49,7 @@ public class CategoriaService : ICategoriaService
             Nombre = request.Nombre.Trim(),
             Descripcion = request.Descripcion?.Trim(),
             MargenGanancia = request.MargenGanancia,
+            Activo = true,
             FechaCreacion = DateTime.UtcNow
         };
 
@@ -98,6 +102,25 @@ public class CategoriaService : ICategoriaService
         return Result.Success();
     }
 
+    /// <inheritdoc />
+    public async Task<Result> SetActivoAsync(int id, bool activo)
+    {
+        // Buscar la categoría (incluye inactivas, para poder reactivarlas).
+        var categoria = await _unitOfWork.Categorias.GetByIdAsync(id);
+        if (categoria is null)
+            return Result.Failure("La categoría no fue encontrada.", "NO_ENCONTRADA");
+
+        if (categoria.Activo == activo)
+            return Result.Success();
+
+        categoria.Activo = activo;
+
+        _unitOfWork.Categorias.Update(categoria);
+        await _unitOfWork.SaveChangesAsync();
+
+        return Result.Success();
+    }
+
     /// <summary>
     /// Valida el nombre y la descripción de la categoría.
     /// </summary>
@@ -131,6 +154,7 @@ public class CategoriaService : ICategoriaService
             Nombre = categoria.Nombre,
             Descripcion = categoria.Descripcion,
             MargenGanancia = categoria.MargenGanancia,
+            Activo = categoria.Activo,
             FechaCreacion = categoria.FechaCreacion
         };
     }

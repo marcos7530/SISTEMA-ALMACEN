@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SistemaAlmacen.Business.Interfaces;
+using SistemaAlmacen.Shared.DTOs;
 using SistemaAlmacen.Shared.DTOs.Categorias;
 
 namespace SistemaAlmacen.Server.Controllers;
@@ -22,13 +23,14 @@ public class CategoriasController : ControllerBase
     }
 
     /// <summary>
-    /// Obtiene todas las categorías ordenadas alfabéticamente.
+    /// Obtiene las categorías ordenadas alfabéticamente. Sin filtro devuelve todas;
+    /// ?activo=true solo activas, ?activo=false solo inactivas.
     /// </summary>
     [HttpGet]
     [Authorize(Policy = "RequireVendedorOrAdmin")]
-    public async Task<ActionResult<List<CategoriaDto>>> GetAll()
+    public async Task<ActionResult<List<CategoriaDto>>> GetAll([FromQuery] bool? activo)
     {
-        var categorias = await _categoriaService.GetAllAsync();
+        var categorias = await _categoriaService.GetAllAsync(activo);
         return Ok(categorias);
     }
 
@@ -93,5 +95,25 @@ public class CategoriasController : ControllerBase
         }
 
         return Ok(new { message = "Categoría eliminada correctamente." });
+    }
+
+    /// <summary>
+    /// Habilita o inhabilita una categoría (eliminación/reactivación lógica). Solo Administrador.
+    /// </summary>
+    [HttpPatch("{id:int}/estado")]
+    [Authorize(Policy = "RequireAdmin")]
+    public async Task<IActionResult> SetEstado(int id, [FromBody] SistemaAlmacen.Shared.DTOs.CambiarEstadoRequest request)
+    {
+        var result = await _categoriaService.SetActivoAsync(id, request.Activo);
+
+        if (!result.IsSuccess)
+        {
+            if (result.ErrorCode == "NO_ENCONTRADA")
+                return NotFound(new { message = result.ErrorMessage });
+            return BadRequest(new { message = result.ErrorMessage });
+        }
+
+        var mensaje = request.Activo ? "Categoría habilitada correctamente." : "Categoría inhabilitada correctamente.";
+        return Ok(new { message = mensaje });
     }
 }

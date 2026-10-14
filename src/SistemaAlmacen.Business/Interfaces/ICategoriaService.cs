@@ -9,9 +9,10 @@ namespace SistemaAlmacen.Business.Interfaces;
 public interface ICategoriaService
 {
     /// <summary>
-    /// Obtiene todas las categorías ordenadas alfabéticamente por nombre.
+    /// Obtiene las categorías ordenadas alfabéticamente por nombre.
     /// </summary>
-    Task<List<CategoriaDto>> GetAllAsync();
+    /// <param name="activo">true solo activas, false solo inactivas, null todas.</param>
+    Task<List<CategoriaDto>> GetAllAsync(bool? activo = null);
 
     /// <summary>
     /// Crea una nueva categoría validando nombre (3-50 chars), descripción (máx 200) y unicidad de nombre.
@@ -27,4 +28,9 @@ public interface ICategoriaService
     /// Elimina una categoría si no tiene productos asociados.
     /// </summary>
     Task<Result> DeleteAsync(int id);
+
+    /// <summary>
+    /// Habilita o inhabilita una categoría (eliminación/reactivación lógica).
+    /// </summary>
+    Task<Result> SetActivoAsync(int id, bool activo);
 }

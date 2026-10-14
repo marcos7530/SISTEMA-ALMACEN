@@ -26,6 +26,9 @@ public class Categoria
     public decimal? MargenGanancia { get; set; }
 
     [Required]
+    public bool Activo { get; set; } = true;
+
+    [Required]
     public DateTime FechaCreacion { get; set; }
 
     // Navigation properties

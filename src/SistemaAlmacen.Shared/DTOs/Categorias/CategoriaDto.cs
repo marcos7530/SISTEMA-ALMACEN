@@ -11,5 +11,6 @@ public class CategoriaDto
 
     /// <summary>Margen de ganancia de la categoría (porcentaje). Null = usa margen por defecto.</summary>
     public decimal? MargenGanancia { get; set; }
+    public bool Activo { get; set; }
     public DateTime FechaCreacion { get; set; }
 }

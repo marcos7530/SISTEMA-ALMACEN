@@ -155,6 +155,11 @@ namespace SistemaAlmacen.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("Descripcion")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
