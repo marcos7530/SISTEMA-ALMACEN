@@ -34,4 +34,12 @@ public interface IClienteService
     /// Realiza una eliminación lógica de un cliente (marca como inactivo).
     /// </summary>
     Task<Result> DeactivateAsync(int id);
+
+    /// <summary>
+    /// Habilita o inhabilita un cliente (eliminación/reactivación lógica).
+    /// Al inhabilitar, valida que no tenga saldo deudor pendiente.
+    /// </summary>
+    /// <param name="id">Id del cliente.</param>
+    /// <param name="activo">true para habilitar, false para inhabilitar.</param>
+    Task<Result> SetActivoAsync(int id, bool activo);
 }

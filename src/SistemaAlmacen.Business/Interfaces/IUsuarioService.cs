@@ -37,4 +37,13 @@ public interface IUsuarioService
     /// No permite eliminar cuenta propia ni el último administrador activo.
     /// </summary>
     Task<Result> DeactivateAsync(int id, int currentUserId);
+
+    /// <summary>
+    /// Habilita o inhabilita un usuario (eliminación/reactivación lógica).
+    /// No permite inhabilitar la cuenta propia ni el último administrador activo.
+    /// </summary>
+    /// <param name="id">Id del usuario a modificar.</param>
+    /// <param name="activo">true para habilitar, false para inhabilitar.</param>
+    /// <param name="currentUserId">Id del usuario con sesión activa.</param>
+    Task<Result> SetActivoAsync(int id, bool activo, int currentUserId);
 }

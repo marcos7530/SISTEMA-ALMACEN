@@ -182,6 +182,26 @@ public class ProductoService : IProductoService
         return Result.Success();
     }
 
+    /// <inheritdoc />
+    public async Task<Result> SetActivoAsync(int id, bool activo)
+    {
+        // Buscar el producto (incluye inactivos, para poder reactivarlos).
+        var producto = await _unitOfWork.Productos.GetByIdAsync(id);
+        if (producto is null)
+            return Result.Failure("El producto no fue encontrado.", "PRODUCTO_NO_ENCONTRADO");
+
+        if (producto.Activo == activo)
+            return Result.Success();
+
+        producto.Activo = activo;
+        producto.FechaModificacion = DateTime.UtcNow;
+
+        _unitOfWork.Productos.Update(producto);
+        await _unitOfWork.SaveChangesAsync();
+
+        return Result.Success();
+    }
+
     private static Result<ProductoDto>? ValidateProductoRequest(string nombre, string? descripcion, decimal precio, int stock)
     {
         var errors = new Dictionary<string, string[]>();

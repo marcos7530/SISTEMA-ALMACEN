@@ -32,4 +32,10 @@ public interface IMedioPagoService
     /// Desactiva un medio de pago. No permite desactivar medios de sistema ni si hay caja abierta.
     /// </summary>
     Task<Result> DeactivateAsync(int id);
+
+    /// <summary>
+    /// Habilita o inhabilita un medio de pago. No permite modificar medios de sistema.
+    /// Al inhabilitar, tampoco se permite si hay una caja abierta.
+    /// </summary>
+    Task<Result> SetActivoAsync(int id, bool activo);
 }

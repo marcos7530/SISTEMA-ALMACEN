@@ -106,16 +106,23 @@ else
     private DateTime? _fechaFin;
     private int _page = 1;
     private int _totalPages = 1;
-    private const int PageSize = 20;
+    private const int PageSize = 10;
 
-    protected override async Task OnInitializedAsync() => await CargarCompras();
+    protected override async Task OnInitializedAsync()
+    {
+        // Por defecto, mostrar la última semana (fecha fin = hoy, inicio = 7 días atrás).
+        _fechaFin = DateTime.Today;
+        _fechaInicio = DateTime.Today.AddDays(-7);
+        await CargarCompras();
+    }
 
     private async Task Buscar() { _page = 1; await CargarCompras(); }
 
     private async Task Limpiar()
     {
-        _fechaInicio = null;
-        _fechaFin = null;
+        // Restablecer al filtro por defecto: la última semana.
+        _fechaFin = DateTime.Today;
+        _fechaInicio = DateTime.Today.AddDays(-7);
         _page = 1;
         await CargarCompras();
     }

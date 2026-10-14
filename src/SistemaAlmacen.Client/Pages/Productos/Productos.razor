@@ -21,7 +21,7 @@
         <input type="text" class="form-control" placeholder="Buscar por nombre..."
                @bind="_searchTerm" @bind:event="oninput" @onkeyup="HandleSearchKeyUp" />
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
         <select class="form-select" @bind="_selectedCategoriaId" @bind:after="ApplyFilter">
             <option value="0">Todas las categorías</option>
             @foreach (var cat in _categorias)
@@ -30,7 +30,17 @@
             }
         </select>
     </div>
-    <div class="col-md-2">
+    @if (_isAdmin)
+    {
+        <div class="col-md-2">
+            <select class="form-select" @bind="_estadoFiltro" @bind:after="ApplyFilter">
+                <option value="activos">Activos</option>
+                <option value="inactivos">Inhabilitados</option>
+                <option value="todos">Todos</option>
+            </select>
+        </div>
+    }
+    <div class="col-md-1">
         <button class="btn btn-outline-primary" @onclick="ApplyFilter">Buscar</button>
     </div>
     @if (_isAdmin)
@@ -64,6 +74,7 @@ else
                 <th>Stock</th>
                 @if (_isAdmin)
                 {
+                    <th>Estado</th>
                     <th>Acciones</th>
                 }
             </tr>
@@ -94,14 +105,22 @@ else
                     @if (_isAdmin)
                     {
                         <td>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch"
+                                       checked="@producto.Activo"
+                                       disabled="@(_togglingId == producto.Id)"
+                                       @onchange="@(e => CambiarEstado(producto, (bool)e.Value!))" />
+                                <span class="@(producto.Activo ? "text-success" : "text-muted")">
+                                    @(producto.Activo ? "Habilitado" : "Inhabilitado")
+                                </span>
+                            </div>
+                        </td>
+                        <td>
                             <button class="btn btn-warning btn-sm" @onclick="() => NavigateToEdit(producto.Id)">
                                 Editar
                             </button>
                             <button class="btn btn-secondary btn-sm" @onclick="() => OpenBaja(producto)">
                                 Dar de baja
-                            </button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteProducto(producto)">
-                                Eliminar
                             </button>
                         </td>
                     }
@@ -249,7 +268,9 @@ else
     private int _selectedCategoriaId;
     private int _currentPage = 1;
     private int _totalPages;
-    private int _pageSize = 20;
+    private int _pageSize = 10;
+    private string _estadoFiltro = "activos"; // activos | inactivos | todos
+    private int? _togglingId;
     private bool _isLoading = true;
     private bool _isAdmin;
     private string? _errorMessage;
@@ -305,6 +326,15 @@ else
             if (_selectedCategoriaId > 0)
             {
                 queryParams.Add($"categoriaId={_selectedCategoriaId}");
+            }
+
+            // Filtro de estado (solo admin): activos (true), inactivos (false), todos (sin parámetro).
+            if (_isAdmin)
+            {
+                if (_estadoFiltro == "activos")
+                    queryParams.Add("activo=true");
+                else if (_estadoFiltro == "inactivos")
+                    queryParams.Add("activo=false");
             }
 
             var url = $"api/productos?{string.Join("&", queryParams)}";
@@ -379,28 +409,38 @@ else
         Navigation.NavigateTo($"/productos/editar/{id}");
     }
 
-    private async Task DeleteProducto(ProductoDto producto)
+    private async Task CambiarEstado(ProductoDto producto, bool nuevoEstado)
     {
+        _togglingId = producto.Id;
         ClearMessages();
 
         try
         {
-            var response = await Http.DeleteAsync($"api/productos/{producto.Id}");
+            var request = new CambiarEstadoRequest { Activo = nuevoEstado };
+            var response = await Http.PatchAsJsonAsync($"api/productos/{producto.Id}/estado", request);
 
             if (response.IsSuccessStatusCode)
             {
-                _successMessage = $"Producto '{producto.Nombre}' eliminado exitosamente.";
+                _successMessage = nuevoEstado
+                    ? $"Producto '{producto.Nombre}' habilitado."
+                    : $"Producto '{producto.Nombre}' inhabilitado.";
                 await LoadProductos();
             }
             else
             {
                 var errorResult = await ApiErrorParser.ParseAsync(response);
-                _errorMessage = errorResult.GeneralError ?? "Error al eliminar el producto.";
+                _errorMessage = errorResult.GeneralError ?? "No se pudo cambiar el estado del producto.";
+                await LoadProductos();
             }
         }
         catch (Exception)
         {
             _errorMessage = "Error de conexión. Intente nuevamente.";
+            await LoadProductos();
+        }
+        finally
+        {
+            _togglingId = null;
         }
     }
 

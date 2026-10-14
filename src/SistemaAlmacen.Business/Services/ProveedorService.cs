@@ -124,6 +124,26 @@ public class ProveedorService : IProveedorService
         return Result.Success();
     }
 
+    /// <inheritdoc />
+    public async Task<Result> SetActivoAsync(int id, bool activo)
+    {
+        // Buscar el proveedor (incluye inactivos, para poder reactivarlos).
+        var proveedor = await _unitOfWork.Proveedores.GetByIdAsync(id);
+        if (proveedor is null)
+            return Result.Failure("El proveedor no fue encontrado.", "NOT_FOUND");
+
+        if (proveedor.Activo == activo)
+            return Result.Success();
+
+        proveedor.Activo = activo;
+        proveedor.FechaModificacion = DateTime.UtcNow;
+
+        _unitOfWork.Proveedores.Update(proveedor);
+        await _unitOfWork.SaveChangesAsync();
+
+        return Result.Success();
+    }
+
     private static Result<ProveedorDto>? ValidateRequest(string nombre, string? email)
     {
         var errors = new Dictionary<string, string[]>();

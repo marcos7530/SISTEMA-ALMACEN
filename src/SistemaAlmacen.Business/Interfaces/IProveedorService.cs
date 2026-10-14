@@ -14,4 +14,9 @@ public interface IProveedorService
     Task<Result<ProveedorDto>> CreateAsync(CreateProveedorRequest request);
     Task<Result<ProveedorDto>> UpdateAsync(int id, UpdateProveedorRequest request);
     Task<Result> DeactivateAsync(int id);
+
+    /// <summary>
+    /// Habilita o inhabilita un proveedor (eliminación/reactivación lógica).
+    /// </summary>
+    Task<Result> SetActivoAsync(int id, bool activo);
 }

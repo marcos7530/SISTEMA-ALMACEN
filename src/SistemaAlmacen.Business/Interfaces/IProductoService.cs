@@ -38,4 +38,9 @@ public interface IProductoService
     /// Realiza una eliminación lógica de un producto (marca como inactivo).
     /// </summary>
     Task<Result> DeactivateAsync(int id);
+
+    /// <summary>
+    /// Habilita o inhabilita un producto (eliminación/reactivación lógica).
+    /// </summary>
+    Task<Result> SetActivoAsync(int id, bool activo);
 }

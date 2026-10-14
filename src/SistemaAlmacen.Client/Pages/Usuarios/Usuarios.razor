@@ -9,6 +9,11 @@
     <div class="search-box">
         <input type="text" class="form-control" placeholder="Buscar por nombre o email..."
                @bind="_searchTerm" @bind:event="oninput" @onkeyup="HandleSearchKeyUp" />
+        <select class="form-select" style="max-width: 180px;" @bind="_estadoFiltro" @bind:after="SearchAsync">
+            <option value="activos">Activos</option>
+            <option value="inactivos">Inhabilitados</option>
+            <option value="todos">Todos</option>
+        </select>
         <button class="btn btn-secondary" @onclick="SearchAsync">Buscar</button>
     </div>
     <button class="btn btn-primary" @onclick="NuevoUsuario">Nuevo Usuario</button>
@@ -30,6 +35,7 @@ else
                 <th>Nombre</th>
                 <th>Email</th>
                 <th>Rol</th>
+                <th>Estado</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -41,8 +47,18 @@ else
                     <td>@usuario.Email</td>
                     <td>@usuario.Rol.ToString()</td>
                     <td>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch"
+                                   checked="@usuario.Activo"
+                                   disabled="@(_togglingId == usuario.Id)"
+                                   @onchange="@(e => CambiarEstado(usuario, (bool)e.Value!))" />
+                            <span class="@(usuario.Activo ? "text-success" : "text-muted")">
+                                @(usuario.Activo ? "Habilitado" : "Inhabilitado")
+                            </span>
+                        </div>
+                    </td>
+                    <td>
                         <button class="btn btn-sm btn-warning" @onclick="() => EditarUsuario(usuario.Id)">Editar</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => ConfirmarEliminar(usuario)">Eliminar</button>
                     </td>
                 </tr>
             }
@@ -60,28 +76,6 @@ else
     </div>
 }
 
-@if (_showDeleteConfirmation)
-{
-    <div class="modal-backdrop"></div>
-    <div class="modal-dialog-custom">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5>Confirmar Eliminación</h5>
-            </div>
-            <div class="modal-body">
-                <p>¿Está seguro de que desea eliminar al usuario <strong>@_usuarioToDelete?.Nombre</strong>?</p>
-                <p>Esta acción desactivará la cuenta del usuario.</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" @onclick="CancelDelete">Cancelar</button>
-                <button class="btn btn-danger" @onclick="EliminarUsuario" disabled="@_isDeleting">
-                    @(_isDeleting ? "Eliminando..." : "Eliminar")
-                </button>
-            </div>
-        </div>
-    </div>
-}
-
 @if (!string.IsNullOrEmpty(_errorMessage))
 {
     <div class="alert alert-danger mt-3">@_errorMessage</div>
@@ -95,12 +89,11 @@ else
 @code {
     private PaginatedResult<UsuarioDto>? _result;
     private string _searchTerm = string.Empty;
+    private string _estadoFiltro = "activos"; // activos | inactivos | todos
     private int _currentPage = 1;
-    private const int PageSize = 20;
+    private const int PageSize = 10;
     private bool _isLoading;
-    private bool _showDeleteConfirmation;
-    private bool _isDeleting;
-    private UsuarioDto? _usuarioToDelete;
+    private int? _togglingId;
     private string? _errorMessage;
     private string? _successMessage;
 
@@ -121,6 +114,12 @@ else
             {
                 url += $"&SearchTerm={Uri.EscapeDataString(_searchTerm)}";
             }
+
+            // Filtro de estado: activos (true), inactivos (false), todos (sin parámetro).
+            if (_estadoFiltro == "activos")
+                url += "&activo=true";
+            else if (_estadoFiltro == "inactivos")
+                url += "&activo=false";
 
             _result = await Http.GetFromJsonAsync<PaginatedResult<UsuarioDto>>(url);
         }
@@ -176,51 +175,40 @@ else
         Navigation.NavigateTo($"/usuarios/editar/{id}");
     }
 
-    private void ConfirmarEliminar(UsuarioDto usuario)
+    private async Task CambiarEstado(UsuarioDto usuario, bool nuevoEstado)
     {
-        _usuarioToDelete = usuario;
-        _showDeleteConfirmation = true;
+        _togglingId = usuario.Id;
         _errorMessage = null;
         _successMessage = null;
-    }
-
-    private void CancelDelete()
-    {
-        _showDeleteConfirmation = false;
-        _usuarioToDelete = null;
-    }
-
-    private async Task EliminarUsuario()
-    {
-        if (_usuarioToDelete == null) return;
-
-        _isDeleting = true;
-        _errorMessage = null;
 
         try
         {
-            var response = await Http.DeleteAsync($"api/usuarios/{_usuarioToDelete.Id}");
+            var request = new CambiarEstadoUsuarioRequest { Activo = nuevoEstado };
+            var response = await Http.PatchAsJsonAsync($"api/usuarios/{usuario.Id}/estado", request);
 
             if (response.IsSuccessStatusCode)
             {
-                _successMessage = $"Usuario '{_usuarioToDelete.Nombre}' eliminado exitosamente.";
-                _showDeleteConfirmation = false;
-                _usuarioToDelete = null;
+                _successMessage = nuevoEstado
+                    ? $"Usuario '{usuario.Nombre}' habilitado."
+                    : $"Usuario '{usuario.Nombre}' inhabilitado.";
                 await LoadUsuariosAsync();
             }
             else
             {
-                var content = await response.Content.ReadAsStringAsync();
-                _errorMessage = !string.IsNullOrEmpty(content) ? content : "Error al eliminar el usuario.";
+                // Falló: recargar para revertir el switch al estado real y mostrar el motivo.
+                var errorResult = await ApiErrorParser.ParseAsync(response);
+                _errorMessage = errorResult.GeneralError ?? "No se pudo cambiar el estado del usuario.";
+                await LoadUsuariosAsync();
             }
         }
         catch (Exception)
         {
             _errorMessage = "Error de conexión. Intente nuevamente.";
+            await LoadUsuariosAsync();
         }
         finally
         {
-            _isDeleting = false;
+            _togglingId = null;
         }
     }
 }

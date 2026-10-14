@@ -107,6 +107,9 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        // Por defecto, mostrar la última semana (fecha fin = hoy, inicio = 7 días atrás).
+        _filter.FechaFin = DateTime.Today;
+        _filter.FechaInicio = DateTime.Today.AddDays(-7);
         await LoadData();
     }
 
@@ -164,7 +167,12 @@ else
 
     private async Task ClearFilters()
     {
-        _filter = new AuditoriaFilter();
+        // Restablecer al filtro por defecto: la última semana.
+        _filter = new AuditoriaFilter
+        {
+            FechaFin = DateTime.Today,
+            FechaInicio = DateTime.Today.AddDays(-7)
+        };
         _selectedTipoOperacion = "";
         await LoadData();
     }

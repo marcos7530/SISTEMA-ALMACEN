@@ -156,6 +156,37 @@ public class ClienteService : IClienteService
         return Result.Success();
     }
 
+    /// <inheritdoc />
+    public async Task<Result> SetActivoAsync(int id, bool activo)
+    {
+        // Buscar el cliente (incluye inactivos, para poder reactivarlos).
+        var cliente = await _unitOfWork.Clientes.GetByIdAsync(id);
+        if (cliente is null)
+            return Result.Failure("El cliente no fue encontrado.", "NOT_FOUND");
+
+        // Si ya está en el estado solicitado, no hay nada que hacer.
+        if (cliente.Activo == activo)
+            return Result.Success();
+
+        // Al inhabilitar: no permitir si tiene saldo deudor pendiente.
+        if (!activo && cliente.CuentaCorrienteHabilitada)
+        {
+            var saldo = await _unitOfWork.Clientes.GetSaldoAsync(cliente.Id);
+            if (saldo > 0)
+                return Result.Failure(
+                    $"No se puede inhabilitar un cliente con saldo deudor pendiente ({saldo:C}).",
+                    "SALDO_PENDIENTE");
+        }
+
+        cliente.Activo = activo;
+        cliente.FechaModificacion = DateTime.UtcNow;
+
+        _unitOfWork.Clientes.Update(cliente);
+        await _unitOfWork.SaveChangesAsync();
+
+        return Result.Success();
+    }
+
     private static Result<ClienteDto>? ValidateClienteRequest(string nombre, string? email, decimal limiteCredito)
     {
         var errors = new Dictionary<string, string[]>();

@@ -117,6 +117,35 @@ public class MedioPagoService : IMedioPagoService
         return Result.Success();
     }
 
+    /// <inheritdoc />
+    public async Task<Result> SetActivoAsync(int id, bool activo)
+    {
+        var medioPago = await _unitOfWork.MediosPago.GetByIdAsync(id);
+        if (medioPago is null)
+            return Result.Failure("El medio de pago no fue encontrado.", "NO_ENCONTRADO");
+
+        // No permitir modificar el estado de medios de sistema (ej: Efectivo).
+        if (medioPago.EsSistema)
+            return Result.Failure("No se puede cambiar el estado de un medio de pago del sistema.", "ES_SISTEMA");
+
+        if (medioPago.Activo == activo)
+            return Result.Success();
+
+        // Al inhabilitar: no permitir si hay una caja abierta.
+        if (!activo)
+        {
+            var hayCajaAbierta = await _unitOfWork.Cajas.AnyAsync(c => c.Estado == EstadoCaja.Abierta);
+            if (hayCajaAbierta)
+                return Result.Failure("No se puede inhabilitar un medio de pago mientras hay una caja abierta.", "CAJA_ABIERTA");
+        }
+
+        medioPago.Activo = activo;
+        _unitOfWork.MediosPago.Update(medioPago);
+        await _unitOfWork.SaveChangesAsync();
+
+        return Result.Success();
+    }
+
     /// <summary>
     /// Valida el nombre del medio de pago: no vacío, no solo whitespace, entre 3 y 50 caracteres.
     /// </summary>

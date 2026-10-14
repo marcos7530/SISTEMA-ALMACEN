@@ -31,8 +31,8 @@ public class UsuarioService : IUsuarioService
         var page = filter.Page < 1 ? 1 : filter.Page;
         var pageSize = filter.PageSize < 1 ? 20 : filter.PageSize;
 
-        var result = await _unitOfWork.Usuarios.GetActiveUsuariosAsync(
-            filter.SearchTerm, page, pageSize);
+        var result = await _unitOfWork.Usuarios.GetUsuariosAsync(
+            filter.SearchTerm, filter.Activo, page, pageSize);
 
         return new PaginatedResult<UsuarioDto>
         {
@@ -160,6 +160,49 @@ public class UsuarioService : IUsuarioService
 
         // Eliminación lógica
         usuario.Activo = false;
+        _unitOfWork.Usuarios.Update(usuario);
+        await _unitOfWork.SaveChangesAsync();
+
+        return Result.Success();
+    }
+
+    /// <inheritdoc />
+    public async Task<Result> SetActivoAsync(int id, bool activo, int currentUserId)
+    {
+        // No permitir inhabilitar la cuenta propia.
+        if (!activo && id == currentUserId)
+        {
+            return Result.Failure(
+                "No es posible inhabilitar el usuario con sesión activa.",
+                "DESHABILITAR_CUENTA_PROPIA");
+        }
+
+        // Buscar el usuario (incluye inactivos, para poder reactivarlos).
+        var usuario = await _unitOfWork.Usuarios.GetByIdAsync(id);
+        if (usuario is null)
+        {
+            return Result.Failure("El usuario no fue encontrado.", "USUARIO_NO_ENCONTRADO");
+        }
+
+        // Si ya está en el estado solicitado, no hay nada que hacer.
+        if (usuario.Activo == activo)
+        {
+            return Result.Success();
+        }
+
+        // Al inhabilitar un administrador, no permitir dejar el sistema sin admins activos.
+        if (!activo && usuario.Rol == Rol.Administrador)
+        {
+            var activeAdminCount = await _unitOfWork.Usuarios.CountActiveAdminsAsync();
+            if (activeAdminCount <= 1)
+            {
+                return Result.Failure(
+                    "No se puede inhabilitar el último Administrador activo del sistema.",
+                    "ULTIMO_ADMIN");
+            }
+        }
+
+        usuario.Activo = activo;
         _unitOfWork.Usuarios.Update(usuario);
         await _unitOfWork.SaveChangesAsync();
 

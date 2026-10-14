@@ -15,11 +15,18 @@
 }
 
 <div class="row mb-3">
-    <div class="col-md-6">
+    <div class="col-md-5">
         <input type="text" class="form-control" placeholder="Buscar por nombre, CUIT o email..."
                @bind="_searchTerm" @bind:event="oninput" @onkeyup="HandleSearchKeyUp" />
     </div>
-    <div class="col-md-6 text-end">
+    <div class="col-md-2">
+        <select class="form-select" @bind="_estadoFiltro" @bind:after="ApplyFilter">
+            <option value="activos">Activos</option>
+            <option value="inactivos">Inhabilitados</option>
+            <option value="todos">Todos</option>
+        </select>
+    </div>
+    <div class="col-md-5 text-end">
         <button class="btn btn-outline-primary me-2" @onclick="ApplyFilter">Buscar</button>
         <button class="btn btn-primary" @onclick="NavigateToCreate">Nuevo Proveedor</button>
     </div>
@@ -39,6 +46,7 @@ else
                 <th>Cond. IVA</th>
                 <th>Teléfono</th>
                 <th>Email</th>
+                <th>Estado</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -52,8 +60,18 @@ else
                     <td>@(string.IsNullOrEmpty(p.Telefono) ? "-" : p.Telefono)</td>
                     <td>@(string.IsNullOrEmpty(p.Email) ? "-" : p.Email)</td>
                     <td>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch"
+                                   checked="@p.Activo"
+                                   disabled="@(_togglingId == p.Id)"
+                                   @onchange="@(e => CambiarEstado(p, (bool)e.Value!))" />
+                            <span class="@(p.Activo ? "text-success" : "text-muted")">
+                                @(p.Activo ? "Habilitado" : "Inhabilitado")
+                            </span>
+                        </div>
+                    </td>
+                    <td>
                         <button class="btn btn-warning btn-sm" @onclick="() => NavigateToEdit(p.Id)">Editar</button>
-                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteProveedor(p)">Eliminar</button>
                     </td>
                 </tr>
             }
@@ -90,10 +108,12 @@ else
 @code {
     private List<ProveedorDto> _proveedores = new();
     private string? _searchTerm;
+    private string _estadoFiltro = "activos"; // activos | inactivos | todos
     private int _currentPage = 1;
     private int _totalPages;
-    private const int PageSize = 20;
+    private const int PageSize = 10;
     private bool _isLoading = true;
+    private int? _togglingId;
     private string? _errorMessage;
     private string? _successMessage;
 
@@ -117,6 +137,12 @@ else
 
             if (!string.IsNullOrWhiteSpace(_searchTerm))
                 queryParams.Add($"searchTerm={Uri.EscapeDataString(_searchTerm)}");
+
+            // Filtro de estado: activos (true), inactivos (false), todos (sin parámetro).
+            if (_estadoFiltro == "activos")
+                queryParams.Add("activo=true");
+            else if (_estadoFiltro == "inactivos")
+                queryParams.Add("activo=false");
 
             var url = $"api/proveedores?{string.Join("&", queryParams)}";
             var result = await Http.GetFromJsonAsync<PaginatedResult<ProveedorDto>>(url);
@@ -170,29 +196,39 @@ else
     private void NavigateToCreate() => Navigation.NavigateTo("/proveedores/crear");
     private void NavigateToEdit(int id) => Navigation.NavigateTo($"/proveedores/editar/{id}");
 
-    private async Task DeleteProveedor(ProveedorDto proveedor)
+    private async Task CambiarEstado(ProveedorDto proveedor, bool nuevoEstado)
     {
+        _togglingId = proveedor.Id;
         _errorMessage = null;
         _successMessage = null;
 
         try
         {
-            var response = await Http.DeleteAsync($"api/proveedores/{proveedor.Id}");
+            var request = new CambiarEstadoRequest { Activo = nuevoEstado };
+            var response = await Http.PatchAsJsonAsync($"api/proveedores/{proveedor.Id}/estado", request);
 
             if (response.IsSuccessStatusCode)
             {
-                _successMessage = $"Proveedor '{proveedor.Nombre}' eliminado exitosamente.";
+                _successMessage = nuevoEstado
+                    ? $"Proveedor '{proveedor.Nombre}' habilitado."
+                    : $"Proveedor '{proveedor.Nombre}' inhabilitado.";
                 await LoadProveedores();
             }
             else
             {
                 var errorResult = await ApiErrorParser.ParseAsync(response);
-                _errorMessage = errorResult.GeneralError ?? "Error al eliminar el proveedor.";
+                _errorMessage = errorResult.GeneralError ?? "No se pudo cambiar el estado del proveedor.";
+                await LoadProveedores();
             }
         }
         catch (Exception)
         {
             _errorMessage = "Error de conexión. Intente nuevamente.";
+            await LoadProveedores();
+        }
+        finally
+        {
+            _togglingId = null;
         }
     }
 }

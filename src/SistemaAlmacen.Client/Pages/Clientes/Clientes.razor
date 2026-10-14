@@ -14,19 +14,25 @@
     <div class="alert alert-success" role="alert">@_successMessage</div>
 }
 
-<div class="row mb-3">
-    <div class="col-md-5">
-        <input type="text" class="form-control" placeholder="Buscar por nombre, documento o email..."
-               @bind="_searchTerm" @bind:event="oninput" @onkeyup="HandleSearchKeyUp" />
-    </div>
-    <div class="col-md-3 form-check mt-2 ms-2">
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <input type="text" class="form-control" style="max-width: 320px;"
+           placeholder="Buscar por nombre, documento o email..."
+           @bind="_searchTerm" @bind:event="oninput" @onkeyup="HandleSearchKeyUp" />
+
+    <select class="form-select" style="max-width: 160px;" @bind="_estadoFiltro" @bind:after="ApplyFilter">
+        <option value="activos">Activos</option>
+        <option value="inactivos">Inhabilitados</option>
+        <option value="todos">Todos</option>
+    </select>
+
+    <div class="form-check mb-0">
         <input class="form-check-input" type="checkbox" id="soloCC" @bind="_soloCuentaCorriente" @bind:after="ApplyFilter" />
-        <label class="form-check-label" for="soloCC">Solo con cuenta corriente</label>
+        <label class="form-check-label" for="soloCC">Solo cta. cte.</label>
     </div>
-    <div class="col-md-3 text-end">
-        <button class="btn btn-outline-primary me-2" @onclick="ApplyFilter">Buscar</button>
-        <button class="btn btn-primary" @onclick="NavigateToCreate">Nuevo Cliente</button>
-    </div>
+
+    <button class="btn btn-outline-primary" @onclick="ApplyFilter">Buscar</button>
+
+    <button class="btn btn-primary ms-auto" @onclick="NavigateToCreate">Nuevo Cliente</button>
 </div>
 
 @if (_isLoading)
@@ -43,6 +49,7 @@ else
                 <th>Cond. IVA</th>
                 <th>Cta. Cte.</th>
                 <th class="text-end">Saldo</th>
+                <th>Estado</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -67,14 +74,26 @@ else
                         @(cliente.CuentaCorrienteHabilitada ? cliente.SaldoCuentaCorriente.ToString("C2") : "-")
                     </td>
                     <td>
-                        @if (cliente.CuentaCorrienteHabilitada)
-                        {
-                            <button class="btn btn-info btn-sm" @onclick="() => NavigateToCuentaCorriente(cliente.Id)">
-                                <i class="bi bi-wallet2"></i> Cta. Cte.
-                            </button>
-                        }
-                        <button class="btn btn-warning btn-sm" @onclick="() => NavigateToEdit(cliente.Id)">Editar</button>
-                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteCliente(cliente)">Eliminar</button>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch"
+                                   checked="@cliente.Activo"
+                                   disabled="@(_togglingId == cliente.Id)"
+                                   @onchange="@(e => CambiarEstado(cliente, (bool)e.Value!))" />
+                            <span class="@(cliente.Activo ? "text-success" : "text-muted")">
+                                @(cliente.Activo ? "Habilitado" : "Inhabilitado")
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-1">
+                            @if (cliente.CuentaCorrienteHabilitada)
+                            {
+                                <button class="btn btn-info btn-sm text-nowrap" @onclick="() => NavigateToCuentaCorriente(cliente.Id)">
+                                    <i class="bi bi-wallet2"></i> Cta. Cte.
+                                </button>
+                            }
+                            <button class="btn btn-warning btn-sm" @onclick="() => NavigateToEdit(cliente.Id)">Editar</button>
+                        </div>
                     </td>
                 </tr>
             }
@@ -112,10 +131,12 @@ else
     private List<ClienteDto> _clientes = new();
     private string? _searchTerm;
     private bool _soloCuentaCorriente;
+    private string _estadoFiltro = "activos"; // activos | inactivos | todos
     private int _currentPage = 1;
     private int _totalPages;
-    private const int PageSize = 20;
+    private const int PageSize = 10;
     private bool _isLoading = true;
+    private int? _togglingId;
     private string? _errorMessage;
     private string? _successMessage;
 
@@ -140,6 +161,12 @@ else
 
             if (!string.IsNullOrWhiteSpace(_searchTerm))
                 queryParams.Add($"searchTerm={Uri.EscapeDataString(_searchTerm)}");
+
+            // Filtro de estado: activos (true), inactivos (false), todos (sin parámetro).
+            if (_estadoFiltro == "activos")
+                queryParams.Add("activo=true");
+            else if (_estadoFiltro == "inactivos")
+                queryParams.Add("activo=false");
 
             var url = $"api/clientes?{string.Join("&", queryParams)}";
             var result = await Http.GetFromJsonAsync<PaginatedResult<ClienteDto>>(url);
@@ -194,29 +221,40 @@ else
     private void NavigateToEdit(int id) => Navigation.NavigateTo($"/clientes/editar/{id}");
     private void NavigateToCuentaCorriente(int id) => Navigation.NavigateTo($"/clientes/{id}/cuenta-corriente");
 
-    private async Task DeleteCliente(ClienteDto cliente)
+    private async Task CambiarEstado(ClienteDto cliente, bool nuevoEstado)
     {
+        _togglingId = cliente.Id;
         _errorMessage = null;
         _successMessage = null;
 
         try
         {
-            var response = await Http.DeleteAsync($"api/clientes/{cliente.Id}");
+            var request = new CambiarEstadoRequest { Activo = nuevoEstado };
+            var response = await Http.PatchAsJsonAsync($"api/clientes/{cliente.Id}/estado", request);
 
             if (response.IsSuccessStatusCode)
             {
-                _successMessage = $"Cliente '{cliente.Nombre}' eliminado exitosamente.";
+                _successMessage = nuevoEstado
+                    ? $"Cliente '{cliente.Nombre}' habilitado."
+                    : $"Cliente '{cliente.Nombre}' inhabilitado.";
                 await LoadClientes();
             }
             else
             {
+                // Falló: recargar para revertir el switch al estado real y mostrar el motivo.
                 var errorResult = await ApiErrorParser.ParseAsync(response);
-                _errorMessage = errorResult.GeneralError ?? "Error al eliminar el cliente.";
+                _errorMessage = errorResult.GeneralError ?? "No se pudo cambiar el estado del cliente.";
+                await LoadClientes();
             }
         }
         catch (Exception)
         {
             _errorMessage = "Error de conexión. Intente nuevamente.";
+            await LoadClientes();
+        }
+        finally
+        {
+            _togglingId = null;
         }
     }
 }
