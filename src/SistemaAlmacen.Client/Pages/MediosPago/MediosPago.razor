@@ -13,8 +13,17 @@
     <div class="alert alert-success">@_successMessage</div>
 }
 
-<div class="mb-3">
-    <button class="btn btn-primary" @onclick="ShowCreateForm">Nuevo Medio de Pago</button>
+<div class="row mb-3">
+    <div class="col-md-2">
+        <select class="form-select" @bind="_estadoFiltro" @bind:after="ApplyEstadoFilter">
+            <option value="activos">Activos</option>
+            <option value="inactivos">Inhabilitados</option>
+            <option value="todos">Todos</option>
+        </select>
+    </div>
+    <div class="col text-end">
+        <button class="btn btn-primary" @onclick="ShowCreateForm">Nuevo Medio de Pago</button>
+    </div>
 </div>
 
 @if (_showForm)
@@ -93,6 +102,7 @@ else
     private bool _showForm;
     private int? _editingId;
     private int? _togglingId;
+    private string _estadoFiltro = "activos"; // activos | inactivos | todos
     private string? _errorMessage;
     private string? _successMessage;
 
@@ -107,7 +117,14 @@ else
         _errorMessage = null;
         try
         {
-            _mediosPago = await Http.GetFromJsonAsync<List<MedioPagoDto>>("api/medios-pago/all");
+            // Filtro de estado: activos (true), inactivos (false), todos (sin parámetro).
+            var url = "api/medios-pago/all";
+            if (_estadoFiltro == "activos")
+                url += "?activo=true";
+            else if (_estadoFiltro == "inactivos")
+                url += "?activo=false";
+
+            _mediosPago = await Http.GetFromJsonAsync<List<MedioPagoDto>>(url);
         }
         catch (Exception)
         {
@@ -117,6 +134,11 @@ else
         {
             _isLoading = false;
         }
+    }
+
+    private async Task ApplyEstadoFilter()
+    {
+        await LoadMediosPago();
     }
 
     private void ShowCreateForm()

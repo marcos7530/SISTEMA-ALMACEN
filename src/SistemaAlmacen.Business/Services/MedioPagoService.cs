@@ -28,9 +28,12 @@ public class MedioPagoService : IMedioPagoService
     }
 
     /// <inheritdoc />
-    public async Task<List<MedioPagoDto>> GetAllAsync()
+    public async Task<List<MedioPagoDto>> GetAllAsync(bool? activo = null)
     {
         var mediosPago = await _unitOfWork.MediosPago.GetAllAsync();
+
+        if (activo.HasValue)
+            mediosPago = mediosPago.Where(mp => mp.Activo == activo.Value).ToList();
 
         return mediosPago
             .OrderBy(mp => mp.Nombre)

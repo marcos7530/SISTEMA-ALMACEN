@@ -33,13 +33,14 @@ public class MediosPagoController : ControllerBase
     }
 
     /// <summary>
-    /// Obtiene todos los medios de pago (activos e inactivos). Solo Administrador.
+    /// Obtiene los medios de pago ordenados por nombre. Sin filtro devuelve todos;
+    /// ?activo=true solo activos, ?activo=false solo inhabilitados. Solo Administrador.
     /// </summary>
     [HttpGet("all")]
     [Authorize(Policy = "RequireAdmin")]
-    public async Task<ActionResult<List<MedioPagoDto>>> GetAll()
+    public async Task<ActionResult<List<MedioPagoDto>>> GetAll([FromQuery] bool? activo)
     {
-        var mediosPago = await _medioPagoService.GetAllAsync();
+        var mediosPago = await _medioPagoService.GetAllAsync(activo);
         return Ok(mediosPago);
     }
 

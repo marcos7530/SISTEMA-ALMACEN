@@ -14,9 +14,10 @@ public interface IMedioPagoService
     Task<List<MedioPagoDto>> GetActivosAsync();
 
     /// <summary>
-    /// Obtiene todos los medios de pago (activos e inactivos) para vista de administración.
+    /// Obtiene todos los medios de pago para vista de administración ordenados por nombre.
     /// </summary>
-    Task<List<MedioPagoDto>> GetAllAsync();
+    /// <param name="activo">true solo activos, false solo inhabilitados, null todos.</param>
+    Task<List<MedioPagoDto>> GetAllAsync(bool? activo = null);
 
     /// <summary>
     /// Crea un nuevo medio de pago validando nombre (3-50 chars, no whitespace) y unicidad (case-insensitive entre todos).
