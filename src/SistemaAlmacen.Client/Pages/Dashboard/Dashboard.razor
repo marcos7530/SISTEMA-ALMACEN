@@ -89,7 +89,159 @@ else if (_data is not null)
         </div>
     </div>
 
-    <!-- Top productos del mes -->
+    <!-- Métricas de producto del mes -->
+    <div class="row g-3 mb-2">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase small text-muted">Producto más vendido del mes</h6>
+                    @if (_productoMasVendido is not null)
+                    {
+                        <p class="h5 mb-0">@_productoMasVendido.Nombre</p>
+                        <small class="text-muted">@_productoMasVendido.CantidadVendida unidades · @_productoMasVendido.Categoria</small>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Sin ventas este mes</p>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase small text-muted">Producto menos vendido del mes</h6>
+                    @if (_productoMenosVendido is not null)
+                    {
+                        <p class="h5 mb-0">@_productoMenosVendido.Nombre</p>
+                        <small class="text-muted">@_productoMenosVendido.CantidadVendida unidades · @_productoMenosVendido.Categoria</small>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Sin ventas este mes</p>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase small text-muted">Categorías con ventas en el mes</h6>
+                    <p class="h2 mb-0">@_categoriasDistintas</p>
+                    <small class="text-muted">Categorías distintas con unidades vendidas</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos: ventas 30 días + medios de pago -->
+    <div class="row g-3 mb-2">
+        <div class="col-md-8">
+            <div class="card h-100">
+                <div class="card-header">Ventas últimos 30 días</div>
+                <div class="card-body">
+                    @if (_serieVentasDias.Count > 0)
+                    {
+                        <ApexChart TItem="SerieDiaItem"
+                                   Options="_opcionesVentasDias"
+                                   Width="@("100%")"
+                                   Height="300">
+                            <ApexPointSeries TItem="SerieDiaItem"
+                                             Items="_serieVentasDias"
+                                             Name="Ventas"
+                                             SeriesType="SeriesType.Area"
+                                             XValue="@(e => e.Etiqueta)"
+                                             YValue="@(e => e.Monto)" />
+                        </ApexChart>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Sin datos de ventas para los últimos 30 días.</p>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">Ventas por medio de pago (mes)</div>
+                <div class="card-body">
+                    @if (_mediosPago.Count > 0)
+                    {
+                        <ApexChart TItem="DesgloseMedioPagoDto"
+                                   Options="_opcionesMediosPago"
+                                   Width="@("100%")"
+                                   Height="300">
+                            <ApexPointSeries TItem="DesgloseMedioPagoDto"
+                                             Items="_mediosPago"
+                                             Name="Total"
+                                             SeriesType="SeriesType.Donut"
+                                             XValue="@(e => e.MedioPago)"
+                                             YValue="@(e => e.Total)" />
+                        </ApexChart>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Sin ventas registradas este mes.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos: top productos + ventas por categoría -->
+    <div class="row g-3 mb-2">
+        <div class="col-md-8">
+            <div class="card h-100">
+                <div class="card-header">Top productos del mes</div>
+                <div class="card-body">
+                    @if (_topProductosMes.Count > 0)
+                    {
+                        <ApexChart TItem="ProductoMasVendidoDto"
+                                   Options="_opcionesTopProductos"
+                                   Width="@("100%")"
+                                   Height="350">
+                            <ApexPointSeries TItem="ProductoMasVendidoDto"
+                                             Items="_topProductosMes.Take(10).ToList()"
+                                             Name="Unidades vendidas"
+                                             SeriesType="SeriesType.Bar"
+                                             XValue="@(e => e.Nombre)"
+                                             YValue="@(e => e.CantidadVendida)" />
+                        </ApexChart>
+                    }
+                    else
+                    {
+                        <!-- Fallback de tabla cuando no hay datos para el gráfico -->
+                        <p class="text-muted mb-0">Aún no hay ventas registradas este mes.</p>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">Ventas por categoría (unidades)</div>
+                <div class="card-body">
+                    @if (_ventasPorCategoria.Count > 0)
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var c in _ventasPorCategoria.Take(8))
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <span>@c.Categoria</span>
+                                    <span class="badge bg-primary rounded-pill">@c.Unidades</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Sin ventas registradas este mes.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top productos del mes (tabla) -->
     <div class="card">
         <div class="card-header">Top 5 Productos del Mes</div>
         <div class="card-body">
@@ -128,13 +280,66 @@ else if (_data is not null)
 }
 
 @code {
+    // --- Paleta del proyecto (coincide con las CSS vars de app.css) ---
+    private const string ColorPrimary = "#1a237e";
+    private const string ColorPrimaryLight = "#3949ab";
+    private const string ColorAccent = "#00bfa5";
+    private const string ColorSuccess = "#10b981";
+    private const string ColorWarning = "#f59e0b";
+    private const string ColorDanger = "#ef4444";
+
     private DashboardData? _data;
     private bool _isLoading;
     private string? _errorMessage;
 
+    // --- Datos de gráficos / métricas de producto ---
+    private List<SerieDiaItem> _serieVentasDias = new();
+    private List<DesgloseMedioPagoDto> _mediosPago = new();
+    private List<ProductoMasVendidoDto> _topProductosMes = new();
+    private List<CategoriaUnidades> _ventasPorCategoria = new();
+    private ProductoMasVendidoDto? _productoMasVendido;
+    private ProductoMasVendidoDto? _productoMenosVendido;
+    private int _categoriasDistintas;
+
+    // --- Opciones de los gráficos ApexCharts ---
+    private ApexChartOptions<SerieDiaItem> _opcionesVentasDias = new();
+    private ApexChartOptions<DesgloseMedioPagoDto> _opcionesMediosPago = new();
+    private ApexChartOptions<ProductoMasVendidoDto> _opcionesTopProductos = new();
+
+    protected override void OnInitialized()
+    {
+        ConfigurarOpcionesGraficos();
+    }
+
     protected override async Task OnInitializedAsync()
     {
         await Cargar();
+    }
+
+    private void ConfigurarOpcionesGraficos()
+    {
+        _opcionesVentasDias = new ApexChartOptions<SerieDiaItem>
+        {
+            Colors = new List<string> { ColorPrimaryLight },
+            Chart = new Chart { Toolbar = new Toolbar { Show = false } },
+            Stroke = new Stroke { Curve = Curve.Smooth, Width = 2 }
+        };
+
+        _opcionesMediosPago = new ApexChartOptions<DesgloseMedioPagoDto>
+        {
+            Colors = new List<string> { ColorPrimary, ColorAccent, ColorWarning, ColorSuccess, ColorPrimaryLight, ColorDanger },
+            Legend = new Legend { Position = LegendPosition.Bottom }
+        };
+
+        _opcionesTopProductos = new ApexChartOptions<ProductoMasVendidoDto>
+        {
+            Colors = new List<string> { ColorAccent },
+            Chart = new Chart { Toolbar = new Toolbar { Show = false } },
+            PlotOptions = new PlotOptions
+            {
+                Bar = new PlotOptionsBar { Horizontal = true }
+            }
+        };
     }
 
     private async Task Cargar()
@@ -145,6 +350,8 @@ else if (_data is not null)
         try
         {
             _data = await Http.GetFromJsonAsync<DashboardData>("api/reportes/dashboard");
+
+            await CargarGraficos();
         }
         catch (Exception)
         {
@@ -154,6 +361,111 @@ else if (_data is not null)
         {
             _isLoading = false;
         }
+    }
+
+    private async Task CargarGraficos()
+    {
+        var hoy = DateTime.Today;
+
+        // Chart 1: últimos 30 días inclusive (today-29 .. today). 30 días << límite de 365.
+        var inicio30 = hoy.AddDays(-29);
+        // Charts 2 y 3 + métricas de producto: mes actual (día 1 .. hoy). <= 31 días << 365.
+        var inicioMes = new DateTime(hoy.Year, hoy.Month, 1);
+
+        // Formato yyyy-MM-dd para evitar ambigüedad de cultura (es-AR usaría dd/MM/yyyy) en el query string.
+        try
+        {
+            var ventas30 = await Http.GetFromJsonAsync<ReporteVentasDto>(
+                $"api/reportes/ventas?fechaInicio={inicio30:yyyy-MM-dd}&fechaFin={hoy:yyyy-MM-dd}");
+            _serieVentasDias = ConstruirSerie30Dias(ventas30, inicio30);
+        }
+        catch (Exception)
+        {
+            // Degradación: dejar la serie vacía, el gráfico muestra estado vacío.
+            _serieVentasDias = new();
+        }
+
+        try
+        {
+            var ventasMes = await Http.GetFromJsonAsync<ReporteVentasDto>(
+                $"api/reportes/ventas?fechaInicio={inicioMes:yyyy-MM-dd}&fechaFin={hoy:yyyy-MM-dd}");
+            _mediosPago = ventasMes?.DesgloseMediosPago ?? new();
+        }
+        catch (Exception)
+        {
+            _mediosPago = new();
+        }
+
+        try
+        {
+            // El endpoint devuelve hasta 50 productos ordenados DESC por cantidad vendida.
+            var productos = await Http.GetFromJsonAsync<List<ProductoMasVendidoDto>>(
+                $"api/reportes/productos-mas-vendidos?fechaInicio={inicioMes:yyyy-MM-dd}&fechaFin={hoy:yyyy-MM-dd}");
+            _topProductosMes = productos ?? new();
+        }
+        catch (Exception)
+        {
+            _topProductosMes = new();
+        }
+
+        CalcularMetricasProducto();
+    }
+
+    private static List<SerieDiaItem> ConstruirSerie30Dias(ReporteVentasDto? resp, DateTime inicio)
+    {
+        // Zero-fill: el DesgloseDiario sólo trae días con ventas; completamos los 30 días
+        // para que el eje temporal sea continuo.
+        var porFecha = resp?.DesgloseDiario.ToDictionary(d => d.Fecha.Date, d => d.Monto)
+                       ?? new Dictionary<DateTime, decimal>();
+
+        var serie = new List<SerieDiaItem>(30);
+        for (var i = 0; i < 30; i++)
+        {
+            var dia = inicio.AddDays(i).Date;
+            serie.Add(new SerieDiaItem
+            {
+                Etiqueta = dia.ToString("dd/MM"),
+                Monto = porFecha.TryGetValue(dia, out var m) ? m : 0m
+            });
+        }
+        return serie;
+    }
+
+    private void CalcularMetricasProducto()
+    {
+        // Todas las métricas de categoría/producto se calculan por UNIDADES vendidas
+        // (no por facturación): ProductoMasVendidoDto no tiene campo monetario por producto.
+        // La lista llega ordenada DESC (hasta 50 ítems), por eso First = más vendido y Last = menos vendido.
+        _productoMasVendido = _topProductosMes.FirstOrDefault();
+        _productoMenosVendido = _topProductosMes.LastOrDefault();
+
+        _ventasPorCategoria = _topProductosMes
+            .GroupBy(p => p.Categoria)
+            .Select(g => new CategoriaUnidades
+            {
+                Categoria = g.Key,
+                Unidades = g.Sum(p => p.CantidadVendida)
+            })
+            .OrderByDescending(c => c.Unidades)
+            .ToList();
+
+        _categoriasDistintas = _topProductosMes
+            .Select(p => p.Categoria)
+            .Distinct()
+            .Count();
+    }
+
+    // --- Tipos de apoyo para gráficos/listas ---
+    private class SerieDiaItem
+    {
+        public string Etiqueta { get; set; } = string.Empty;
+        public decimal Monto { get; set; }
+    }
+
+    private class CategoriaUnidades
+    {
+        public string Categoria { get; set; } = string.Empty;
+        public int Unidades { get; set; }
     }
 
     // --- Local DTOs ---

@@ -1,4 +1,5 @@
 using System.Globalization;
+using ApexCharts;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -29,5 +30,8 @@ builder.Services.AddScoped<AuthenticationStateProvider, JwtAuthenticationStatePr
 builder.Services.AddScoped<IConnectivityService, ConnectivityService>();
 builder.Services.AddScoped<IOfflineStorageService, OfflineStorageService>();
 builder.Services.AddScoped<ISyncEngine, SyncEngine>();
+
+// --- Charts (Blazor-ApexCharts) ---
+builder.Services.AddApexCharts();
 
 await builder.Build().RunAsync();
