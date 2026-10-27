@@ -55,6 +55,10 @@ public static class DataSeeder
 
             // Seed idempotente de ventas fiadas (cuenta corriente) para pruebas
             await SeedVentasFiadasAsync(context, logger);
+
+            // Seed idempotente de ventas de demostración para poblar el dashboard
+            // (muchas ventas distribuidas en los últimos 30 días, con productos y medios de pago variados)
+            await SeedDemoVentasAsync(context, logger);
         }
         catch (Exception ex)
         {
@@ -299,6 +303,291 @@ public static class DataSeeder
         logger.LogInformation(
             "Seed ventas fiadas: se crearon {Ventas} venta(s) a cuenta corriente y {Movimientos} movimiento(s) de cuenta corriente para pruebas.",
             ventas.Count, movimientos.Count);
+    }
+
+    /// <summary>
+    /// Siembra un volumen amplio de ventas de demostración distribuidas a lo largo de los
+    /// últimos 30 días (incluyendo el día actual) para que el dashboard muestre datos ricos
+    /// en todos sus gráficos: ventas por día, ventas por medio de pago, top de productos y
+    /// ventas por categoría.
+    ///
+    /// Es idempotente: solo se ejecuta si el mes en curso tiene pocas ventas de mostrador
+    /// (contado), de modo que no se acumulen ventas en cada reinicio de la aplicación pero
+    /// sí se pueble una base recién creada o casi vacía.
+    ///
+    /// Usa <see cref="DateTime.Now"/> (hora local) para las fechas, igual que el dashboard,
+    /// para que las ventas caigan en los mismos "buckets" de día/mes que consulta el reporte.
+    /// </summary>
+    private static async Task SeedDemoVentasAsync(ApplicationDbContext context, ILogger logger)
+    {
+        var ahora = DateTime.Now;
+        var inicioMes = new DateTime(ahora.Year, ahora.Month, 1);
+
+        // Idempotencia: contamos ventas de mostrador (sin cuenta corriente) confirmadas en el mes.
+        // Si ya hay un volumen razonable, no volvemos a sembrar.
+        var ventasMostradorMes = await context.Ventas
+            .Where(v => v.Fecha >= inicioMes
+                        && (v.Estado == EstadoVenta.Confirmada || v.Estado == EstadoVenta.PendienteFacturacion)
+                        && v.ClienteId == null)
+            .CountAsync();
+
+        if (ventasMostradorMes >= 30)
+        {
+            return;
+        }
+
+        await GenerarDemoVentasAsync(context, logger, descontarStock: true);
+    }
+
+    /// <summary>
+    /// Genera (sin guarda de idempotencia) un volumen amplio de ventas de demostración
+    /// distribuidas en los últimos 30 días: ventas de mostrador (<c>ClienteId == null</c>),
+    /// con detalles, pagos y comprobantes variados. Devuelve la cantidad de ventas creadas
+    /// (0 si no hay productos o usuarios activos para sembrar).
+    ///
+    /// Este método contiene el bloque de generación compartido por el arranque
+    /// (<see cref="SeedDemoVentasAsync"/>) y la regeneración bajo demanda
+    /// (<see cref="RegenerarDemoVentasAsync"/>).
+    /// </summary>
+    /// <param name="descontarStock">
+    /// Si es <c>true</c>, descuenta las cantidades vendidas de <c>Producto.Stock</c> (sin bajar
+    /// de 0), reflejando el movimiento de inventario. La regeneración restaura el stock de las
+    /// ventas borradas antes de volver a generar, de modo que el neto deje el stock consistente
+    /// y no derive a 0 en regeneraciones sucesivas.
+    /// </param>
+    private static async Task<int> GenerarDemoVentasAsync(ApplicationDbContext context, ILogger logger, bool descontarStock)
+    {
+        var ahora = DateTime.Now;
+
+        // Necesitamos productos y al menos un usuario para registrar las ventas.
+        var productos = await context.Productos
+            .Where(p => p.Activo)
+            .OrderBy(p => p.Id)
+            .ToListAsync();
+
+        if (productos.Count == 0)
+        {
+            logger.LogInformation("Seed demo ventas: no hay productos cargados. Se omite.");
+            return 0;
+        }
+
+        var usuarios = await context.Usuarios
+            .Where(u => u.Activo)
+            .OrderBy(u => u.Id)
+            .ToListAsync();
+
+        if (usuarios.Count == 0)
+        {
+            logger.LogInformation("Seed demo ventas: no hay usuarios cargados. Se omite.");
+            return 0;
+        }
+
+        // Medios de pago de contado disponibles (excluye cuenta corriente, que se siembra aparte).
+        var mediosPagoContado = await context.MediosPago
+            .Where(mp => mp.Activo && !mp.EsCuentaCorriente)
+            .Select(mp => mp.Id)
+            .ToListAsync();
+
+        if (mediosPagoContado.Count == 0)
+        {
+            mediosPagoContado = new List<int> { 1 }; // Efectivo como fallback
+        }
+
+        // Semilla fija para que la demo sea reproducible entre ejecuciones.
+        var random = new Random(20260101);
+
+        var ventasNuevas = new List<Venta>();
+        var detallesNuevos = new List<DetalleVenta>();
+        var pagosNuevos = new List<VentaPago>();
+        var comprobantesNuevos = new List<Comprobante>();
+
+        // Número de comprobante correlativo a partir del último existente.
+        long siguienteNroComprobante =
+            (await context.Comprobantes.MaxAsync(c => (long?)c.NumeroComprobante) ?? 0) + 1;
+
+        // Recorremos los últimos 30 días (incluyendo hoy) y generamos un número variable de
+        // ventas por día, para que la curva "Ventas últimos 30 días" tenga forma realista.
+        for (int diaOffset = 29; diaOffset >= 0; diaOffset--)
+        {
+            var dia = ahora.Date.AddDays(-diaOffset);
+
+            // Más ventas en fines de semana y una leve tendencia creciente hacia el presente.
+            var esFinDeSemana = dia.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+            var baseVentas = esFinDeSemana ? 5 : 3;
+            var impulsoReciente = (29 - diaOffset) / 10; // 0..2
+            var ventasDelDia = baseVentas + impulsoReciente + random.Next(0, 3);
+
+            for (int i = 0; i < ventasDelDia; i++)
+            {
+                var usuario = usuarios[random.Next(usuarios.Count)];
+
+                // Hora comercial (09:00 - 20:59) para que las ventas "de hoy" cuenten en el día.
+                var hora = 9 + random.Next(0, 12);
+                var minuto = random.Next(0, 60);
+                var fecha = dia.AddHours(hora).AddMinutes(minuto);
+
+                // Entre 1 y 5 líneas por venta, con productos distintos.
+                var cantidadLineas = random.Next(1, 6);
+                var productosElegidos = productos
+                    .OrderBy(_ => random.Next())
+                    .Take(cantidadLineas)
+                    .ToList();
+
+                var venta = new Venta
+                {
+                    UsuarioId = usuario.Id,
+                    ClienteId = null, // venta de mostrador (contado)
+                    Fecha = fecha,
+                    Total = 0m, // se calcula abajo
+                    Estado = EstadoVenta.Confirmada,
+                    FechaCreacion = fecha
+                };
+
+                decimal totalVenta = 0m;
+                foreach (var producto in productosElegidos)
+                {
+                    var cantidad = random.Next(1, 4);
+                    var subtotal = producto.Precio * cantidad;
+                    totalVenta += subtotal;
+
+                    detallesNuevos.Add(new DetalleVenta
+                    {
+                        Venta = venta,
+                        ProductoId = producto.Id,
+                        Cantidad = cantidad,
+                        PrecioUnitario = producto.Precio,
+                        Subtotal = subtotal
+                    });
+
+                    // Descontar stock de forma acotada (sin bajar de 0) para reflejar el movimiento.
+                    if (descontarStock)
+                    {
+                        producto.Stock = Math.Max(0, producto.Stock - cantidad);
+                    }
+                }
+
+                venta.Total = totalVenta;
+                ventasNuevas.Add(venta);
+
+                // Pago: la mayoría en un solo medio; algunas ventas combinan dos medios.
+                var medioPrincipal = mediosPagoContado[random.Next(mediosPagoContado.Count)];
+                bool pagoDividido = mediosPagoContado.Count > 1 && random.Next(0, 5) == 0;
+
+                if (pagoDividido)
+                {
+                    var mitad = Math.Round(totalVenta * 0.5m, 2);
+                    var segundoMedio = mediosPagoContado.First(m => m != medioPrincipal);
+                    pagosNuevos.Add(new VentaPago { Venta = venta, MedioPagoId = medioPrincipal, Monto = mitad });
+                    pagosNuevos.Add(new VentaPago { Venta = venta, MedioPagoId = segundoMedio, Monto = totalVenta - mitad });
+                }
+                else
+                {
+                    pagosNuevos.Add(new VentaPago { Venta = venta, MedioPagoId = medioPrincipal, Monto = totalVenta });
+                }
+
+                // ~70% de las ventas quedan facturadas (Factura B emitida), el resto sin comprobante.
+                if (random.Next(0, 10) < 7)
+                {
+                    comprobantesNuevos.Add(new Comprobante
+                    {
+                        Venta = venta,
+                        TipoComprobante = 6, // Factura B
+                        NumeroComprobante = siguienteNroComprobante++,
+                        CAE = "7" + random.NextInt64(1000000000000L, 9999999999999L),
+                        FechaVencimientoCAE = fecha.AddDays(10),
+                        Estado = EstadoComprobante.Emitido,
+                        FechaEmision = fecha
+                    });
+                }
+            }
+        }
+
+        context.Ventas.AddRange(ventasNuevas);
+        context.DetallesVenta.AddRange(detallesNuevos);
+        context.VentaPagos.AddRange(pagosNuevos);
+        context.Comprobantes.AddRange(comprobantesNuevos);
+        await context.SaveChangesAsync();
+
+        logger.LogInformation(
+            "Seed demo ventas: se crearon {Ventas} venta(s) de mostrador con {Detalles} línea(s), " +
+            "{Pagos} pago(s) y {Comprobantes} comprobante(s) distribuidos en los últimos 30 días.",
+            ventasNuevas.Count, detallesNuevos.Count, pagosNuevos.Count, comprobantesNuevos.Count);
+
+        return ventasNuevas.Count;
+    }
+
+    /// <summary>
+    /// Borra las ventas de demostración (de mostrador) del mes en curso con sus entidades
+    /// dependientes y las vuelve a generar. Pensado para invocarse bajo demanda desde el
+    /// Dashboard (botón "Regenerar datos demo"). Devuelve la cantidad de ventas creadas.
+    ///
+    /// A diferencia de <see cref="SeedDemoVentasAsync"/>, NO aplica la guarda de idempotencia:
+    /// siempre borra y regenera, que es justamente el objetivo del botón.
+    ///
+    /// Criterio de "venta demo del mes": mostrador (<c>ClienteId == null</c>), estados
+    /// Confirmada/PendienteFacturacion y <c>Fecha >= inicio del mes actual</c>. NO toca ventas
+    /// con cliente (cuenta corriente) ni ventas de meses anteriores.
+    /// </summary>
+    public static async Task<int> RegenerarDemoVentasAsync(ApplicationDbContext context, ILogger logger)
+    {
+        var ahora = DateTime.Now;
+        var inicioMes = new DateTime(ahora.Year, ahora.Month, 1);
+
+        // Cargamos las ventas demo del mes con sus dependientes para que EF las rastree.
+        var ventasDemo = await context.Ventas
+            .Where(v => v.Fecha >= inicioMes
+                        && (v.Estado == EstadoVenta.Confirmada || v.Estado == EstadoVenta.PendienteFacturacion)
+                        && v.ClienteId == null)
+            .Include(v => v.Detalles)
+            .Include(v => v.Pagos)
+            .Include(v => v.Comprobantes)
+            .ToListAsync();
+
+        // Restaurar el stock ANTES de borrar: sumamos las cantidades de los detalles a
+        // Producto.Stock. Como la generación vuelve a descontar (descontarStock: true), el neto
+        // deja el stock consistente en cada regeneración y evita que derive a 0 al repetir el
+        // botón (hallazgo HIGH de la revisión).
+        var detallesABorrar = ventasDemo.SelectMany(v => v.Detalles).ToList();
+        if (detallesABorrar.Count > 0)
+        {
+            var productoIds = detallesABorrar.Select(d => d.ProductoId).Distinct().ToList();
+            var productosPorId = await context.Productos
+                .Where(p => productoIds.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id);
+
+            foreach (var detalle in detallesABorrar)
+            {
+                if (productosPorId.TryGetValue(detalle.ProductoId, out var producto))
+                {
+                    producto.Stock += detalle.Cantidad;
+                }
+            }
+        }
+
+        // Borrado en orden de FK seguro. Nota: SÍ existe ON DELETE CASCADE de Detalles/Pagos/
+        // Comprobantes hacia Venta (VentaConfiguration), por lo que RemoveRange(ventasDemo)
+        // bastaría a nivel de base; se marcan las dependientes explícitamente para que el
+        // AuditoriaInterceptor registre cada baja (el cascade de la base no pasa por el
+        // ChangeTracker y no audita las dependientes).
+        //
+        // Seguridad de FK: las ventas con ClienteId == null NO tienen MovimientoCuentaCorriente
+        // asociado, por lo que la FK MovimientoCuentaCorriente -> Venta con OnDelete(Restrict)
+        // nunca se viola; el filtro ClienteId == null es la garantía.
+        context.DetallesVenta.RemoveRange(detallesABorrar);
+        context.VentaPagos.RemoveRange(ventasDemo.SelectMany(v => v.Pagos));
+        context.Comprobantes.RemoveRange(ventasDemo.SelectMany(v => v.Comprobantes));
+        context.Ventas.RemoveRange(ventasDemo);
+        await context.SaveChangesAsync();
+
+        // Regenerar descontando stock de forma coherente con el stock ya restaurado arriba.
+        var ventasCreadas = await GenerarDemoVentasAsync(context, logger, descontarStock: true);
+
+        logger.LogInformation(
+            "Regeneración demo: se borraron {Borradas} venta(s) de mostrador del mes y se crearon {Creadas}. " +
+            "Esto genera registros de auditoría (del orden de cientos) dentro de las transacciones de borrado y generación.",
+            ventasDemo.Count, ventasCreadas);
+
+        return ventasCreadas;
     }
 
     /// <summary>
