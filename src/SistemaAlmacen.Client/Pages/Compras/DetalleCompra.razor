@@ -40,7 +40,7 @@ else if (_compra is not null)
         <div class="card-body">
             <div class="row">
                 <div class="col-md-3"><strong>ID Compra:</strong> @_compra.Id</div>
-                <div class="col-md-3"><strong>Fecha:</strong> @_compra.Fecha.ToString("dd/MM/yyyy HH:mm")</div>
+                <div class="col-md-3"><strong>Fecha:</strong> @ArgentinaTimeZone.ToLocal(_compra.Fecha).ToString("dd/MM/yyyy HH:mm")</div>
                 <div class="col-md-3"><strong>Proveedor:</strong> @_compra.ProveedorNombre</div>
                 <div class="col-md-3">
                     <strong>Estado:</strong>

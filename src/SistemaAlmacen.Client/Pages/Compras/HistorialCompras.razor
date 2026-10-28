@@ -60,7 +60,7 @@ else if (_compras.Any())
             @foreach (var c in _compras)
             {
                 <tr>
-                    <td>@c.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@ArgentinaTimeZone.ToLocal(c.Fecha).ToString("dd/MM/yyyy HH:mm")</td>
                     <td>@c.ProveedorNombre</td>
                     <td>@(string.IsNullOrEmpty(c.NumeroComprobante) ? "-" : c.NumeroComprobante)</td>
                     <td>@c.CantidadItems</td>

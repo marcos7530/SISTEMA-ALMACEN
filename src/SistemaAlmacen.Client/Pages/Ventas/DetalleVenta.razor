@@ -46,7 +46,7 @@ else if (_venta is not null)
                     <strong>ID Venta:</strong> @_venta.Id
                 </div>
                 <div class="col-md-3">
-                    <strong>Fecha:</strong> @_venta.Fecha.ToString("dd/MM/yyyy HH:mm")
+                    <strong>Fecha:</strong> @ArgentinaTimeZone.ToLocal(_venta.Fecha).ToString("dd/MM/yyyy HH:mm")
                 </div>
                 <div class="col-md-3">
                     <strong>Vendedor:</strong> @_venta.Vendedor
