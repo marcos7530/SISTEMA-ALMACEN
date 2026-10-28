@@ -34,6 +34,14 @@ public interface IReporteService
     Task<List<ReporteInventarioDto>> GenerarReporteInventarioAsync();
 
     /// <summary>
+    /// Genera un listado de los productos activos que están agotados (stock ≤ 0)
+    /// o con stock bajo (stock positivo pero menor o igual a su mínimo efectivo),
+    /// reutilizando el umbral de stock bajo del dashboard.
+    /// </summary>
+    /// <returns>Lista de productos con estado "Agotado" o "Stock Bajo", ordenada por stock ascendente.</returns>
+    Task<List<ReporteStockBajoDto>> GenerarReporteStockBajoAsync();
+
+    /// <summary>
     /// Genera las métricas clave del negocio para el dashboard: ventas de hoy y del mes,
     /// stock bajo/agotados, valor de inventario, comprobantes pendientes y top de productos del mes.
     /// </summary>

@@ -149,6 +149,61 @@ public class ReporteService : IReporteService
     }
 
     /// <inheritdoc />
+    public async Task<List<ReporteStockBajoDto>> GenerarReporteStockBajoAsync()
+    {
+        var umbralStockBajo = _configuration.GetValue<int>("Dashboard:StockBajoUmbral", 5);
+
+        // Solo productos activos; se traen a memoria para aplicar la misma lógica
+        // de umbral que el dashboard (depende de una variable de configuración).
+        var productos = await _context.Productos
+            .AsNoTracking()
+            .Include(p => p.Categoria)
+            .Where(p => p.Activo)
+            .Select(p => new
+            {
+                p.Id,
+                p.Nombre,
+                Categoria = p.Categoria.Nombre,
+                p.Stock,
+                p.StockMinimo
+            })
+            .ToListAsync();
+
+        var resultado = productos
+            .Select(p =>
+            {
+                var minimo = p.StockMinimo > 0 ? p.StockMinimo : umbralStockBajo;
+                return new
+                {
+                    p.Id,
+                    p.Nombre,
+                    p.Categoria,
+                    p.Stock,
+                    p.StockMinimo,
+                    MinimoEfectivo = minimo,
+                    EsAgotado = p.Stock <= 0,
+                    EsStockBajo = p.Stock > 0 && p.Stock <= minimo
+                };
+            })
+            .Where(p => p.EsAgotado || p.EsStockBajo)
+            .OrderBy(p => p.Stock)
+            .ThenBy(p => p.Nombre)
+            .Select(p => new ReporteStockBajoDto
+            {
+                Id = p.Id,
+                Nombre = p.Nombre,
+                Categoria = p.Categoria,
+                Stock = p.Stock,
+                StockMinimo = p.StockMinimo,
+                MinimoEfectivo = p.MinimoEfectivo,
+                Estado = p.EsAgotado ? "Agotado" : "Stock Bajo"
+            })
+            .ToList();
+
+        return resultado;
+    }
+
+    /// <inheritdoc />
     public async Task<DashboardDto> GenerarDashboardAsync()
     {
         var umbralStockBajo = _configuration.GetValue<int>("Dashboard:StockBajoUmbral", 5);
@@ -267,6 +322,7 @@ public class ReporteService : IReporteService
             "ventas" => await ObtenerDatosVentasAsync(fechaInicio, fechaFin),
             "productos" => await ObtenerDatosProductosAsync(fechaInicio, fechaFin),
             "inventario" => await ObtenerDatosInventarioAsync(),
+            "stock-bajo" => await ObtenerDatosStockBajoAsync(),
             _ => throw new ArgumentException($"Tipo de reporte no soportado: {tipoReporte}")
         };
     }
@@ -318,6 +374,23 @@ public class ReporteService : IReporteService
         return (headers, rows);
     }
 
+    private async Task<(string[] Headers, List<string[]> Rows)> ObtenerDatosStockBajoAsync()
+    {
+        var stockBajo = await GenerarReporteStockBajoAsync();
+
+        var headers = new[] { "Producto", "Categoría", "Stock", "Stock Mínimo", "Estado" };
+        var rows = stockBajo.Select(p => new[]
+        {
+            p.Nombre,
+            p.Categoria,
+            p.Stock.ToString(),
+            p.MinimoEfectivo.ToString(),
+            p.Estado
+        }).ToList();
+
+        return (headers, rows);
+    }
+
     /// <summary>
     /// Genera un archivo CSV con BOM UTF-8.
     /// </summary>
@@ -362,9 +435,10 @@ public class ReporteService : IReporteService
     private static byte[] GenerarExcel(string[] headers, List<string[]> rows, string tipoReporte)
     {
         using var workbook = new XLWorkbook();
-        var worksheet = workbook.Worksheets.Add(tipoReporte.Length > 31
-            ? tipoReporte[..31]
-            : tipoReporte);
+        var nombreHoja = ObtenerTituloLegible(tipoReporte);
+        var worksheet = workbook.Worksheets.Add(nombreHoja.Length > 31
+            ? nombreHoja[..31]
+            : nombreHoja);
 
         // Encabezados
         for (var col = 0; col < headers.Length; col++)
@@ -408,8 +482,19 @@ public class ReporteService : IReporteService
 
                 page.Header().Text(text =>
                 {
-                    text.Span($"Reporte de {tipoReporte} — ").Bold().FontSize(14);
-                    text.Span($"{fechaInicio:dd/MM/yyyy} a {fechaFin:dd/MM/yyyy}").FontSize(12);
+                    text.Span($"Reporte de {ObtenerTituloLegible(tipoReporte)} — ").Bold().FontSize(14);
+
+                    // El inventario y el stock bajo reflejan el estado al momento de generarse,
+                    // no un rango de fechas. Los demás reportes usan el período solicitado.
+                    if (string.Equals(tipoReporte, "inventario", StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(tipoReporte, "stock-bajo", StringComparison.OrdinalIgnoreCase))
+                    {
+                        text.Span($"al {DateTime.Now:dd/MM/yyyy}").FontSize(12);
+                    }
+                    else
+                    {
+                        text.Span($"{fechaInicio:dd/MM/yyyy} a {fechaFin:dd/MM/yyyy}").FontSize(12);
+                    }
                 });
 
                 page.Content().PaddingVertical(10).Table(table =>
@@ -460,6 +545,19 @@ public class ReporteService : IReporteService
         document.GeneratePdf(stream);
         return stream.ToArray();
     }
+
+    /// <summary>
+    /// Devuelve el título legible de un tipo de reporte para encabezados de PDF y nombres de hoja de Excel,
+    /// evitando mostrar el identificador crudo (p. ej. "stock-bajo") al usuario.
+    /// </summary>
+    private static string ObtenerTituloLegible(string tipoReporte) => tipoReporte.ToLowerInvariant() switch
+    {
+        "ventas" => "Ventas",
+        "productos" => "Productos Más Vendidos",
+        "inventario" => "Inventario",
+        "stock-bajo" => "Stock Bajo",
+        _ => tipoReporte
+    };
 
     /// <summary>
     /// Valida que el rango de fechas no exceda el máximo permitido (365 días)

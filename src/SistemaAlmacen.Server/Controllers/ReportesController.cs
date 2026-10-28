@@ -88,6 +88,19 @@ public class ReportesController : ControllerBase
     }
 
     /// <summary>
+    /// Genera un reporte de los productos activos con stock bajo o agotados.
+    /// Acceso restringido a Administrador.
+    /// </summary>
+    [HttpGet("stock-bajo")]
+    [Authorize(Policy = "RequireAdmin")]
+    [ProducesResponseType(typeof(List<ReporteStockBajoDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<ReporteStockBajoDto>>> GetReporteStockBajo()
+    {
+        var result = await _reporteService.GenerarReporteStockBajoAsync();
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Devuelve las métricas clave del negocio para el dashboard principal.
     /// Acceso restringido a Administrador.
     /// </summary>
@@ -153,6 +166,13 @@ public class ReportesController : ControllerBase
             FormatoExportacion.CSV => "csv",
             _ => "bin"
         };
+
+        // El inventario y el stock bajo reflejan el estado al momento de generarse, no un rango de fechas.
+        if (string.Equals(request.TipoReporte, "inventario", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(request.TipoReporte, "stock-bajo", StringComparison.OrdinalIgnoreCase))
+        {
+            return $"{request.TipoReporte}_{DateTime.Now:yyyyMMdd}.{extension}";
+        }
 
         var fechaInicioStr = request.FechaInicio.ToString("yyyyMMdd");
         var fechaFinStr = request.FechaFin.ToString("yyyyMMdd");

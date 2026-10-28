@@ -24,6 +24,9 @@
     <li class="nav-item">
         <button class="nav-link @(_activeTab == "inventario" ? "active" : "")" @onclick='() => SetTab("inventario")'>Inventario</button>
     </li>
+    <li class="nav-item">
+        <button class="nav-link @(_activeTab == "stock-bajo" ? "active" : "")" @onclick='() => SetTab("stock-bajo")'>Stock Bajo</button>
+    </li>
 </ul>
 
 @if (_activeTab == "ventas" || _activeTab == "productos")
@@ -45,7 +48,9 @@
 else
 {
     <div class="mb-3">
-        <button class="btn btn-primary" @onclick="GenerateReport" disabled="@_isLoading">Generar Reporte de Inventario</button>
+        <button class="btn btn-primary" @onclick="GenerateReport" disabled="@_isLoading">
+            @(_activeTab == "stock-bajo" ? "Generar Reporte de Stock Bajo" : "Generar Reporte de Inventario")
+        </button>
     </div>
 }
 
@@ -175,6 +180,43 @@ else if (_reportGenerated)
             <p class="text-muted">No se encontraron productos registrados.</p>
         }
     }
+    else if (_activeTab == "stock-bajo" && _stockBajo != null)
+    {
+        @if (_stockBajo.Any())
+        {
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Categoría</th>
+                        <th>Stock Actual</th>
+                        <th>Stock Mínimo</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in _stockBajo)
+                    {
+                        <tr>
+                            <td>@item.Nombre</td>
+                            <td>@item.Categoria</td>
+                            <td>@item.Stock</td>
+                            <td>@item.MinimoEfectivo</td>
+                            <td>
+                                <span class="badge @(item.Estado == "Agotado" ? "bg-danger" : "bg-warning text-dark")">
+                                    @item.Estado
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-muted">No hay productos con stock bajo.</p>
+        }
+    }
 }
 
 @code {
@@ -190,6 +232,7 @@ else if (_reportGenerated)
     private ReporteVentasDto? _reporteVentas;
     private List<ProductoMasVendidoDto>? _productosMasVendidos;
     private List<ReporteInventarioDto>? _inventario;
+    private List<ReporteStockBajoDto>? _stockBajo;
 
     private void SetTab(string tab)
     {
@@ -219,6 +262,9 @@ else if (_reportGenerated)
                     break;
                 case "inventario":
                     _inventario = await Http.GetFromJsonAsync<List<ReporteInventarioDto>>("api/reportes/inventario");
+                    break;
+                case "stock-bajo":
+                    _stockBajo = await Http.GetFromJsonAsync<List<ReporteStockBajoDto>>("api/reportes/stock-bajo");
                     break;
             }
             _reportGenerated = true;
@@ -254,7 +300,10 @@ else if (_reportGenerated)
             if (response.IsSuccessStatusCode)
             {
                 var fileBytes = await response.Content.ReadAsByteArrayAsync();
-                var fileName = $"reporte_{_activeTab}_{_fechaInicio:yyyyMMdd}_{_fechaFin:yyyyMMdd}.{GetExtension(formato)}";
+                // El inventario y el stock bajo reflejan el estado al momento de generarse, no un rango de fechas.
+                var fileName = (_activeTab == "inventario" || _activeTab == "stock-bajo")
+                    ? $"reporte_{_activeTab}_{DateTime.Now:yyyyMMdd}.{GetExtension(formato)}"
+                    : $"reporte_{_activeTab}_{_fechaInicio:yyyyMMdd}_{_fechaFin:yyyyMMdd}.{GetExtension(formato)}";
                 await DownloadFile(fileBytes, fileName, response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream");
                 _successMessage = "Reporte exportado correctamente.";
             }
