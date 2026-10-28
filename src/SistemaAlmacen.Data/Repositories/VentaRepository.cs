@@ -4,6 +4,7 @@ using SistemaAlmacen.Data.Entities;
 using SistemaAlmacen.Shared.DTOs;
 using SistemaAlmacen.Shared.DTOs.Ventas;
 using SistemaAlmacen.Shared.Enums;
+using SistemaAlmacen.Shared.Common;
 
 namespace SistemaAlmacen.Data.Repositories;
 
@@ -45,17 +46,10 @@ public class VentaRepository : Repository<Venta>, IVentaRepository
             query = query.Where(v => v.UsuarioId == filter.VendedorId.Value);
         }
 
-        if (filter.FechaInicio.HasValue)
-        {
-            query = query.Where(v => v.Fecha >= filter.FechaInicio.Value);
-        }
-
-        if (filter.FechaFin.HasValue)
-        {
-            // Inclusive: incluir toda la fecha fin hasta el final del día
-            var fechaFinInclusive = filter.FechaFin.Value.Date.AddDays(1).AddTicks(-1);
-            query = query.Where(v => v.Fecha <= fechaFinInclusive);
-        }
+        // Las fechas de filtro llegan como día local de Argentina; se convierten al rango UTC
+        // equivalente para comparar contra v.Fecha (almacenada en UTC). Ver ArgentinaTimeZone.
+        var (inicioUtc, finUtc) = ArgentinaTimeZone.ToUtcRange(filter.FechaInicio, filter.FechaFin);
+        query = query.Where(v => v.Fecha >= inicioUtc && v.Fecha <= finUtc);
 
         var totalCount = await query.CountAsync();
 

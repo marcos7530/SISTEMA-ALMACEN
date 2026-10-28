@@ -3,6 +3,7 @@ using SistemaAlmacen.Data.Context;
 using SistemaAlmacen.Data.Entities;
 using SistemaAlmacen.Shared.DTOs;
 using SistemaAlmacen.Shared.DTOs.Compras;
+using SistemaAlmacen.Shared.Common;
 
 namespace SistemaAlmacen.Data.Repositories;
 
@@ -37,16 +38,10 @@ public class CompraRepository : Repository<Compra>, ICompraRepository
             query = query.Where(c => c.ProveedorId == filter.ProveedorId.Value);
         }
 
-        if (filter.FechaInicio.HasValue)
-        {
-            query = query.Where(c => c.Fecha >= filter.FechaInicio.Value);
-        }
-
-        if (filter.FechaFin.HasValue)
-        {
-            var fechaFinInclusive = filter.FechaFin.Value.Date.AddDays(1).AddTicks(-1);
-            query = query.Where(c => c.Fecha <= fechaFinInclusive);
-        }
+        // Las fechas de filtro llegan como día local de Argentina; se convierten al rango UTC
+        // equivalente para comparar contra c.Fecha (almacenada en UTC). Ver ArgentinaTimeZone.
+        var (inicioUtc, finUtc) = ArgentinaTimeZone.ToUtcRange(filter.FechaInicio, filter.FechaFin);
+        query = query.Where(c => c.Fecha >= inicioUtc && c.Fecha <= finUtc);
 
         var totalCount = await query.CountAsync();
 

@@ -4,6 +4,7 @@ using SistemaAlmacen.Data.Entities;
 using SistemaAlmacen.Shared.DTOs;
 using SistemaAlmacen.Shared.DTOs.Caja;
 using SistemaAlmacen.Shared.Enums;
+using SistemaAlmacen.Shared.Common;
 
 namespace SistemaAlmacen.Data.Repositories;
 
@@ -33,15 +34,10 @@ public class CajaRepository : Repository<Caja>, ICajaRepository
             .Include(c => c.Movimientos)
             .Where(c => c.Estado == EstadoCaja.Cerrada);
 
-        if (filter.FechaInicio.HasValue)
-        {
-            query = query.Where(c => c.FechaCierre >= filter.FechaInicio.Value);
-        }
-
-        if (filter.FechaFin.HasValue)
-        {
-            query = query.Where(c => c.FechaCierre <= filter.FechaFin.Value);
-        }
+        // Las fechas de filtro llegan como día local de Argentina; se convierten al rango UTC
+        // equivalente para comparar contra c.FechaCierre (almacenada en UTC). Ver ArgentinaTimeZone.
+        var (inicioUtc, finUtc) = ArgentinaTimeZone.ToUtcRange(filter.FechaInicio, filter.FechaFin);
+        query = query.Where(c => c.FechaCierre >= inicioUtc && c.FechaCierre <= finUtc);
 
         var totalCount = await query.CountAsync();
 
