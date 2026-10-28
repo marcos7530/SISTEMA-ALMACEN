@@ -1,0 +1,28 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Create the single Argentine-timezone source of truth and the centralized local<->UTC range helper in SistemaAlmacen.Shared, plus a unit test that reproduces the night-of-day-D bug scenario. This is the foundation every later feature depends on. Independent of FEAT-002 and FEAT-003 except that they consume its API, so it must land first.",
+  "status": "completed",
+  "steps": [
+    "Create src/SistemaAlmacen.Shared/Common/ArgentinaTimeZone.cs: a public static class in namespace SistemaAlmacen.Shared.Common holding the business time zone (America/Argentina/Buenos_Aires).",
+    "Resolve the TimeZoneInfo once (lazy static). Implement robust cross-platform resolution: try TimeZoneInfo.FindSystemTimeZoneById(\"America/Argentina/Buenos_Aires\") (IANA, Linux/macOS and modern Windows ICU), and on TimeZoneNotFoundException/InvalidTimeZoneException fall back to \"Argentina Standard Time\" (Windows id). Add a comment documenting why both ids are tried.",
+    "Expose TimeZoneInfo Instance { get; }.",
+    "Expose DateTime ToLocal(DateTime utc): normalize input with DateTime.SpecifyKind(utc, DateTimeKind.Utc) (values from EF are Kind=Unspecified but were written as UTC) and return TimeZoneInfo.ConvertTimeFromUtc(..., Instance). Document that it assumes the input is UTC.",
+    "Expose (DateTime inicioUtc, DateTime finUtc) ToUtcRange(DateTime? fechaInicioLocal, DateTime? fechaFinLocal): lower bound = fechaInicioLocal.Value.Date treated as Argentine local midnight converted to UTC, or DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc) when null; upper bound = (fechaFinLocal.Value.Date.AddDays(1).AddTicks(-1)) treated as Argentine local end-of-day converted to UTC, or DateTime.SpecifyKind(DateTime.MaxValue, DateTimeKind.Utc) when null. Convert with TimeZoneInfo.ConvertTimeToUtc(DateTime.SpecifyKind(x, DateTimeKind.Unspecified), Instance). Guard the MaxValue end-of-day conversion against overflow (if fechaFinLocal is null, return MaxValue directly without converting).",
+    "Create tests/SistemaAlmacen.Data.Tests/Common/ArgentinaTimeZoneTests.cs (Data.Tests already references Shared and xUnit+FluentAssertions). Use only explicit DateTime literals, never DateTime.Now/Today."
+  ],
+  "acceptance_criteria": [
+    "dotnet build SistemaAlmacen.slnx succeeds from the worktree root.",
+    "A test asserts that a sale at Argentine local D 22:00 (UTC D+1 01:00) satisfies inicioUtc <= saleUtc <= finUtc for ToUtcRange(D.AddDays(-7), D) — proving the reported bug is fixed at the helper level.",
+    "A test asserts a sale at Argentine local D 00:30 (UTC D 03:30) is >= inicioUtc when fechaInicio=D.",
+    "A test asserts null bounds yield UTC MinValue (lower) and UTC MaxValue (upper).",
+    "A test asserts ToLocal of a known UTC instant equals that instant minus 3 hours.",
+    "dotnet test SistemaAlmacen.slnx runs and all ArgentinaTimeZone tests pass."
+  ],
+  "verification": [
+    "Run `dotnet build SistemaAlmacen.slnx` from c:\\Users\\Marcos\\Desktop\\SISTEMA-ALMACEN\\.worktrees\\timezone-historial and confirm it succeeds.",
+    "Run `dotnet test SistemaAlmacen.slnx` and confirm the new ArgentinaTimeZoneTests pass with no other regressions."
+  ],
+  "blocked_reason": null,
+  "findings": "Helper created at src/SistemaAlmacen.Shared/Common/ArgentinaTimeZone.cs. Namespace: SistemaAlmacen.Shared.Common. Class: public static class ArgentinaTimeZone. API for consumers (FEAT-002/FEAT-003):\n- TimeZoneInfo ArgentinaTimeZone.Instance { get; } (lazy, resolves 'America/Argentina/Buenos_Aires' then falls back to 'Argentina Standard Time').\n- DateTime ArgentinaTimeZone.ToLocal(DateTime utc): normalizes Kind to Utc (EF returns Kind=Unspecified) and converts UTC->Argentina local. Use in Blazor/display to convert API-sourced UTC dates to local before formatting.\n- (DateTime inicioUtc, DateTime finUtc) ArgentinaTimeZone.ToUtcRange(DateTime? fechaInicioLocal, DateTime? fechaFinLocal): maps a local day range to the UTC range for filtering UTC-stored columns. Null fechaInicio => UTC MinValue; null fechaFin => UTC MaxValue. Lower = local midnight of fechaInicio.Date; upper = local end-of-day (Date.AddDays(1).AddTicks(-1)) of fechaFin.Date. Returned DateTimes carry Kind=Utc for the null sentinels and ConvertTimeToUtc output for the bounded cases. Repositories should replace the buggy '.Date.AddDays(1).AddTicks(-1)' UTC-column filters with these bounds (e.g. query.Where(v => v.Fecha >= inicioUtc && v.Fecha <= finUtc)).\nArgentina offset is a constant -3h (no DST). Verified: dotnet build + dotnet test both pass; 8 new ArgentinaTimeZone tests green, no regressions."
+}

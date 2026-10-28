@@ -8,6 +8,7 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SistemaAlmacen.Business.Interfaces;
 using SistemaAlmacen.Data.Context;
+using SistemaAlmacen.Shared.Common;
 using SistemaAlmacen.Shared.DTOs.Reportes;
 using SistemaAlmacen.Shared.Enums;
 
@@ -38,9 +39,9 @@ public class ReporteService : IReporteService
     {
         ValidarRangoFechas(fechaInicio, fechaFin);
 
-        // Normalizar fechas para incluir el día completo
-        var inicio = fechaInicio.Date;
-        var fin = fechaFin.Date.AddDays(1).AddTicks(-1);
+        // Las fechas llegan como día local de Argentina; se convierten al rango UTC
+        // equivalente para comparar contra v.Fecha (almacenada en UTC). Ver ArgentinaTimeZone.
+        var (inicio, fin) = ArgentinaTimeZone.ToUtcRange(fechaInicio, fechaFin);
 
         // Consultar ventas confirmadas (incluye PendienteFacturacion como confirmadas a nivel comercial)
         var ventasQuery = _context.Ventas
@@ -66,7 +67,7 @@ public class ReporteService : IReporteService
 
         // Desglose diario
         var desgloseDiario = ventas
-            .GroupBy(v => v.Fecha.Date)
+            .GroupBy(v => ArgentinaTimeZone.ToLocal(v.Fecha).Date)
             .Select(g => new DesgloseDiarioDto
             {
                 Fecha = g.Key,
@@ -105,9 +106,9 @@ public class ReporteService : IReporteService
     /// <inheritdoc />
     public async Task<List<ProductoMasVendidoDto>> GenerarReporteProductosAsync(DateTime fechaInicio, DateTime fechaFin)
     {
-        // Normalizar fechas
-        var inicio = fechaInicio.Date;
-        var fin = fechaFin.Date.AddDays(1).AddTicks(-1);
+        // Las fechas llegan como día local de Argentina; se convierten al rango UTC
+        // equivalente para comparar contra Venta.Fecha (almacenada en UTC). Ver ArgentinaTimeZone.
+        var (inicio, fin) = ArgentinaTimeZone.ToUtcRange(fechaInicio, fechaFin);
 
         var productosVendidos = await _context.DetallesVenta
             .AsNoTracking()
@@ -208,11 +209,14 @@ public class ReporteService : IReporteService
     {
         var umbralStockBajo = _configuration.GetValue<int>("Dashboard:StockBajoUmbral", 5);
 
-        var ahora = DateTime.Now;
-        var inicioHoy = ahora.Date;
-        var finHoy = inicioHoy.AddDays(1).AddTicks(-1);
-        var inicioMes = new DateTime(ahora.Year, ahora.Month, 1);
-        var finMes = inicioMes.AddMonths(1).AddTicks(-1);
+        // "Hoy" y "este mes" se calculan sobre la hora local de Argentina, pero las comparaciones
+        // se hacen contra v.Fecha (UTC), por lo que cada límite se convierte al rango UTC equivalente.
+        var ahora = ArgentinaTimeZone.ToLocal(DateTime.UtcNow);
+        var inicioMesLocal = new DateTime(ahora.Year, ahora.Month, 1);
+        var finMesLocal = inicioMesLocal.AddMonths(1).AddDays(-1);
+
+        var (inicioHoy, finHoy) = ArgentinaTimeZone.ToUtcRange(ahora.Date, ahora.Date);
+        var (inicioMes, finMes) = ArgentinaTimeZone.ToUtcRange(inicioMesLocal, finMesLocal);
 
         // Estados considerados como venta concretada (comercialmente).
         // Ventas de hoy
@@ -468,7 +472,7 @@ public class ReporteService : IReporteService
 
         // Subtítulo: fecha de generación (fila 2)
         var celdaSubtitulo = worksheet.Cell(2, 1);
-        celdaSubtitulo.Value = $"Generado el {DateTime.Now:dd/MM/yyyy HH:mm}";
+        celdaSubtitulo.Value = $"Generado el {ArgentinaTimeZone.ToLocal(DateTime.UtcNow):dd/MM/yyyy HH:mm}";
         worksheet.Range(2, 1, 2, numCols).Merge();
         celdaSubtitulo.Style.Font.Italic = true;
         celdaSubtitulo.Style.Font.FontSize = 9;
@@ -688,7 +692,7 @@ public class ReporteService : IReporteService
                         if (string.Equals(tipoReporte, "inventario", StringComparison.OrdinalIgnoreCase) ||
                             string.Equals(tipoReporte, "stock-bajo", StringComparison.OrdinalIgnoreCase))
                         {
-                            text.Span($"al {DateTime.Now:dd/MM/yyyy}").FontSize(12);
+                            text.Span($"al {ArgentinaTimeZone.ToLocal(DateTime.UtcNow):dd/MM/yyyy}").FontSize(12);
                         }
                         else
                         {

@@ -51,8 +51,8 @@ else
             @foreach (var cierre in _cierres)
             {
                 <tr>
-                    <td>@cierre.FechaApertura.ToString("dd/MM/yyyy HH:mm")</td>
-                    <td>@cierre.FechaCierre.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@ArgentinaTimeZone.ToLocal(cierre.FechaApertura).ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@ArgentinaTimeZone.ToLocal(cierre.FechaCierre).ToString("dd/MM/yyyy HH:mm")</td>
                     <td>$@cierre.MontoInicial.ToString("N2")</td>
                     <td>$@cierre.SaldoEsperado.ToString("N2")</td>
                     <td>$@cierre.MontoRealCierre.ToString("N2")</td>
@@ -101,7 +101,7 @@ else
                                             @foreach (var mov in cierre.Movimientos)
                                             {
                                                 <tr>
-                                                    <td>@mov.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                                                    <td>@ArgentinaTimeZone.ToLocal(mov.Fecha).ToString("dd/MM/yyyy HH:mm")</td>
                                                     <td>@GetTipoMovimientoLabel(mov.Tipo)</td>
                                                     <td class="@(EsIngreso(mov.Tipo) ? "text-success" : "text-danger")">
                                                         @(EsIngreso(mov.Tipo) ? "+" : "-")$@mov.Monto.ToString("N2")

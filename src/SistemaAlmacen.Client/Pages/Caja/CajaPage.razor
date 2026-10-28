@@ -18,7 +18,7 @@ else if (_cajaAbierta is not null)
         <div class="card-body">
             <p><strong>Punto de Venta:</strong> @_cajaAbierta.PuntoDeVentaId</p>
             <p><strong>Abierta por:</strong> @_cajaAbierta.UsuarioApertura</p>
-            <p><strong>Fecha de Apertura:</strong> @_cajaAbierta.FechaApertura.ToString("dd/MM/yyyy HH:mm")</p>
+            <p><strong>Fecha de Apertura:</strong> @ArgentinaTimeZone.ToLocal(_cajaAbierta.FechaApertura).ToString("dd/MM/yyyy HH:mm")</p>
             <p><strong>Monto Inicial:</strong> $@_cajaAbierta.MontoInicial.ToString("N2")</p>
         </div>
     </div>
@@ -49,7 +49,7 @@ else if (_cajaAbierta is not null)
                         @foreach (var mov in _movimientos)
                         {
                             <tr>
-                                <td>@mov.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@ArgentinaTimeZone.ToLocal(mov.Fecha).ToString("dd/MM/yyyy HH:mm")</td>
                                 <td>@GetTipoMovimientoLabel(mov.Tipo)</td>
                                 <td class="@(EsIngreso(mov.Tipo) ? "text-success" : "text-danger")">
                                     @(EsIngreso(mov.Tipo) ? "+" : "-")$@mov.Monto.ToString("N2")

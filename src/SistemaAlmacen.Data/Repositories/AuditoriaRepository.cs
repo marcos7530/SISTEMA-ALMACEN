@@ -3,6 +3,7 @@ using SistemaAlmacen.Data.Context;
 using SistemaAlmacen.Data.Entities;
 using SistemaAlmacen.Shared.DTOs;
 using SistemaAlmacen.Shared.DTOs.Auditoria;
+using SistemaAlmacen.Shared.Common;
 
 namespace SistemaAlmacen.Data.Repositories;
 
@@ -26,15 +27,10 @@ public class AuditoriaRepository : Repository<AuditoriaLog>, IAuditoriaRepositor
             query = query.Where(a => a.UsuarioId == filter.UsuarioId.Value);
         }
 
-        if (filter.FechaInicio.HasValue)
-        {
-            query = query.Where(a => a.Fecha >= filter.FechaInicio.Value);
-        }
-
-        if (filter.FechaFin.HasValue)
-        {
-            query = query.Where(a => a.Fecha <= filter.FechaFin.Value);
-        }
+        // Las fechas de filtro llegan como día local de Argentina; se convierten al rango UTC
+        // equivalente para comparar contra a.Fecha (almacenada en UTC). Ver ArgentinaTimeZone.
+        var (inicioUtc, finUtc) = ArgentinaTimeZone.ToUtcRange(filter.FechaInicio, filter.FechaFin);
+        query = query.Where(a => a.Fecha >= inicioUtc && a.Fecha <= finUtc);
 
         if (filter.TipoOperacion.HasValue)
         {

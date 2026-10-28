@@ -1,0 +1,28 @@
+{
+  "id": "FEAT-003",
+  "type": "fix",
+  "description": "Convert UTC to Argentine local at every Blazor date-display site so users see Argentine time instead of raw UTC. Depends on FEAT-001 (uses ArgentinaTimeZone.ToLocal). Independent of FEAT-002 in code, but ordered after it. Date-picker defaults stay browser-local; the yyyy-MM-dd values sent to the API stay unchanged (the backend now interprets them as Argentine local).",
+  "steps": [
+    "Add `@using SistemaAlmacen.Shared.Common` to each affected .razor (or to _Imports.razor once if present) and wrap each API-sourced date in ArgentinaTimeZone.ToLocal(...) before ToString.",
+    "src/SistemaAlmacen.Client/Pages/Ventas/HistorialVentas.razor: `@v.Fecha.ToString(\"dd/MM/yyyy HH:mm\")` -> `@ArgentinaTimeZone.ToLocal(v.Fecha).ToString(\"dd/MM/yyyy HH:mm\")`.",
+    "src/SistemaAlmacen.Client/Pages/Ventas/DetalleVenta.razor: convert `_venta.Fecha` the same way.",
+    "src/SistemaAlmacen.Client/Pages/Compras/HistorialCompras.razor: convert `c.Fecha`.",
+    "src/SistemaAlmacen.Client/Pages/Compras/DetalleCompra.razor: convert `_compra.Fecha`.",
+    "src/SistemaAlmacen.Client/Pages/Caja/CajaPage.razor: convert `_cajaAbierta.FechaApertura` and `mov.Fecha`.",
+    "src/SistemaAlmacen.Client/Pages/Caja/HistorialCierres.razor: convert `cierre.FechaApertura`, `cierre.FechaCierre`, and `mov.Fecha`.",
+    "src/SistemaAlmacen.Client/Pages/Reportes/Reportes.razor: `dia.Fecha` is already an Argentine-local day after FEAT-002, so format it directly (do NOT call ToLocal again). Leave the `_fechaInicio`/`_fechaFin` pickers and the `yyyy-MM-dd` query strings unchanged."
+  ],
+  "acceptance_criteria": [
+    "dotnet build SistemaAlmacen.slnx succeeds (Client compiles with the new @using and helper calls).",
+    "Every listed view formats API-sourced dates via ArgentinaTimeZone.ToLocal except Reportes.razor dia.Fecha (already local).",
+    "Date-picker defaults (DateTime.Today) and outbound yyyy-MM-dd filter strings are unchanged.",
+    "dotnet test SistemaAlmacen.slnx passes."
+  ],
+  "verification": [
+    "Run `dotnet build SistemaAlmacen.slnx` and confirm success.",
+    "Run `dotnet test SistemaAlmacen.slnx` and confirm all tests pass."
+  ],
+  "blocked_reason": null,
+  "status": "completed",
+  "findings": "Added `@using SistemaAlmacen.Shared.Common` once to src/SistemaAlmacen.Client/_Imports.razor (no per-file @using needed since the helper is now in scope for every .razor). Wrapped each API-sourced date in ArgentinaTimeZone.ToLocal(...) at the seven display sites: HistorialVentas.razor (v.Fecha), DetalleVenta.razor (_venta.Fecha), HistorialCompras.razor (c.Fecha), DetalleCompra.razor (_compra.Fecha), CajaPage.razor (_cajaAbierta.FechaApertura and mov.Fecha), and HistorialCierres.razor (cierre.FechaApertura, cierre.FechaCierre, mov.Fecha). Left Reportes.razor dia.Fecha formatted directly (already Argentine-local after FEAT-002, not double-converted) and left all date-picker defaults (DateTime.Today) and outbound yyyy-MM-dd filter strings unchanged. Verification: `dotnet build SistemaAlmacen.slnx` succeeded (only pre-existing NU19xx/CS86xx warnings, no errors); `dotnet test SistemaAlmacen.slnx` passed 25/25 tests with 0 failures."
+}
