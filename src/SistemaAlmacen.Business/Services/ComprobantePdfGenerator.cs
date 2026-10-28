@@ -84,6 +84,14 @@ public class ComprobantePdfGenerator
         {
             col.Item().Row(row =>
             {
+                // Logo de la aplicación (si está disponible)
+                var logo = LogoProvider.LogoPng;
+                if (logo is not null)
+                {
+                    row.ConstantItem(55).AlignTop().Image(logo).FitWidth();
+                    row.ConstantItem(10); // separación entre logo y datos del emisor
+                }
+
                 // Emisor
                 row.RelativeItem().Column(left =>
                 {

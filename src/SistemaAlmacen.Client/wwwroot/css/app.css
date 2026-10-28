@@ -145,11 +145,11 @@ main {
     gap: 2px;
 }
 
-.nav-item {
+.sidebar .nav-item {
     padding: 0 0.75rem;
 }
 
-.nav-item .nav-link {
+.sidebar .nav-item .nav-link {
     color: rgba(255,255,255,0.8);
     padding: 0.75rem 1rem;
     border-radius: var(--radius-sm);
@@ -163,25 +163,25 @@ main {
     text-decoration: none;
 }
 
-.nav-item .nav-link:hover {
+.sidebar .nav-item .nav-link:hover {
     background: rgba(255,255,255,0.1);
     color: #fff;
 }
 
-.nav-item .nav-link.active {
+.sidebar .nav-item .nav-link.active {
     background: rgba(255,255,255,0.15);
     color: #fff;
     font-weight: 600;
 }
 
-.nav-item .nav-link .bi {
+.sidebar .nav-item .nav-link .bi {
     font-size: 1.2rem;
     width: 1.5rem;
     text-align: center;
     flex-shrink: 0;
 }
 
-.nav-section-header {
+.sidebar .nav-section-header {
     color: rgba(255,255,255,0.4);
     font-size: 0.7rem;
     font-weight: 700;

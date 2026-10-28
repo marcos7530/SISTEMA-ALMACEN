@@ -429,40 +429,229 @@ public class ReporteService : IReporteService
         return value;
     }
 
+    // --- Estilo del Excel (coherente con la identidad visual de la app) ---
+    private const string ColorPrimario = "#1A237E";   // Azul oscuro (encabezado / título)
+    private const string ColorFilaPar = "#EEF1F8";     // Azul muy claro (zebra)
+    private const string ColorTotales = "#C5CAE9";     // Azul claro (fila de totales)
+    private const string ColorBorde = "#B0B6D0";       // Borde suave
+
     /// <summary>
-    /// Genera un archivo Excel (XLSX) usando ClosedXML.
+    /// Tipo de dato inferido para una columna, usado para aplicar el formato
+    /// correcto en el Excel (fecha, moneda, entero o texto).
+    /// </summary>
+    private enum TipoColumna { Texto, Fecha, Moneda, Entero }
+
+    /// <summary>
+    /// Genera un archivo Excel (XLSX) con un diseño profesional usando ClosedXML:
+    /// título, encabezado con color, filas alternadas, tipos de dato reales
+    /// (fecha / moneda / número), bordes, fila de totales y panel inmovilizado.
     /// </summary>
     private static byte[] GenerarExcel(string[] headers, List<string[]> rows, string tipoReporte)
     {
         using var workbook = new XLWorkbook();
         var nombreHoja = ObtenerTituloLegible(tipoReporte);
-        var worksheet = workbook.Worksheets.Add(nombreHoja.Length > 31
-            ? nombreHoja[..31]
-            : nombreHoja);
+        var worksheet = workbook.Worksheets.Add(nombreHoja.Length > 31 ? nombreHoja[..31] : nombreHoja);
 
-        // Encabezados
-        for (var col = 0; col < headers.Length; col++)
+        var numCols = headers.Length;
+        var tiposColumna = InferirTiposColumna(headers, rows);
+
+        // --- 1. Título del reporte (fila 1) ---
+        var celdaTitulo = worksheet.Cell(1, 1);
+        celdaTitulo.Value = $"Reporte de {nombreHoja}";
+        var rangoTitulo = worksheet.Range(1, 1, 1, numCols);
+        rangoTitulo.Merge();
+        celdaTitulo.Style.Font.Bold = true;
+        celdaTitulo.Style.Font.FontSize = 16;
+        celdaTitulo.Style.Font.FontColor = XLColor.FromHtml(ColorPrimario);
+        celdaTitulo.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+        worksheet.Row(1).Height = 24;
+
+        // Subtítulo: fecha de generación (fila 2)
+        var celdaSubtitulo = worksheet.Cell(2, 1);
+        celdaSubtitulo.Value = $"Generado el {DateTime.Now:dd/MM/yyyy HH:mm}";
+        worksheet.Range(2, 1, 2, numCols).Merge();
+        celdaSubtitulo.Style.Font.Italic = true;
+        celdaSubtitulo.Style.Font.FontSize = 9;
+        celdaSubtitulo.Style.Font.FontColor = XLColor.FromHtml("#6B7280");
+
+        // --- 2. Encabezados de la tabla (fila 4) ---
+        const int filaEncabezado = 4;
+        for (var col = 0; col < numCols; col++)
         {
-            var cell = worksheet.Cell(1, col + 1);
+            var cell = worksheet.Cell(filaEncabezado, col + 1);
             cell.Value = headers[col];
             cell.Style.Font.Bold = true;
+            cell.Style.Font.FontColor = XLColor.White;
+            cell.Style.Fill.BackgroundColor = XLColor.FromHtml(ColorPrimario);
+            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
         }
+        worksheet.Row(filaEncabezado).Height = 20;
 
-        // Datos
-        for (var row = 0; row < rows.Count; row++)
+        // --- 3. Filas de datos (con tipos reales y zebra) ---
+        var primeraFilaDatos = filaEncabezado + 1;
+        for (var r = 0; r < rows.Count; r++)
         {
-            for (var col = 0; col < rows[row].Length; col++)
+            var filaExcel = primeraFilaDatos + r;
+            for (var c = 0; c < rows[r].Length && c < numCols; c++)
             {
-                worksheet.Cell(row + 2, col + 1).Value = rows[row][col];
+                var cell = worksheet.Cell(filaExcel, c + 1);
+                AsignarValorTipado(cell, rows[r][c], tiposColumna[c]);
+            }
+
+            // Zebra: fondo suave en filas pares
+            if (r % 2 == 1)
+            {
+                worksheet.Range(filaExcel, 1, filaExcel, numCols)
+                    .Style.Fill.BackgroundColor = XLColor.FromHtml(ColorFilaPar);
             }
         }
 
-        // Autoajustar columnas
+        var ultimaFilaDatos = primeraFilaDatos + rows.Count - 1;
+
+        // --- 4. Fila de totales (suma de columnas de moneda / entero) ---
+        var filaTotales = 0;
+        if (rows.Count > 0)
+        {
+            filaTotales = ultimaFilaDatos + 1;
+            var rangoTotales = worksheet.Range(filaTotales, 1, filaTotales, numCols);
+            rangoTotales.Style.Font.Bold = true;
+            rangoTotales.Style.Fill.BackgroundColor = XLColor.FromHtml(ColorTotales);
+
+            worksheet.Cell(filaTotales, 1).Value = "TOTAL";
+
+            for (var c = 0; c < numCols; c++)
+            {
+                if (tiposColumna[c] is TipoColumna.Moneda or TipoColumna.Entero)
+                {
+                    var colLetra = worksheet.Cell(primeraFilaDatos, c + 1).Address.ColumnLetter;
+                    var formula = $"SUM({colLetra}{primeraFilaDatos}:{colLetra}{ultimaFilaDatos})";
+                    var cellTotal = worksheet.Cell(filaTotales, c + 1);
+                    cellTotal.FormulaA1 = formula;
+                    cellTotal.Style.NumberFormat.Format =
+                        tiposColumna[c] == TipoColumna.Moneda ? "$ #,##0.00" : "#,##0";
+                    cellTotal.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                }
+            }
+        }
+
+        // --- 5. Bordes alrededor de encabezado + datos + totales ---
+        var ultimaFilaTabla = filaTotales > 0 ? filaTotales : ultimaFilaDatos;
+        if (rows.Count > 0 || numCols > 0)
+        {
+            var rangoTabla = worksheet.Range(filaEncabezado, 1, Math.Max(ultimaFilaTabla, filaEncabezado), numCols);
+            rangoTabla.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            rangoTabla.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+            rangoTabla.Style.Border.OutsideBorderColor = XLColor.FromHtml(ColorBorde);
+            rangoTabla.Style.Border.InsideBorderColor = XLColor.FromHtml(ColorBorde);
+        }
+
+        // --- 6. Inmovilizar título + encabezado ---
+        worksheet.SheetView.FreezeRows(filaEncabezado);
+
+        // --- 7. Autoajustar columnas (con un mínimo cómodo) ---
         worksheet.Columns().AdjustToContents();
+        for (var col = 1; col <= numCols; col++)
+        {
+            if (worksheet.Column(col).Width < 12)
+                worksheet.Column(col).Width = 12;
+        }
 
         using var stream = new MemoryStream();
         workbook.SaveAs(stream);
         return stream.ToArray();
+    }
+
+    /// <summary>
+    /// Infiere el tipo de dato de cada columna analizando todos sus valores.
+    /// Una columna es Fecha/Moneda/Entero solo si TODOS sus valores no vacíos
+    /// encajan en ese tipo; de lo contrario se trata como Texto.
+    /// Los importes se generan con "F2" invariante, por eso se detectan como moneda
+    /// las columnas con decimales; los enteros puros (p. ej. Transacciones, Stock) como entero.
+    /// </summary>
+    private static TipoColumna[] InferirTiposColumna(string[] headers, List<string[]> rows)
+    {
+        var tipos = new TipoColumna[headers.Length];
+
+        for (var c = 0; c < headers.Length; c++)
+        {
+            bool tieneValores = false;
+            bool todosFecha = true, todosMoneda = true, todosEntero = true;
+
+            foreach (var fila in rows)
+            {
+                if (c >= fila.Length) continue;
+                var valor = fila[c];
+                if (string.IsNullOrWhiteSpace(valor)) continue;
+
+                tieneValores = true;
+
+                if (!DateTime.TryParseExact(valor, "yyyy-MM-dd",
+                        CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
+                    todosFecha = false;
+
+                var esDecimal = decimal.TryParse(valor, NumberStyles.Number,
+                    CultureInfo.InvariantCulture, out var numero);
+                if (!esDecimal)
+                {
+                    todosMoneda = false;
+                    todosEntero = false;
+                }
+                else if (numero != Math.Truncate(numero) || valor.Contains('.'))
+                {
+                    // Tiene parte decimal => se considera moneda, no entero.
+                    todosEntero = false;
+                }
+            }
+
+            tipos[c] = !tieneValores ? TipoColumna.Texto
+                : todosFecha ? TipoColumna.Fecha
+                : todosEntero ? TipoColumna.Entero
+                : todosMoneda ? TipoColumna.Moneda
+                : TipoColumna.Texto;
+        }
+
+        return tipos;
+    }
+
+    /// <summary>
+    /// Asigna el valor a la celda con el tipo y formato adecuados según la columna.
+    /// </summary>
+    private static void AsignarValorTipado(IXLCell cell, string valor, TipoColumna tipo)
+    {
+        if (string.IsNullOrWhiteSpace(valor))
+        {
+            cell.Value = string.Empty;
+            return;
+        }
+
+        switch (tipo)
+        {
+            case TipoColumna.Fecha when DateTime.TryParseExact(valor, "yyyy-MM-dd",
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, out var fecha):
+                cell.Value = fecha;
+                cell.Style.NumberFormat.Format = "dd/mm/yyyy";
+                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                break;
+
+            case TipoColumna.Moneda when decimal.TryParse(valor, NumberStyles.Number,
+                    CultureInfo.InvariantCulture, out var monto):
+                cell.Value = monto;
+                cell.Style.NumberFormat.Format = "$ #,##0.00";
+                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                break;
+
+            case TipoColumna.Entero when decimal.TryParse(valor, NumberStyles.Number,
+                    CultureInfo.InvariantCulture, out var entero):
+                cell.Value = entero;
+                cell.Style.NumberFormat.Format = "#,##0";
+                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                break;
+
+            default:
+                cell.Value = valor;
+                break;
+        }
     }
 
     /// <summary>
@@ -480,21 +669,32 @@ public class ReporteService : IReporteService
                 page.Size(PageSizes.A4.Landscape());
                 page.Margin(30);
 
-                page.Header().Text(text =>
+                page.Header().Row(headerRow =>
                 {
-                    text.Span($"Reporte de {ObtenerTituloLegible(tipoReporte)} — ").Bold().FontSize(14);
+                    // Logo de la aplicación (si está disponible)
+                    var logo = LogoProvider.LogoPng;
+                    if (logo is not null)
+                    {
+                        headerRow.ConstantItem(40).AlignMiddle().Image(logo).FitWidth();
+                        headerRow.ConstantItem(10); // separación entre logo y título
+                    }
 
-                    // El inventario y el stock bajo reflejan el estado al momento de generarse,
-                    // no un rango de fechas. Los demás reportes usan el período solicitado.
-                    if (string.Equals(tipoReporte, "inventario", StringComparison.OrdinalIgnoreCase) ||
-                        string.Equals(tipoReporte, "stock-bajo", StringComparison.OrdinalIgnoreCase))
+                    headerRow.RelativeItem().AlignMiddle().Text(text =>
                     {
-                        text.Span($"al {DateTime.Now:dd/MM/yyyy}").FontSize(12);
-                    }
-                    else
-                    {
-                        text.Span($"{fechaInicio:dd/MM/yyyy} a {fechaFin:dd/MM/yyyy}").FontSize(12);
-                    }
+                        text.Span($"Reporte de {ObtenerTituloLegible(tipoReporte)} — ").Bold().FontSize(14);
+
+                        // El inventario y el stock bajo reflejan el estado al momento de generarse,
+                        // no un rango de fechas. Los demás reportes usan el período solicitado.
+                        if (string.Equals(tipoReporte, "inventario", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(tipoReporte, "stock-bajo", StringComparison.OrdinalIgnoreCase))
+                        {
+                            text.Span($"al {DateTime.Now:dd/MM/yyyy}").FontSize(12);
+                        }
+                        else
+                        {
+                            text.Span($"{fechaInicio:dd/MM/yyyy} a {fechaFin:dd/MM/yyyy}").FontSize(12);
+                        }
+                    });
                 });
 
                 page.Content().PaddingVertical(10).Table(table =>
