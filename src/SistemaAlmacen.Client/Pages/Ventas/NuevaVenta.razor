@@ -25,6 +25,17 @@
 else
 {
     <!-- Cliente Section -->
+    @* La venta queda fija a Consumidor Final: se oculta la selección de cliente.
+       El buscador/selector de cliente queda deshabilitado en la UI (reactivable más adelante,
+       ver la Cliente Section original comentada abajo). *@
+    <div class="card mb-3">
+        <div class="card-header">Cliente</div>
+        <div class="card-body">
+            <span class="text-muted">Cliente: <strong>Consumidor Final</strong></span>
+        </div>
+    </div>
+
+    @* --- Cliente Section original (reactivable) ---
     <div class="card mb-3">
         <div class="card-header">Cliente @(RequiereCliente ? "(requerido para cuenta corriente)" : "(opcional)")</div>
         <div class="card-body">
@@ -75,6 +86,7 @@ else
             }
         </div>
     </div>
+    --- Fin Cliente Section original --- *@
 
     <div class="row">
         <!-- Product Selection -->
@@ -257,20 +269,21 @@ else
     private List<PagoItem> _pagos = new() { new PagoItem() };
     private List<MedioPagoItemDto> _mediosPago = new();
 
-    // Cliente
-    private string _busquedaCliente = string.Empty;
-    private List<ClienteItemDto> _clientesDisponibles = new();
-    private ClienteItemDto? _clienteSeleccionado;
+    // Cliente (deshabilitado en la UI: la venta es siempre a Consumidor Final; reactivable más adelante)
+    // private string _busquedaCliente = string.Empty;
+    // private List<ClienteItemDto> _clientesDisponibles = new();
+    // private ClienteItemDto? _clienteSeleccionado;
 
     private decimal SumaPagos => _pagos.Sum(p => p.Monto);
 
-    /// <summary>Indica si algún medio de pago elegido corresponde a cuenta corriente.</summary>
-    private bool RequiereCliente => _pagos.Any(p =>
-        _mediosPago.FirstOrDefault(m => m.Id == p.MedioPagoId)?.EsCuentaCorriente == true);
+    // RequiereCliente queda deshabilitado: ya no se ofrece el medio de cuenta corriente en la venta,
+    // por lo que nunca se requiere cliente. Se conserva comentado para reactivar cuenta corriente.
+    // /// <summary>Indica si algún medio de pago elegido corresponde a cuenta corriente.</summary>
+    // private bool RequiereCliente => _pagos.Any(p =>
+    //     _mediosPago.FirstOrDefault(m => m.Id == p.MedioPagoId)?.EsCuentaCorriente == true);
 
     private bool PagoValido => _pagos.All(p => p.MedioPagoId > 0 && p.Monto > 0)
-                               && Math.Abs(SumaPagos - _total) <= 0.01m
-                               && (!RequiereCliente || _clienteSeleccionado is not null);
+                               && Math.Abs(SumaPagos - _total) <= 0.01m;
 
     protected override async Task OnInitializedAsync()
     {
@@ -510,7 +523,8 @@ else
         try
         {
             var medios = await Http.GetFromJsonAsync<List<MedioPagoItemDto>>("api/medios-pago");
-            _mediosPago = medios ?? new();
+            // Solo medios al contado: se excluye la cuenta corriente de la venta (reactivable más adelante).
+            _mediosPago = medios?.Where(m => !m.EsCuentaCorriente).ToList() ?? new();
         }
         catch
         {
@@ -518,37 +532,39 @@ else
         }
     }
 
-    private async Task BuscarClientes(KeyboardEventArgs e)
-    {
-        if (string.IsNullOrWhiteSpace(_busquedaCliente) || _busquedaCliente.Length < 2)
-        {
-            _clientesDisponibles.Clear();
-            return;
-        }
-
-        try
-        {
-            var url = $"api/clientes?searchTerm={Uri.EscapeDataString(_busquedaCliente.Trim())}&pageSize=10";
-            var result = await Http.GetFromJsonAsync<PaginatedResultDto<ClienteItemDto>>(url);
-            _clientesDisponibles = result?.Items ?? new();
-        }
-        catch
-        {
-            _clientesDisponibles.Clear();
-        }
-    }
-
-    private void SeleccionarCliente(ClienteItemDto cliente)
-    {
-        _clienteSeleccionado = cliente;
-        _busquedaCliente = string.Empty;
-        _clientesDisponibles.Clear();
-    }
-
-    private void QuitarCliente()
-    {
-        _clienteSeleccionado = null;
-    }
+    // Selección de cliente deshabilitada en la UI (venta siempre a Consumidor Final).
+    // Métodos conservados y comentados para reactivar la selección de cliente más adelante.
+    // private async Task BuscarClientes(KeyboardEventArgs e)
+    // {
+    //     if (string.IsNullOrWhiteSpace(_busquedaCliente) || _busquedaCliente.Length < 2)
+    //     {
+    //         _clientesDisponibles.Clear();
+    //         return;
+    //     }
+    //
+    //     try
+    //     {
+    //         var url = $"api/clientes?searchTerm={Uri.EscapeDataString(_busquedaCliente.Trim())}&pageSize=10";
+    //         var result = await Http.GetFromJsonAsync<PaginatedResultDto<ClienteItemDto>>(url);
+    //         _clientesDisponibles = result?.Items ?? new();
+    //     }
+    //     catch
+    //     {
+    //         _clientesDisponibles.Clear();
+    //     }
+    // }
+    //
+    // private void SeleccionarCliente(ClienteItemDto cliente)
+    // {
+    //     _clienteSeleccionado = cliente;
+    //     _busquedaCliente = string.Empty;
+    //     _clientesDisponibles.Clear();
+    // }
+    //
+    // private void QuitarCliente()
+    // {
+    //     _clienteSeleccionado = null;
+    // }
 
     private void AgregarPago()
     {
@@ -575,7 +591,8 @@ else
             var request = new
             {
                 Pagos = _pagos.Select(p => new { p.MedioPagoId, p.Monto }).ToList(),
-                ClienteId = _clienteSeleccionado?.Id
+                // Venta siempre a Consumidor Final: no se envía cliente (venta de mostrador).
+                ClienteId = (int?)null
             };
 
             var response = await Http.PostAsJsonAsync($"api/ventas/{_ventaId}/confirmar", request);
@@ -588,9 +605,10 @@ else
                 _detalles.Clear();
                 _total = 0;
                 _pagos = new() { new PagoItem() };
-                _clienteSeleccionado = null;
-                _busquedaCliente = string.Empty;
-                _clientesDisponibles.Clear();
+                // Selección de cliente deshabilitada (venta siempre a Consumidor Final; reactivable).
+                // _clienteSeleccionado = null;
+                // _busquedaCliente = string.Empty;
+                // _clientesDisponibles.Clear();
                 // Iniciar automáticamente una nueva venta para el siguiente cliente
                 await IniciarVenta();
             }

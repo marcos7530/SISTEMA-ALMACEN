@@ -62,6 +62,8 @@ else
             </div>
         </div>
 
+        @* Sección de cuenta corriente deshabilitada en la UI (reactivable más adelante).
+           El modelo conserva CuentaCorrienteHabilitada (false) y LimiteCredito (0) por defecto.
         <div class="card mb-3">
             <div class="card-header">Cuenta Corriente (Fiado)</div>
             <div class="card-body">
@@ -80,6 +82,7 @@ else
                 }
             </div>
         </div>
+        *@
 
         <button type="submit" class="btn btn-primary" disabled="@_isSaving">
             @(_isSaving ? "Guardando..." : "Guardar")

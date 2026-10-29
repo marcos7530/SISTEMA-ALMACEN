@@ -25,10 +25,12 @@
         <option value="todos">Todos</option>
     </select>
 
+    @* Filtro de cuenta corriente deshabilitado en la UI (reactivable más adelante).
     <div class="form-check mb-0">
         <input class="form-check-input" type="checkbox" id="soloCC" @bind="_soloCuentaCorriente" @bind:after="ApplyFilter" />
         <label class="form-check-label" for="soloCC">Solo cta. cte.</label>
     </div>
+    *@
 
     <button class="btn btn-outline-primary" @onclick="ApplyFilter">Buscar</button>
 
@@ -47,8 +49,10 @@ else
                 <th>Nombre</th>
                 <th>Documento</th>
                 <th>Cond. IVA</th>
+                @* Columnas de cuenta corriente deshabilitadas en la UI (reactivables más adelante).
                 <th>Cta. Cte.</th>
                 <th class="text-end">Saldo</th>
+                *@
                 <th>Estado</th>
                 <th>Acciones</th>
             </tr>
@@ -60,6 +64,7 @@ else
                     <td>@cliente.Nombre</td>
                     <td>@(string.IsNullOrEmpty(cliente.Documento) ? "-" : cliente.Documento)</td>
                     <td>@FormatCondicionIva(cliente.CondicionIva)</td>
+                    @* Celdas de cuenta corriente deshabilitadas en la UI (reactivables más adelante).
                     <td>
                         @if (cliente.CuentaCorrienteHabilitada)
                         {
@@ -73,6 +78,7 @@ else
                     <td class="text-end @(cliente.SaldoCuentaCorriente > 0 ? "text-danger fw-bold" : "")">
                         @(cliente.CuentaCorrienteHabilitada ? cliente.SaldoCuentaCorriente.ToString("C2") : "-")
                     </td>
+                    *@
                     <td>
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" role="switch"
@@ -86,12 +92,14 @@ else
                     </td>
                     <td>
                         <div class="d-flex gap-1">
+                            @* Acceso a cuenta corriente deshabilitado en la UI (reactivable más adelante).
                             @if (cliente.CuentaCorrienteHabilitada)
                             {
                                 <button class="btn btn-info btn-sm text-nowrap" @onclick="() => NavigateToCuentaCorriente(cliente.Id)">
                                     <i class="bi bi-wallet2"></i> Cta. Cte.
                                 </button>
                             }
+                            *@
                             <button class="btn btn-warning btn-sm" @onclick="() => NavigateToEdit(cliente.Id)">Editar</button>
                         </div>
                     </td>
@@ -130,7 +138,8 @@ else
 @code {
     private List<ClienteDto> _clientes = new();
     private string? _searchTerm;
-    private bool _soloCuentaCorriente;
+    // Filtro de cuenta corriente deshabilitado en la UI (reactivable más adelante).
+    // private bool _soloCuentaCorriente;
     private string _estadoFiltro = "activos"; // activos | inactivos | todos
     private int _currentPage = 1;
     private int _totalPages;
@@ -156,7 +165,8 @@ else
             {
                 $"page={_currentPage}",
                 $"pageSize={PageSize}",
-                $"soloCuentaCorriente={_soloCuentaCorriente.ToString().ToLower()}"
+                // Filtro de cuenta corriente deshabilitado en la UI: siempre false (reactivable).
+                "soloCuentaCorriente=false"
             };
 
             if (!string.IsNullOrWhiteSpace(_searchTerm))
