@@ -1,0 +1,45 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    {
+      "id": 1,
+      "severity": "MEDIUM",
+      "title": "Cambio a GenerarPdf no está cubierto por ningún requisito (scope / trazabilidad)",
+      "location": "02-design.md, seccion 4 (Exportacion), ampliacion de la condicion de GenerarPdf",
+      "problem": "RF5 solo autoriza dos puntos de toque (ObtenerDatosReporteAsync y GenerateFileName). El diseño introduce un tercer cambio sobre codigo existente en GenerarPdf, no mencionado por ningun requisito. Verificado: GenerarPdf hoy ramifica solo por 'inventario', asi que sin el cambio el PDF de stock-bajo mostraria el rango de fechas por defecto del cliente (espurio). El cambio es correcto pero queda fuera del alcance escrito, creando ambiguedad sobre si debe aplicarse.",
+      "fix": "Confirmar que el ajuste esta en alcance y documentarlo como sub-item de RF5: ampliar la condicion de GenerarPdf para incluir 'stock-bajo' (OrdinalIgnoreCase) junto a 'inventario', de modo que el PDF no muestre rango de fechas espurio."
+    },
+    {
+      "id": 2,
+      "severity": "MEDIUM",
+      "title": "Titulo del PDF / nombre de hoja Excel renderiza el tipo crudo 'stock-bajo', no especificado",
+      "location": "02-design.md, seccion 4; interaccion con GenerarPdf (Reporte de {tipoReporte}) y GenerarExcel (nombre de hoja = tipoReporte)",
+      "problem": "Verificado en ReporteService.cs: el encabezado del PDF se arma como 'Reporte de {tipoReporte}' y el nombre de hoja Excel es tipoReporte, por lo que el archivo mostrara literalmente 'stock-bajo' (con guion) al usuario. El requisito no define el rotulo del reporte exportado. Es coherente con inventario (no es regresion) pero es una decision de presentacion no especificada que el implementador resolvera por omision.",
+      "fix": "Decidir explicitamente: (a) aceptar el literal 'stock-bajo' como esta, coherente con inventario y sin codigo extra (recomendado); o (b) mapear a una etiqueta legible 'Stock Bajo' tocando GenerarPdf/GenerarExcel, lo que amplia alcance y rompe simetria con inventario."
+    },
+    {
+      "id": 3,
+      "severity": "NIT",
+      "title": "La nota 'agotados primero' con OrderBy(Stock) puede leerse como bloque indistinto",
+      "location": "02-design.md, seccion 3, nota de ordenamiento; criterio de aceptacion 5",
+      "problem": "OrderBy(Stock).ThenBy(Nombre) es correcto y conforme al criterio 5, pero entre agotados con stock negativo distintos (-3 vs 0) se subordenan por su valor de stock. La redaccion 'quedan primero naturalmente' podria sugerir un bloque indistinto.",
+      "fix": "Ningun cambio de codigo. Opcional: aclarar la nota a 'los agotados quedan primero por tener el stock mas bajo, subordenados entre si por su valor de stock y luego por nombre'."
+    },
+    {
+      "id": 4,
+      "severity": "NIT",
+      "title": "Badge del frontend decide por igualdad de string del Estado",
+      "location": "02-design.md, seccion 6, badge item.Estado == 'Agotado'",
+      "problem": "El badge compara el literal 'Agotado'. El acople es seguro hoy (mismo origen que EsAgotado) pero fragil ante cambios futuros del literal. Acorde al requisito de no introducir patrones nuevos.",
+      "fix": "Ninguno obligatorio. Opcional: derivar el badge de item.Stock <= 0 en vez del string para desacoplar de la etiqueta."
+    },
+    {
+      "id": 5,
+      "severity": "NIT",
+      "title": "Seccion 'Respuesta a la revision de diseño' es metadata de proceso",
+      "location": "02-design.md, ultima seccion",
+      "problem": "Correcta y verificable, pero es metadata del proceso y no afecta la implementacion. No es un defecto tecnico.",
+      "fix": "Ninguno. Se puede dejar como esta."
+    }
+  ]
+}

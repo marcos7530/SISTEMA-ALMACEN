@@ -37,8 +37,7 @@ public class ProductoRepository : Repository<Producto>, IProductoRepository
             var term = filter.SearchTerm.ToLower();
             query = query.Where(p =>
                 p.Nombre.ToLower().Contains(term) ||
-                (p.CodigoBarras != null && p.CodigoBarras.ToLower().Contains(term)) ||
-                p.Categoria.Nombre.ToLower().Contains(term));
+                (p.CodigoBarras != null && p.CodigoBarras.ToLower().Contains(term)));
         }
 
         var totalCount = await query.CountAsync();

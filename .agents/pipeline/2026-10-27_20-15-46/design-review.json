@@ -1,0 +1,61 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    {
+      "id": 1,
+      "severity": "HIGH",
+      "location": "Método público de regeneración (Data), paso 4; Edge cases",
+      "problem": "GenerarDemoVentasAsync decrementa Producto.Stock (producto.Stock = Math.Max(0, producto.Stock - cantidad)). En el arranque corre una sola vez, pero el botón de regeneración se ejecuta repetidamente: cada clic borra las ventas demo sin devolver el stock y vuelve a descontarlo, por lo que el stock de productos deriva a la baja en cada regeneración y corrompe las métricas de inventario del dashboard (Productos Agotados, Stock Bajo, Inventario costo/venta).",
+      "fix": "Antes del RemoveRange, restaurar el stock sumando las cantidades de los detalles cargados (productosPorId[det.ProductoId].Stock += det.Cantidad), o parametrizar GenerarDemoVentasAsync con un flag descontarStock=false en la ruta de regeneración. Documentar la decisión y su efecto sobre las métricas."
+    },
+    {
+      "id": 2,
+      "severity": "MEDIUM",
+      "location": "Método público de regeneración (Data), paso 3",
+      "problem": "El diseño justifica el borrado explícito con 'evita suponer que exista ON DELETE CASCADE', pero VentaConfiguration.cs y el ModelSnapshot muestran que Detalles, Pagos y Comprobantes SÍ tienen OnDelete(DeleteBehavior.Cascade) hacia Venta. La afirmación es falsa y oculta la razón real por la que conviene borrar vía EF.",
+      "fix": "Corregir el texto: existe cascade, por lo que RemoveRange(ventasDemo) bastaría; se marcan las dependientes explícitamente para que el AuditoriaInterceptor registre cada borrado (el cascade de la base no pasa por el ChangeTracker ni audita las dependientes)."
+    },
+    {
+      "id": 3,
+      "severity": "MEDIUM",
+      "location": "Invariantes; Método público de regeneración (Data)",
+      "problem": "El diseño afirma la seguridad del borrado como invariante pero no analiza la FK MovimientoCuentaCorriente -> Venta, que es la única con OnDelete(Restrict) apuntando a Venta. Si una venta seleccionada tuviera un movimiento de CC, el SaveChanges lanzaría DbUpdateException (500). En la práctica el filtro ClienteId == null lo evita, pero el hueco de análisis no está documentado.",
+      "fix": "Agregar una frase explícita: las ventas con ClienteId == null no tienen MovimientoCuentaCorriente asociado, por lo que la FK Restrict nunca se viola; el filtro ClienteId == null es la garantía. Opcionalmente verificar la ausencia de movimientos de CC antes de borrar."
+    },
+    {
+      "id": 4,
+      "severity": "MEDIUM",
+      "location": "Botón y modal (ConfirmarRegeneracion / RegenerarResult)",
+      "problem": "El servidor devuelve un objeto anónimo camelCase ({ ventasCreadas, mensaje }) y el cliente deserializa a un DTO PascalCase (VentasCreadas, Mensaje). El diseño da por hecho que funciona pero no lo afirma ni justifica; depende implícitamente de que ReadFromJsonAsync use defaults Web (case-insensitive). Si no lo fuera, el mensaje de éxito mostraría 0 ventas silenciosamente (incumpliendo el criterio 16).",
+      "fix": "Documentar la dependencia de los defaults Web case-insensitive y/o anotar el DTO con [JsonPropertyName(\"ventasCreadas\")] y [JsonPropertyName(\"mensaje\")], o alinear los nombres del objeto de respuesta del servidor con el DTO del cliente."
+    },
+    {
+      "id": 5,
+      "severity": "NIT",
+      "location": "ConfirmarRegeneracion; Elección del código para el gating",
+      "problem": "La rama HttpStatusCode.NotFound del cliente nunca se ejecuta: el gating usa 403 y la ruta existe (no cae en el fallback SPA). Es código defensivo por S-2, válido, pero no está señalado como tal.",
+      "fix": "Mantener la rama y comentar en el diseño que el servidor solo emite 403 para el gating y que la rama 404 es puramente defensiva por S-2."
+    },
+    {
+      "id": 6,
+      "severity": "NIT",
+      "location": "Refactorización del seeder",
+      "problem": "El texto dice 'La firma pública de SeedDemoVentasAsync no cambia (sigue siendo private static async Task)'. 'Firma pública' es contradictorio: el método es private.",
+      "fix": "Cambiar a 'La firma de SeedDemoVentasAsync no cambia (sigue siendo private static async Task) y SeedAsync lo sigue invocando igual.'"
+    },
+    {
+      "id": 7,
+      "severity": "NIT",
+      "location": "DemoController de ejemplo ([ProducesResponseType])",
+      "problem": "El contrato OpenAPI declara solo 200 y 403, pero el manejo de errores describe 500 (GlobalExceptionMiddleware, verificado) y 401 (no autenticado). No afecta el comportamiento, solo la documentación del endpoint.",
+      "fix": "Agregar opcionalmente [ProducesResponseType(StatusCodes.Status401Unauthorized)] y [ProducesResponseType(StatusCodes.Status500InternalServerError)]."
+    },
+    {
+      "id": 8,
+      "severity": "NIT",
+      "location": "Interacción con el AuditoriaInterceptor",
+      "problem": "El diseño acepta el ruido de auditoría (permitido por requisito) pero no cuantifica que una regeneración genera del orden de cientos de registros AuditoriaLog (borrado + alta de ventas, detalles y comprobantes) dentro de las transacciones de los dos SaveChangesAsync.",
+      "fix": "Añadir una nota indicando el orden de magnitud del ruido de auditoría y que ocurre dentro de las transacciones de borrado y generación."
+    }
+  ]
+}
