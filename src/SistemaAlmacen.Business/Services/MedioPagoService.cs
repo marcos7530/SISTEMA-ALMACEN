@@ -24,7 +24,12 @@ public class MedioPagoService : IMedioPagoService
     {
         var mediosPago = await _unitOfWork.MediosPago.GetActivosAsync();
 
-        return mediosPago.Select(MapToDto).ToList();
+        // REACTIVAR CUENTA CORRIENTE: quitar este filtro .Where(!EsCuentaCorriente) para volver a ofrecer el
+        // medio "Cuenta Corriente" en la venta. Se filtra aquí (no en BD) para no tocar el seed de migración.
+        return mediosPago
+            .Where(mp => !mp.EsCuentaCorriente)
+            .Select(MapToDto)
+            .ToList();
     }
 
     /// <inheritdoc />

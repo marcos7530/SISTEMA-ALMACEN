@@ -254,6 +254,9 @@ public class VentaService : IVentaService
                 }
             }
 
+            // REACTIVAR CAJA: descomentar este bloque para volver a exigir caja abierta en pagos en efectivo.
+            // Desactivado temporalmente para permitir ventas en efectivo sin caja abierta.
+            /*
             if (montoEfectivo > 0)
             {
                 // Verificar que hay caja abierta (puntoDeVentaId = 1 por defecto)
@@ -266,6 +269,7 @@ public class VentaService : IVentaService
                         "CAJA_NO_ABIERTA");
                 }
             }
+            */
 
             // 5. Si hay pago en cuenta corriente, exigir cliente asociado
             if (montoCuentaCorriente > 0 && request.ClienteId is null)
@@ -331,6 +335,9 @@ public class VentaService : IVentaService
 
             await _unitOfWork.SaveChangesAsync();
 
+            // REACTIVAR CAJA: descomentar para volver a registrar el ingreso de caja por ventas en efectivo.
+            // Desactivado temporalmente junto con la funcionalidad de caja.
+            /*
             // Registrar monto en efectivo como ingreso de caja (solo efectivo)
             if (montoEfectivo > 0)
             {
@@ -344,6 +351,7 @@ public class VentaService : IVentaService
                         ventaId, cajaResult.ErrorMessage);
                 }
             }
+            */
 
             await _unitOfWork.CommitTransactionAsync();
 
@@ -481,19 +489,25 @@ public class VentaService : IVentaService
             var mediosPago = await _unitOfWork.MediosPago.GetAllAsync();
             var mediosPagoDict = mediosPago.ToDictionary(m => m.Id);
 
-            var montoEfectivo = 0m;
+            // REACTIVAR CAJA: descomentar el cálculo de montoEfectivo (abajo, dentro del foreach) junto con
+            // el bloque "Revertir ingreso de caja en efectivo" para volver a revertir caja al anular.
             var montoCuentaCorriente = 0m;
             foreach (var pago in venta.Pagos)
             {
                 if (mediosPagoDict.TryGetValue(pago.MedioPagoId, out var mp))
                 {
-                    if (mp.EsSistema)
-                        montoEfectivo += pago.Monto;
-                    else if (mp.EsCuentaCorriente)
+                    // REACTIVAR CAJA: descomentar estas dos líneas para recalcular el efectivo a revertir.
+                    // if (mp.EsSistema)
+                    //     montoEfectivo += pago.Monto;
+                    if (mp.EsCuentaCorriente)
                         montoCuentaCorriente += pago.Monto;
                 }
             }
 
+            // REACTIVAR CAJA: descomentar para volver a revertir el ingreso de caja al anular una venta en efectivo.
+            // Desactivado temporalmente junto con la funcionalidad de caja (requiere también descomentar el
+            // cálculo de montoEfectivo arriba y declarar la variable local).
+            /*
             // 3. Revertir ingreso de caja en efectivo (si corresponde)
             if (montoEfectivo > 0)
             {
@@ -506,7 +520,10 @@ public class VentaService : IVentaService
                     return Result<VentaDto>.Failure(reversoCaja.ErrorMessage!, reversoCaja.ErrorCode);
                 }
             }
+            */
 
+            // NOTA: con el medio Cuenta Corriente oculto, montoCuentaCorriente es 0 en ventas nuevas;
+            // este bloque queda inerte salvo datos históricos con pagos en cuenta corriente.
             // 4. Revertir cargo en cuenta corriente (si corresponde)
             if (montoCuentaCorriente > 0 && venta.ClienteId is not null)
             {

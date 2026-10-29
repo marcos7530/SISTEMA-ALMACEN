@@ -25,15 +25,9 @@
 else
 {
     <!-- Cliente Section -->
-    @* La venta queda fija a Consumidor Final: se oculta la selección de cliente.
+    @* La venta queda fija a Consumidor Final: no se muestra la tarjeta de cliente.
        El buscador/selector de cliente queda deshabilitado en la UI (reactivable más adelante,
        ver la Cliente Section original comentada abajo). *@
-    <div class="card mb-3">
-        <div class="card-header">Cliente</div>
-        <div class="card-body">
-            <span class="text-muted">Cliente: <strong>Consumidor Final</strong></span>
-        </div>
-    </div>
 
     @* --- Cliente Section original (reactivable) ---
     <div class="card mb-3">
@@ -207,7 +201,8 @@ else
                     var index = i;
                     <div class="row mb-2">
                         <div class="col-md-5">
-                            <select class="form-control" @bind="_pagos[index].MedioPagoId">
+                            <select class="form-control" @bind="_pagos[index].MedioPagoId"
+                                    @bind:after="() => OnMedioPagoChanged(index)">
                                 <option value="0">-- Seleccionar medio --</option>
                                 @foreach (var mp in _mediosPago)
                                 {
@@ -237,6 +232,34 @@ else
                         <span class="text-danger ms-2">La suma debe ser igual al total ($@_total.ToString("N2"))</span>
                     }
                 </div>
+
+                @* Cálculo de vuelto: solo cuando la venta se paga únicamente en efectivo. *@
+                @if (PagoSoloEfectivo)
+                {
+                    <div class="row align-items-end mb-2">
+                        <div class="col-md-4">
+                            <label class="form-label mb-1"><strong>Efectivo recibido</strong></label>
+                            <input type="number" class="form-control form-control-lg"
+                                   placeholder="¿Con cuánto paga?" step="0.01" min="0"
+                                   @bind="_efectivoRecibido" @bind:event="oninput"
+                                   @onkeydown="HandleEfectivoKeyDown" />
+                        </div>
+                        <div class="col-md-8">
+                            @if (Vuelto is { } vuelto)
+                            {
+                                <div class="alert alert-success mb-0 py-2">
+                                    Vuelto: <strong class="fs-4">$@vuelto.ToString("N2")</strong>
+                                </div>
+                            }
+                            else if (EfectivoInsuficiente)
+                            {
+                                <div class="alert alert-warning mb-0 py-2">
+                                    Falta $@((_total - _efectivoRecibido!.Value).ToString("N2")) para cubrir el total.
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
 
                 <button class="btn btn-primary" @onclick="ConfirmarVenta"
                         disabled="@(_isLoading || !PagoValido)">
@@ -269,12 +292,36 @@ else
     private List<PagoItem> _pagos = new() { new PagoItem() };
     private List<MedioPagoItemDto> _mediosPago = new();
 
+    // Efectivo recibido del cliente (solo para calcular el vuelto; no se envía al backend).
+    private decimal? _efectivoRecibido;
+
     // Cliente (deshabilitado en la UI: la venta es siempre a Consumidor Final; reactivable más adelante)
     // private string _busquedaCliente = string.Empty;
     // private List<ClienteItemDto> _clientesDisponibles = new();
     // private ClienteItemDto? _clienteSeleccionado;
 
     private decimal SumaPagos => _pagos.Sum(p => p.Monto);
+
+    /// <summary>Indica si el medio de pago indicado corresponde a Efectivo (medio de sistema).</summary>
+    private bool EsEfectivo(int medioPagoId) =>
+        _mediosPago.FirstOrDefault(m => m.Id == medioPagoId)?.Nombre
+            .Equals("Efectivo", StringComparison.OrdinalIgnoreCase) == true;
+
+    /// <summary>
+    /// La venta se paga únicamente en efectivo (un solo pago y ese medio es Efectivo).
+    /// Solo en ese caso tiene sentido pedir el efectivo recibido y calcular el vuelto.
+    /// </summary>
+    private bool PagoSoloEfectivo => _pagos.Count == 1 && EsEfectivo(_pagos[0].MedioPagoId);
+
+    /// <summary>Vuelto a entregar = efectivo recibido − total. Null si aún no se ingresó el recibido.</summary>
+    private decimal? Vuelto =>
+        _efectivoRecibido is { } recibido && recibido >= _total
+            ? recibido - _total
+            : null;
+
+    /// <summary>True cuando lo recibido es positivo pero no alcanza a cubrir el total.</summary>
+    private bool EfectivoInsuficiente =>
+        _efectivoRecibido is { } recibido && recibido > 0 && recibido < _total;
 
     // RequiereCliente queda deshabilitado: ya no se ofrece el medio de cuenta corriente en la venta,
     // por lo que nunca se requiere cliente. Se conserva comentado para reactivar cuenta corriente.
@@ -569,12 +616,46 @@ else
     private void AgregarPago()
     {
         _pagos.Add(new PagoItem());
+        // Con más de un medio de pago el flujo deja de ser "solo efectivo": se descarta el vuelto.
+        _efectivoRecibido = null;
     }
 
     private void RemoverPago(int index)
     {
         if (_pagos.Count > 1)
             _pagos.RemoveAt(index);
+
+        if (!PagoSoloEfectivo)
+            _efectivoRecibido = null;
+    }
+
+    /// <summary>
+    /// Al cambiar el medio de pago, si la venta queda como pago único en efectivo autocompleta
+    /// el monto con el total (flujo más fluido para el cajero). Si deja de ser efectivo, limpia
+    /// el efectivo recibido para que no quede un vuelto obsoleto en pantalla.
+    /// </summary>
+    private void OnMedioPagoChanged(int index)
+    {
+        if (PagoSoloEfectivo)
+        {
+            _pagos[index].Monto = _total;
+        }
+        else
+        {
+            _efectivoRecibido = null;
+        }
+    }
+
+    /// <summary>
+    /// Permite confirmar la venta presionando Enter desde el campo de efectivo recibido,
+    /// evitando tener que ir al botón con el mouse.
+    /// </summary>
+    private async Task HandleEfectivoKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && PagoValido && !_isLoading)
+        {
+            await ConfirmarVenta();
+        }
     }
 
     private async Task ConfirmarVenta()
@@ -605,6 +686,7 @@ else
                 _detalles.Clear();
                 _total = 0;
                 _pagos = new() { new PagoItem() };
+                _efectivoRecibido = null;
                 // Selección de cliente deshabilitada (venta siempre a Consumidor Final; reactivable).
                 // _clienteSeleccionado = null;
                 // _busquedaCliente = string.Empty;

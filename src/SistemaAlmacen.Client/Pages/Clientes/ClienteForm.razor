@@ -1,5 +1,6 @@
-@page "/clientes/crear"
-@page "/clientes/editar/{Id:int}"
+@* REACTIVAR CLIENTES: descomentar ambas líneas @page para volver a exponer crear/editar. El parámetro [Parameter] int Id del bloque @code se conserva. *@
+@* @page "/clientes/crear" *@
+@* @page "/clientes/editar/{Id:int}" *@
 @attribute [Authorize(Roles = "Administrador")]
 @inject HttpClient Http
 @inject NavigationManager Navigation

@@ -1,7 +1,8 @@
 @* Pantalla de cuenta corriente deshabilitada por UI: no hay punto de entrada desde la interfaz
    (el botón "Cta. Cte." de la lista de clientes está oculto). Se conserva la página y su lógica
-   para reactivarla más adelante; no eliminar. *@
-@page "/clientes/{ClienteId:int}/cuenta-corriente"
+   para reactivarla más adelante; no eliminar.
+   REACTIVAR CUENTA CORRIENTE: descomentar la línea @page para volver a exponer la pantalla. *@
+@* @page "/clientes/{ClienteId:int}/cuenta-corriente" *@
 @attribute [Authorize(Roles = "Administrador")]
 @inject HttpClient Http
 @inject NavigationManager Navigation
