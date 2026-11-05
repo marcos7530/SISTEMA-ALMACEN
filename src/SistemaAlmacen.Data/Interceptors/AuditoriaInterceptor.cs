@@ -27,6 +27,7 @@ namespace SistemaAlmacen.Data.Interceptors;
 public class AuditoriaInterceptor : SaveChangesInterceptor
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ICurrentUserContext _currentUserContext;
     private readonly ILogger<AuditoriaInterceptor> _logger;
 
     /// <summary>
@@ -58,9 +59,11 @@ public class AuditoriaInterceptor : SaveChangesInterceptor
 
     public AuditoriaInterceptor(
         IHttpContextAccessor httpContextAccessor,
+        ICurrentUserContext currentUserContext,
         ILogger<AuditoriaInterceptor> logger)
     {
         _httpContextAccessor = httpContextAccessor;
+        _currentUserContext = currentUserContext;
         _logger = logger;
     }
 
@@ -113,12 +116,17 @@ public class AuditoriaInterceptor : SaveChangesInterceptor
     {
         var auditEntries = new List<AuditoriaLog>();
 
-        // No auditar si no hay contexto HTTP (seeding, migraciones, jobs en background)
-        var httpContext = _httpContextAccessor.HttpContext;
-        if (httpContext is null)
+        // Resolver el usuario responsable de la operación:
+        // 1) HttpContext (flujo normal del request).
+        // 2) Usuario inyectado en el scope (background task que propagó el usuario que
+        //    originó la operación, ej: emisión de comprobante tras confirmar la venta).
+        // Si no hay ninguno (seeding/migraciones genuinos), NO se audita para evitar
+        // problemas de FK circular con el usuario del sistema durante el seeding.
+        var resolvedUserId = ResolveUserId();
+        if (resolvedUserId is null)
             return auditEntries;
 
-        var usuarioId = GetCurrentUserId();
+        var usuarioId = resolvedUserId.Value;
         var now = DateTime.UtcNow;
 
         // Detectar cambios pendientes (excluir las propias entradas de auditoría)
@@ -246,22 +254,41 @@ public class AuditoriaInterceptor : SaveChangesInterceptor
     }
 
     /// <summary>
-    /// Obtiene el ID del usuario actual desde el contexto HTTP (claims del JWT).
-    /// Si no hay contexto HTTP (ej: seeding, migraciones, jobs), retorna el ID de usuario del sistema.
+    /// Resuelve el ID del usuario responsable de la operación en curso.
+    ///
+    /// Orden de resolución:
+    /// 1. HttpContext autenticado: usuario del request (claims del JWT).
+    /// 2. Usuario inyectado en el scope (<see cref="ICurrentUserContext"/>): background
+    ///    task que propagó el usuario que originó la operación. Si no se pudo capturar
+    ///    el usuario pero igualmente se inyectó un scope de background, se usa
+    ///    <see cref="SystemUserId"/> como fallback.
+    /// 3. Ni HttpContext ni usuario inyectado (seeding/migraciones): retorna null para
+    ///    indicar que NO se debe auditar.
     /// </summary>
-    private int GetCurrentUserId()
+    private int? ResolveUserId()
     {
         var httpContext = _httpContextAccessor.HttpContext;
 
-        if (httpContext?.User?.Identity?.IsAuthenticated != true)
+        if (httpContext is not null)
+        {
+            if (httpContext.User?.Identity?.IsAuthenticated != true)
+                return SystemUserId;
+
+            var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)
+                              ?? httpContext.User.FindFirst("sub");
+
+            if (userIdClaim is not null && int.TryParse(userIdClaim.Value, out var userId))
+                return userId;
+
             return SystemUserId;
+        }
 
-        var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)
-                          ?? httpContext.User.FindFirst("sub");
+        // Sin HttpContext: intentar el usuario inyectado en el scope (background task).
+        var injectedUserId = _currentUserContext.UserId;
+        if (injectedUserId is not null)
+            return injectedUserId.Value > 0 ? injectedUserId.Value : SystemUserId;
 
-        if (userIdClaim is not null && int.TryParse(userIdClaim.Value, out var userId))
-            return userId;
-
-        return SystemUserId;
+        // Ni HttpContext ni usuario inyectado: seeding/migraciones. No auditar.
+        return null;
     }
 }

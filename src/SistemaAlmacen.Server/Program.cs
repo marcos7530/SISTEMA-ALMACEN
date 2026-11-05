@@ -87,6 +87,9 @@ builder.Services.AddScoped<SistemaAlmacen.Business.Interfaces.IEmailSender, Sist
 // --- HttpContextAccessor (necesario para AuditoriaInterceptor) ---
 builder.Services.AddHttpContextAccessor();
 
+// --- Usuario actual (propaga el usuario del request al scope de tareas en background) ---
+builder.Services.AddScoped<SistemaAlmacen.Data.Interceptors.ICurrentUserContext, SistemaAlmacen.Data.Interceptors.CurrentUserContext>();
+
 // --- Interceptor de Auditoría ---
 builder.Services.AddScoped<SistemaAlmacen.Data.Interceptors.AuditoriaInterceptor>();
 

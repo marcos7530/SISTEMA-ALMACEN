@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SistemaAlmacen.Business.Interfaces;
+using SistemaAlmacen.Data.Interceptors;
 using SistemaAlmacen.Shared.DTOs;
 using SistemaAlmacen.Shared.DTOs.Ventas;
 
@@ -115,6 +116,11 @@ public class VentasController : ControllerBase
             return BadRequest(new { message = result.ErrorMessage });
         }
 
+        // Capturar el usuario DENTRO del request (donde HttpContext todavía existe) para
+        // propagarlo al scope de la tarea en background y poder auditar la emisión del
+        // comprobante atribuyéndola al usuario que confirmó la venta.
+        var usuarioConfirmaId = GetCurrentUserId();
+
         // Disparar facturación AFIP de forma no bloqueante.
         // Si falla, la venta queda como pendiente de facturación.
         // IMPORTANTE: se crea un scope de DI propio para la tarea en background. No se pueden
@@ -126,6 +132,15 @@ public class VentasController : ControllerBase
             using var scope = _scopeFactory.CreateScope();
             var facturacionService = scope.ServiceProvider.GetRequiredService<IFacturacionService>();
             var logger = scope.ServiceProvider.GetRequiredService<ILogger<VentasController>>();
+
+            // Inyectar el usuario del request en el scope para que el AuditoriaInterceptor
+            // (que no tiene HttpContext aquí) atribuya la auditoría al usuario correcto.
+            if (usuarioConfirmaId is not null)
+            {
+                scope.ServiceProvider
+                    .GetRequiredService<ICurrentUserContext>()
+                    .SetUserId(usuarioConfirmaId.Value);
+            }
 
             try
             {
@@ -207,11 +222,20 @@ public class VentasController : ControllerBase
         // Igual que en ConfirmarVenta, se usa un scope de DI propio para la tarea en background.
         if (request.EmitirNotaCredito)
         {
+            // usuarioId ya fue capturado arriba dentro del request (HttpContext disponible).
+            var usuarioAnulaId = usuarioId.Value;
+
             _ = Task.Run(async () =>
             {
                 using var scope = _scopeFactory.CreateScope();
                 var facturacionService = scope.ServiceProvider.GetRequiredService<IFacturacionService>();
                 var logger = scope.ServiceProvider.GetRequiredService<ILogger<VentasController>>();
+
+                // Propagar el usuario del request al scope de la tarea en background para
+                // que el AuditoriaInterceptor atribuya la auditoría al usuario correcto.
+                scope.ServiceProvider
+                    .GetRequiredService<ICurrentUserContext>()
+                    .SetUserId(usuarioAnulaId);
 
                 try
                 {
