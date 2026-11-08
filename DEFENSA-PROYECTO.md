@@ -17,7 +17,9 @@
 
 ## 1. Resumen en 60 segundos (tu "elevator pitch")
 
-> "Desarrollé un sistema de Punto de Venta (POS) para un comercio tipo almacén. Permite gestionar productos y stock, registrar ventas con múltiples medios de pago, controlar la caja diaria, emitir facturación electrónica de AFIP, llevar cuentas corrientes de clientes y auditar todas las operaciones. Lo construí con una **arquitectura en capas** usando **.NET 10**: el frontend es una aplicación **Blazor WebAssembly** que funciona como **PWA** (puede operar sin conexión a internet), y el backend es una **API REST en ASP.NET Core** con **SQL Server** y **Entity Framework Core**. La seguridad se maneja con **tokens JWT** y contraseñas hasheadas con **BCrypt**. Lo hice completamente solo."
+> "Desarrollé un sistema de Punto de Venta (POS) para mi almacén de barrio. Permite gestionar productos y stock, registrar ventas con múltiples medios de pago (pago mixto), anular ventas con reposición de stock, emitir facturación electrónica de ARCA (ex AFIP) y auditar todas las operaciones. Lo construí con una **arquitectura en capas** usando **.NET 10**: el frontend es una aplicación **Blazor WebAssembly** que funciona como **PWA** (instalable), y el backend es una **API REST en ASP.NET Core** con **SQL Server** y **Entity Framework Core**. La seguridad se maneja con **tokens JWT** y contraseñas hasheadas con **BCrypt**. Lo hice completamente solo, y hoy está en uso real facturando con mis datos fiscales."
+
+> **Nota sobre el alcance:** el código incluye también control de caja, clientes con cuenta corriente y compras a proveedores, pero esos módulos están **desactivados en esta versión** y quedan como mejoras futuras. En la defensa conviene presentarlos así: "están desarrollados en el código pero no habilitados en esta entrega". Las ventas se registran a **Consumidor Final**.
 
 Memorizá la **idea**, no las palabras exactas. Si decís esto con soltura, ya arrancaste bien.
 
@@ -27,31 +29,42 @@ Memorizá la **idea**, no las palabras exactas. Si decís esto con soltura, ya a
 
 Un comercio necesita, día a día:
 - Saber qué productos tiene y cuánto stock le queda.
-- Cobrar ventas rápido, aceptando efectivo, tarjeta, transferencia o "fiado" (cuenta corriente).
-- Controlar cuánta plata entró y salió de la caja.
-- Cumplir con la obligación legal de facturar (AFIP en Argentina).
+- Cobrar ventas rápido, aceptando efectivo, tarjeta o transferencia (incluso combinados en una misma venta).
+- Corregir errores: anular una venta reponiendo el stock.
+- Cumplir con la obligación legal de facturar (ARCA/AFIP en Argentina).
 - Tener un registro de quién hizo qué (auditoría), para control interno.
 
-El sistema reemplaza el cuaderno/planilla manual por una herramienta integrada, con control de acceso por roles y trazabilidad completa.
+El sistema reemplaza el cuaderno y las planillas de Excel por una herramienta integrada, con control de acceso por roles y trazabilidad completa.
 
 ---
 
 ## 3. Módulos del sistema (qué mostrar en la demo)
 
+**Módulos activos en esta versión:**
+
 | Módulo | Qué hace | Rol que lo usa |
 |--------|----------|----------------|
 | **Autenticación** | Login, recuperación de contraseña por email, bloqueo tras intentos fallidos | Todos |
 | **Usuarios** | Alta/baja/modificación de usuarios y asignación de roles | Administrador |
-| **Categorías** | ABM de categorías de productos | Admin (edita), Vendedor (lee) |
-| **Productos / Stock** | ABM de productos, control de stock, movimientos de stock, reposición por código de barras | Admin (edita), Vendedor (lee) |
-| **Ventas** | Registro de venta paso a paso (borrador → confirmada), pago mixto, anulación con reposición de stock | Vendedor y Admin |
-| **Medios de Pago** | Gestión de formas de pago (efectivo, tarjetas, transferencia, cuenta corriente) | Administrador |
-| **Caja** | Apertura y cierre de caja, retiros, ingresos, arqueo | Vendedor (abre/cierra), Admin (retiros) |
-| **Cuenta Corriente** | Ventas "fiadas" a clientes, registro de cargos y pagos | Admin / Vendedor |
-| **Facturación AFIP** | Emisión de comprobantes electrónicos, reintentos ante fallo | Administrador |
-| **Reportes** | Ventas, productos más vendidos, inventario; exportación a PDF/Excel/CSV | Administrador |
+| **Categorías** | ABM de categorías de productos, con margen de ganancia | Admin (edita), Vendedor (lee) |
+| **Productos / Stock** | ABM de productos, control de stock, movimientos de stock, reposición por código de barras, baja de stock por motivo, alerta de stock bajo | Admin (edita), Vendedor (lee) |
+| **Ventas** | Registro de venta paso a paso (borrador → confirmada), búsqueda por nombre o código de barras, pago mixto, anulación con reposición de stock y nota de crédito opcional. Venta a Consumidor Final | Vendedor y Admin |
+| **Medios de Pago** | Gestión de formas de pago (efectivo, tarjetas, transferencia) | Administrador |
+| **Facturación ARCA/AFIP** | Emisión de comprobantes electrónicos (factura y nota de crédito), reintentos ante fallo, PDF y envío por email | Administrador |
+| **Reportes** | Ventas, productos más vendidos, inventario, stock bajo; exportación a PDF/Excel | Administrador |
+| **Dashboard** | Indicadores y gráficos (ventas por día, por medio de pago, top de productos) | Administrador |
 | **Auditoría** | Historial automático de todas las operaciones | Administrador |
-| **Offline / PWA** | Registrar ventas sin internet y sincronizarlas al recuperar conexión | Todos |
+
+**Módulos desarrollados en el código pero DESACTIVADOS en esta versión (mejoras futuras):**
+
+| Módulo | Estado |
+|--------|--------|
+| **Caja** (apertura, cierre, arqueo, movimientos) | Código presente; UI y lógica desactivadas de forma reversible |
+| **Clientes y Cuenta Corriente** (ventas "fiadas") | Código presente; desactivados. La venta va siempre a Consumidor Final |
+| **Compras y Proveedores** | Código presente; desactivados |
+| **Offline / PWA sin conexión** | La app es PWA instalable y existe la base de código offline, pero el registro de ventas sin conexión no está habilitado en las pantallas |
+
+> **En la defensa:** si preguntan por caja, cuenta corriente, compras u offline, respondé con honestidad: "están desarrollados en el código pero quedaron desactivados en esta versión; son parte de las mejoras futuras". No muestres esos módulos en la demo.
 
 ---
 
@@ -89,7 +102,7 @@ El proyecto está dividido en **5 proyectos** (capas), cada uno con una responsa
 
 - **Server (API / Presentación del backend):** Expone los **endpoints REST** (`/api/ventas`, `/api/productos`, etc.). Se encarga de la **autenticación y autorización** (validar el token JWT, chequear roles), y de traducir las peticiones HTTP en llamadas a la capa de negocio. No tiene lógica de negocio: solo coordina.
 
-- **Business (Lógica de Negocio):** El **corazón del sistema**. Acá viven las reglas: "no se puede vender sin stock", "la suma de los pagos tiene que coincidir con el total", "no se puede cobrar en efectivo sin una caja abierta". Está organizado en **Services** (un servicio por módulo: `VentaService`, `StockService`, etc.).
+- **Business (Lógica de Negocio):** El **corazón del sistema**. Acá viven las reglas: "no se puede vender sin stock", "la suma de los pagos tiene que coincidir con el total", "solo se pueden anular ventas confirmadas". Está organizado en **Services** (un servicio por módulo: `VentaService`, `StockService`, etc.).
 
 - **Data (Acceso a Datos):** Habla con la base de datos a través de **Entity Framework Core**. Contiene las **entidades** (las clases que mapean a las tablas), los **repositorios** (que encapsulan las consultas) y el **Unit of Work** (que coordina las transacciones).
 
@@ -116,10 +129,10 @@ Esta es **la pregunta estrella** de cualquier defensa. Para cada tecnología ten
 |-----------|--------|------------------|
 | **.NET 10 / C#** | Plataforma y lenguaje de Microsoft | Lenguaje fuertemente tipado, moderno, con gran ecosistema y soporte. Permite compartir código C# entre front y back. |
 | **Blazor WebAssembly** | Framework para hacer SPAs con C# que corren en el navegador | Me permitió usar **un solo lenguaje (C#)** en todo el proyecto, en vez de aprender JavaScript/React aparte. Reutilizo DTOs y validaciones. |
-| **PWA (Progressive Web App)** | App web instalable que funciona offline | Un comercio no puede parar de vender si se cae internet. La PWA permite **seguir registrando ventas sin conexión** y sincronizar después. |
+| **PWA (Progressive Web App)** | App web instalable en el dispositivo | Permite instalar el sistema como una aplicación y abrirlo rápido. La base para operar sin conexión está en el código, pero no está habilitada en esta versión. |
 | **ASP.NET Core Web API** | Framework para construir APIs REST | Estándar de la industria, alto rendimiento, integración nativa con el resto de .NET. |
 | **Entity Framework Core 10** | ORM (Object-Relational Mapper) | Me evita escribir SQL a mano: trabajo con objetos C# y EF genera las consultas. Maneja migraciones, relaciones y transacciones. |
-| **SQL Server** | Base de datos relacional | Datos estructurados y relacionados (ventas, productos, clientes) con necesidad de **integridad referencial y transacciones**. Un POS maneja dinero: necesito consistencia fuerte (ACID). |
+| **SQL Server** | Base de datos relacional | Datos estructurados y relacionados (ventas, detalles, pagos, productos, categorías) con necesidad de **integridad referencial y transacciones**. Un POS maneja dinero: necesito consistencia fuerte (ACID). |
 | **JWT (JSON Web Token)** | Estándar de tokens para autenticación | Es **stateless**: el servidor no guarda sesiones, el token lleva la identidad y el rol firmados. Ideal para una API que atiende a un cliente SPA. |
 | **BCrypt** | Algoritmo de hashing de contraseñas | Nunca se guardan contraseñas en texto plano. BCrypt es lento a propósito (resistente a fuerza bruta) e incluye *salt* automático. |
 | **QuestPDF** | Librería para generar PDFs | Para los comprobantes de venta y reportes en PDF. API moderna y en C#. |
@@ -132,7 +145,7 @@ Esta es **la pregunta estrella** de cualquier defensa. Para cada tecnología ten
 Porque me permitía trabajar **con un solo lenguaje (C#)** en todo el stack, reutilizar las clases de DTOs y validaciones entre cliente y servidor, y no tener que mantener dos ecosistemas distintos (npm + nuget). Para un proyecto hecho por una sola persona, reduce muchísimo la complejidad.
 
 **"¿Por qué SQL Server y no MongoDB / una base NoSQL?"**
-Porque los datos de un POS están **fuertemente relacionados** (una venta tiene detalles, que referencian productos, que pertenecen a categorías) y necesito **transacciones ACID**: cuando confirmo una venta, se tiene que descontar el stock, registrar los pagos y mover la caja **todo junto o nada**. Una base relacional con transacciones es la elección natural. NoSQL brilla en otros escenarios (datos no estructurados, escala horizontal masiva) que no son mi caso.
+Porque los datos de un POS están **fuertemente relacionados** (una venta tiene detalles, que referencian productos, que pertenecen a categorías) y necesito **transacciones ACID**: cuando confirmo una venta, se tiene que descontar el stock, registrar los pagos **todo junto o nada**. Una base relacional con transacciones es la elección natural. NoSQL brilla en otros escenarios (datos no estructurados, escala horizontal masiva) que no son mi caso.
 
 **"¿Por qué una API REST y no que Blazor acceda directo a la base?"**
 Por **seguridad y separación de responsabilidades**. El cliente corre en el navegador del usuario, no es confiable. Toda la lógica de negocio y el acceso a datos quedan del lado del servidor, detrás de autenticación. El cliente solo pide y muestra datos.
@@ -151,9 +164,9 @@ Esta sección es clave porque pediste énfasis en patrones. Para cada uno: *qué
 ### 6.2 Unit of Work (Unidad de Trabajo)
 - **Qué es:** un objeto que agrupa varios repositorios y coordina una **transacción única**. Expone `BeginTransactionAsync`, `CommitTransactionAsync`, `RollbackTransactionAsync` y `SaveChangesAsync`.
 - **Dónde:** `Data/Repositories/UnitOfWork.cs`.
-- **Qué resuelve:** cuando confirmo una venta, tengo que tocar varias tablas (stock, pagos, caja, cuenta corriente). El Unit of Work garantiza que **todo se guarde junto o se revierta junto**. Si algo falla, hace `Rollback` y la base queda intacta. Esto es fundamental porque el sistema maneja dinero.
+- **Qué resuelve:** cuando confirmo una venta, tengo que tocar varias tablas (venta, detalles, pagos, stock). El Unit of Work garantiza que **todo se guarde junto o se revierta junto**. Si algo falla, hace `Rollback` y la base queda intacta. Esto es fundamental porque el sistema maneja dinero.
 
-> **Ejemplo concreto para la demo/defensa:** en `VentaService.ConfirmVentaAsync` arranco con `BeginTransactionAsync()`, voy validando y modificando (stock, pagos, caja), y solo al final hago `CommitTransactionAsync()`. Si cualquier validación falla, hago `RollbackTransactionAsync()` y devuelvo un error claro.
+> **Ejemplo concreto para la demo/defensa:** en `VentaService.ConfirmVentaAsync` arranco con `BeginTransactionAsync()`, voy validando y modificando (stock, pagos), y solo al final hago `CommitTransactionAsync()`. Si cualquier validación falla, hago `RollbackTransactionAsync()` y devuelvo un error claro.
 
 ### 6.3 Dependency Injection (Inyección de Dependencias)
 - **Qué es:** en vez de que una clase cree sus dependencias, las recibe "desde afuera" (por el constructor). El framework de .NET las provee automáticamente.
@@ -200,19 +213,16 @@ Usé el enfoque **Code First**: defino las tablas como **clases C# (entidades)**
 | `Usuario` | Usuarios del sistema (con rol, hash de contraseña, control de bloqueo) |
 | `Categoria` | Categorías de productos |
 | `Producto` | Productos con precio, stock, código de barras |
-| `Venta` | Cabecera de una venta (fecha, total, estado, vendedor, cliente) |
+| `Venta` | Cabecera de una venta (fecha, total, estado, vendedor; en esta versión siempre a Consumidor Final) |
 | `DetalleVenta` | Cada línea de una venta (producto, cantidad, precio, subtotal) |
 | `VentaPago` | Cada pago de una venta (permite pago mixto) |
-| `MedioPago` | Formas de pago (efectivo, tarjetas, transferencia, cuenta corriente) |
-| `Caja` | Apertura/cierre de caja |
-| `CajaMovimiento` | Movimientos de caja (ingresos, retiros, ventas en efectivo) |
+| `MedioPago` | Formas de pago (efectivo, tarjetas, transferencia) |
 | `MovimientoStock` | Historial de cambios de stock (ingresos, bajas) |
-| `Cliente` | Clientes (para cuenta corriente y facturación) |
-| `MovimientoCuentaCorriente` | Cargos y pagos de cuenta corriente |
-| `Comprobante` | Comprobantes de facturación AFIP |
-| `Proveedor` / `Compra` / `DetalleCompra` | Gestión de compras a proveedores |
+| `Comprobante` | Comprobantes de facturación ARCA/AFIP (facturas y notas de crédito) |
 | `AuditoriaLog` | Registro de todas las operaciones |
 | `TokenRecuperacion` | Tokens para recuperar contraseña |
+
+> Las tablas `Caja`, `CajaMovimiento`, `Cliente`, `MovimientoCuentaCorriente`, `Proveedor`, `Compra` y `DetalleCompra` existen en la base pero corresponden a los módulos desactivados (caja, cuenta corriente y compras). No se usan en esta versión.
 
 ### 7.3 Relaciones y normalización
 
@@ -223,9 +233,9 @@ Ejemplos de relaciones:
 - `Venta` **1 → N** `VentaPago` (una venta puede tener varios pagos → **pago mixto**).
 - `DetalleVenta` **N → 1** `Producto`.
 - `Producto` **N → 1** `Categoria`.
-- `Venta` **N → 1** `Cliente` (opcional, solo si es cuenta corriente).
+- `Venta` **1 → N** `Comprobante` (factura y, si se anula, nota de crédito).
 
-> **Decisión de diseño defendible — separar `VentaPago` de `Venta`:** no puse un solo campo "medio de pago" en la venta, sino una tabla aparte. ¿Por qué? Porque una venta puede pagarse **de varias formas a la vez** (ej: $500 en efectivo + $500 con tarjeta). Esto es **pago mixto**, y la única forma limpia de modelarlo es con una relación 1 a N.
+> **Decisión de diseño defendible — separar `VentaPago` de `Venta`:** no puse un solo campo "medio de pago" en la venta, sino una tabla aparte. ¿Por qué? Porque una venta puede pagarse **de varias formas a la vez** (ej: $500 en efectivo + $500 por transferencia). Esto es **pago mixto**, y la única forma limpia de modelarlo es con una relación 1 a N.
 
 ### 7.4 Integridad y transacciones
 
@@ -265,44 +275,41 @@ Tras varios intentos de login fallidos, la cuenta se **bloquea temporalmente** (
 
 ---
 
-## 9. Funcionalidad offline (PWA) — tu diferencial
+## 9. PWA y base para funcionamiento offline (mejora futura)
 
-Esta es una feature que **impresiona** y conviene mostrarla. Explicación:
+El cliente es una **PWA** (Progressive Web App): tiene un *Service Worker* que cachea la app y permite **instalarla** en el dispositivo como una aplicación.
 
-- El cliente es una **PWA**: tiene un *Service Worker* que cachea la app, así puede abrirse sin internet.
-- Hay un módulo `Offline` en el cliente con:
-  - `ConnectivityService`: detecta si hay o no conexión.
-  - `OfflineStorageService`: guarda ventas pendientes localmente (en el navegador).
-  - `SyncEngine`: cuando vuelve la conexión, **sincroniza automáticamente** las ventas pendientes con el servidor.
-- **Caso de uso:** se corta internet, el vendedor sigue cobrando, las ventas quedan guardadas en el dispositivo, y al volver la conexión se suben solas.
+En el código existe además la base para operar sin conexión (un módulo `Offline` con `ConnectivityService`, `OfflineStorageService` y `SyncEngine`), pensado para que el vendedor pueda seguir cobrando si se cae internet y que las ventas se sincronicen al reconectar.
 
-> Si te preguntan por conflictos: las ventas offline se encolan y se procesan al reconectar; el servidor sigue siendo la fuente de verdad y revalida stock al sincronizar.
+> **Importante para la defensa:** el registro de ventas sin conexión **no está habilitado en esta versión**. Presentalo como una mejora futura: "dejé armada la base en el código, pero no la habilité en esta entrega". No lo muestres en la demo como si funcionara.
 
 ---
 
 ## 10. Testing
 
-El proyecto tiene tres niveles de pruebas (carpeta `tests/`):
-- **Unit tests** (`Business.Tests`): prueban la lógica de negocio de forma aislada, usando **Moq** para simular dependencias.
-- **Property-based testing** (`FsCheck`): en vez de probar casos puntuales, genera cientos de casos aleatorios para verificar propiedades (ej: "el total de una venta siempre es la suma de sus subtotales").
-- **Tests de repositorios** (`Data.Tests`): usan **SQLite en memoria** para probar las consultas sin necesitar un SQL Server real.
-- **Tests de integración** (`Integration.Tests`): usan `WebApplicationFactory` para probar la API de punta a punta (request HTTP real → respuesta).
+La solución está preparada con tres proyectos de prueba (carpeta `tests/`: `Business.Tests`, `Data.Tests`, `Integration.Tests`) usando **xUnit**, **FsCheck**, **FluentAssertions** y **Moq**.
 
-> Si te preguntan "¿probaste tu código?": sí, tengo tests unitarios, de integración y property-based, cubriendo la lógica crítica como ventas y stock.
+Las pruebas automatizadas que hoy están implementadas cubren:
+- **El cálculo de ventas** con *property-based testing* (FsCheck): verifica propiedades como "el total de una venta siempre es la suma de sus subtotales".
+- **El patrón Result** (manejo de éxito/error).
+- **La conversión de zona horaria de Argentina** (fechas locales/UTC en historiales y reportes).
+
+El resto de la validación se hizo con **pruebas funcionales manuales** sobre los flujos reales (venta, anulación, facturación, reportes), ya que el sistema está en uso.
+
+> Si te preguntan "¿probaste tu código?": sé honesto. "Tengo pruebas automatizadas sobre la lógica crítica de cálculo de ventas (con property-based testing), el patrón Result y la zona horaria; el resto lo validé con pruebas funcionales manuales en producción. Ampliar la cobertura de pruebas automatizadas es una de mis mejoras pendientes." La honestidad suma más que exagerar.
 
 ---
 
 ## 11. Metodología de desarrollo
 
-Pediste énfasis acá. Puntos para mencionar (ajustá a lo que realmente hiciste):
+- **Kanban con desarrollo incremental por iteraciones:** usé un tablero en **Trello** con tarjetas de funcionalidades que avanzaban por las columnas (por hacer, en curso, hecho). Fui construyendo módulo por módulo (primero autenticación y usuarios, después productos/stock, después ventas, facturación, reportes), cada uno funcional antes de pasar al siguiente.
+- **No usé Scrum** porque el proyecto lo hice una sola persona: Scrum necesita un equipo con roles (Scrum Master, Product Owner, equipo). Kanban se adapta mejor al trabajo individual.
+- **Control de versiones con Git y GitHub:** llevé el historial del proyecto con commits incrementales.
+- **Entorno de desarrollo:** Visual Studio Code.
+- **Desarrollo guiado por requisitos:** cada módulo nació de requisitos concretos (pago mixto, bloqueo de cuenta por intentos fallidos, auditoría automática).
+- **Diseño por capas desde el inicio:** definí la arquitectura antes de codear, lo que me permitió trabajar ordenado y probar cada capa por separado.
 
-- **Desarrollo incremental por módulos:** fui construyendo módulo por módulo (primero autenticación y usuarios, después productos/stock, después ventas, etc.), cada uno funcional antes de pasar al siguiente.
-- **Control de versiones con Git:** llevé el historial del proyecto con commits incrementales.
-- **Desarrollo guiado por requisitos:** cada módulo nació de requisitos concretos (por ejemplo, el manejo de pago mixto, el bloqueo de cuenta, la auditoría automática).
-- **Diseño por capas desde el inicio:** definí la arquitectura antes de codear, lo que me permitió trabajar ordenado y testear cada capa por separado.
-- **Pruebas automatizadas** para validar la lógica crítica.
-
-> Si seguiste algo tipo Scrum/Kanban personal, iteraciones, o un tablero de tareas, mencionalo. Si no, "desarrollo incremental e iterativo" es una descripción honesta y correcta.
+> Si preguntan por Scrum, respondé con criterio: "evalué Scrum pero no aplica bien a un proyecto de una sola persona; usé Kanban, que sí". Eso muestra que entendés las metodologías, no que las ignorás.
 
 ---
 
@@ -323,8 +330,8 @@ Pediste énfasis acá. Puntos para mencionar (ajustá a lo que realmente hiciste
 - Cerrá con **seguridad** (JWT + BCrypt + roles).
 
 ### Minuto 25–30 · Cierre y preguntas
-- Resumí: "En síntesis, es un sistema en capas, seguro, testeado, que resuelve un problema real de un comercio."
-- Mencioná **mejoras futuras** (muestra madurez): reportes más avանzados, app móvil nativa, multi-sucursal, integración de pagos con QR.
+- Resumí: "En síntesis, es un sistema en capas, seguro, que resuelve un problema real de un comercio y hoy está en uso facturando de verdad."
+- Mencioná **mejoras futuras** (muestra madurez): activar el control de caja, las compras a proveedores y la cuenta corriente de clientes (ya desarrollados), habilitar la operación sin conexión, ampliar la cobertura de pruebas automatizadas, app móvil nativa y multi-sucursal.
 - Abrí el espacio a preguntas.
 
 ---
@@ -336,18 +343,18 @@ Pediste énfasis acá. Puntos para mencionar (ajustá a lo que realmente hiciste
 **Secuencia recomendada (cuenta una historia: "un día en el comercio"):**
 
 1. **Login** como administrador (`admin@sistema.local` / `Admin123!`). Comentá: "la autenticación usa JWT".
-2. **Mostrar productos y stock.** Crear una categoría y un producto nuevo. Comentá el control de stock.
-3. **Abrir la caja** (como paso previo a vender). Comentá: "no se puede cobrar en efectivo sin caja abierta, es una regla de negocio".
-4. **Registrar una venta:**
-   - Agregar productos al carrito.
+2. **Mostrar productos y stock.** Crear una categoría y un producto nuevo. Comentá el control de stock, la alerta de stock bajo y la reposición por escaneo de código de barras.
+3. **Registrar una venta:**
+   - Buscar productos por nombre o código de barras y agregarlos al carrito.
    - Mostrar que valida stock.
-   - Confirmar con **pago mixto** (parte efectivo, parte tarjeta) → este es el momento "wow".
-5. **Mostrar el historial de ventas** y el detalle de la venta recién hecha.
-6. **Anular una venta** y mostrar que el **stock se repone** automáticamente.
-7. **Mostrar un reporte** y exportarlo a PDF o Excel.
+   - Confirmar con **pago mixto** (parte efectivo, parte transferencia) → este es el momento "wow".
+4. **Mostrar el historial de ventas** y el detalle de la venta recién hecha, con el PDF del comprobante.
+5. **Anular una venta** y mostrar que el **stock se repone** automáticamente y que se emite la **nota de crédito**.
+6. **Mostrar la facturación electrónica:** la configuración de ARCA en producción y una factura con CAE y QR.
+7. **Mostrar un reporte** y exportarlo a PDF o Excel; mostrar el **dashboard** con los gráficos.
 8. **Mostrar la auditoría:** señalá que todas las operaciones anteriores quedaron registradas automáticamente.
-9. **(Opcional, si tenés tiempo y anda bien) Demo offline:** cortá la conexión (DevTools → Network → Offline), registrá una venta, volvé a conectar y mostrá cómo sincroniza.
-10. **Cerrar la caja** y mostrar el arqueo.
+
+> No incluyas en la demo caja, cuenta corriente, compras ni el modo offline: están desactivados en esta versión.
 
 > **Plan B si algo falla en la demo:** tené **capturas de pantalla** de cada paso. Si la demo en vivo se rompe, mostrás las capturas y seguís. Nunca te quedes trabado peleando con un error en vivo: "tengo capturas por si la conexión fallaba", y adelante.
 
@@ -380,7 +387,7 @@ R: No, uso soft delete con un campo `Activo`. Así conservo el historial y no ro
 
 ### Transacciones y consistencia
 **P: ¿Qué pasa si falla algo en el medio de confirmar una venta?**
-R: Toda la confirmación corre dentro de una transacción coordinada por el Unit of Work. Si cualquier paso falla (stock, pago, caja), hago rollback y la base queda exactamente como estaba. Nunca queda una venta a medias.
+R: Toda la confirmación corre dentro de una transacción coordinada por el Unit of Work. Si cualquier paso falla (stock, pagos), hago rollback y la base queda exactamente como estaba. Nunca queda una venta a medias.
 
 **P: ¿Qué es ACID?**
 R: Son las propiedades de una transacción: Atomicidad (todo o nada), Consistencia (la base queda en estado válido), Aislamiento (las transacciones no se pisan) y Durabilidad (una vez confirmado, persiste). Mi sistema las aprovecha para operaciones con dinero.
@@ -407,7 +414,7 @@ R: Es recibir las dependencias desde afuera (por constructor) en vez de crearlas
 
 ### Testing
 **P: ¿Cómo probaste el sistema?**
-R: Con tests unitarios de la lógica de negocio (usando Moq para aislar dependencias), property-based testing con FsCheck, tests de repositorios con SQLite en memoria, y tests de integración de la API con WebApplicationFactory.
+R: Tengo pruebas automatizadas con xUnit y FsCheck sobre la lógica crítica: el cálculo de ventas (property-based testing), el patrón Result y la conversión de zona horaria. La solución tiene además los proyectos de prueba de negocio, datos e integración preparados. El resto lo validé con pruebas funcionales manuales sobre los flujos reales, ya que el sistema está en uso facturando. Ampliar la cobertura automatizada es una mejora pendiente que tengo identificada.
 
 ### Generales / trampa
 **P: Si tuvieras que hacerlo de nuevo, ¿qué cambiarías?**
@@ -417,7 +424,7 @@ R: (Respuesta honesta que muestra madurez) Por ejemplo, implementar refresh toke
 R: Sí, desarrollé todo el sistema de forma individual: la arquitectura, el backend, el frontend, la base de datos y las pruebas.
 
 **P: ¿Qué fue lo más difícil?**
-R: (Elegí algo real) Por ejemplo: coordinar la transacción de confirmación de venta, que toca stock, pagos, caja y cuenta corriente, garantizando que todo sea atómico y consistente. O la sincronización offline.
+R: (Elegí algo real) Por ejemplo: coordinar la transacción de confirmación de venta, que toca la venta, sus detalles, los pagos y el stock, garantizando que todo sea atómico y consistente. O la integración con los servicios web de ARCA para la facturación electrónica.
 
 ---
 
